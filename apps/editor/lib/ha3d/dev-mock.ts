@@ -1,5 +1,5 @@
-import { getHomeAssistantRuntimeSnapshot, setHomeAssistantAdapter } from './runtime'
 import { MockHomeAssistantAdapter } from './mock-home-assistant-adapter'
+import { getHomeAssistantRuntimeSnapshot, setHomeAssistantAdapter } from './runtime'
 
 export function installDevelopmentHomeAssistantMock(): void {
   if (getHomeAssistantRuntimeSnapshot().adapter) return
