@@ -20,6 +20,7 @@ import { streetscapeHostPanel, streetscapePlugin } from '@pascal-app/plugin-stre
 import { treesHostPanel, treesPlugin } from '@pascal-app/plugin-trees'
 import { registerViewerPresentation } from '@pascal-app/viewer'
 import { webXRHostPanel, webXRPlugin } from '@webxr/plugin'
+import { ha3dHostPanel, ha3dPlugin } from './ha3d/plugin'
 
 // Idempotency guards: HMR can reload this module, but `registerNode`
 // throws on duplicate kinds. Flags live in the module closure so they
@@ -115,6 +116,8 @@ registerEditorHostPanel({
 })
 extendPluginDiscovery(async () => [webXRPlugin])
 registerEditorHostPanel(webXRHostPanel)
+extendPluginDiscovery(async () => [ha3dPlugin])
+registerEditorHostPanel(ha3dHostPanel)
 
 loadBuiltinsSync()
 void loadExternalPlugins()
