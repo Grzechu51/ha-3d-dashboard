@@ -108,10 +108,7 @@ export function upsertEntityBinding(binding: EntityBinding): void {
   ])
 }
 
-export function removeEntityBinding(
-  nodeId: string,
-  domain: SupportedHomeAssistantDomain,
-): void {
+export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssistantDomain): void {
   const next = snapshot.bindings.filter(
     (binding) => !(binding.nodeId === nodeId && binding.domain === domain),
   )
