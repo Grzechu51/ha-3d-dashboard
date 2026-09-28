@@ -2,11 +2,8 @@
 
 import { useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
-import { useMemo, useState, useSyncExternalStore } from 'react'
-import {
-  createEntityBinding,
-  isSupportedHomeAssistantDomain,
-} from '../../lib/ha3d/entity-binding'
+import { useState, useSyncExternalStore } from 'react'
+import { createEntityBinding, isSupportedHomeAssistantDomain } from '../../lib/ha3d/entity-binding'
 import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
   getHa3dProjectConfigSnapshot,
@@ -28,7 +25,9 @@ export default function Ha3dPanel() {
   const [query, setQuery] = useState('')
   const selectedIds = useViewer((state) => state.selection.selectedIds)
   const selectedNodeId = selectedIds.length === 1 ? selectedIds[0] : null
-  const selectedNode = useScene((state) => (selectedNodeId ? state.nodes[selectedNodeId] : undefined))
+  const selectedNode = useScene((state) =>
+    selectedNodeId ? state.nodes[selectedNodeId] : undefined,
+  )
   const runtime = useSyncExternalStore(
     subscribeHomeAssistantRuntime,
     getHomeAssistantRuntimeSnapshot,
@@ -40,22 +39,20 @@ export default function Ha3dPanel() {
     getHa3dProjectConfigSnapshot,
   )
 
-  const entities = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase()
-    return (runtime.adapter?.listEntities() ?? [])
-      .filter((entity) => {
-        const domain = entity.entityId.split('.')[0] ?? ''
-        return isSupportedHomeAssistantDomain(domain)
-      })
-      .filter((entity) => {
-        if (!needle) return true
-        return (
-          entity.entityId.toLocaleLowerCase().includes(needle) ||
-          friendlyName(entity).toLocaleLowerCase().includes(needle)
-        )
-      })
-      .sort((left, right) => friendlyName(left).localeCompare(friendlyName(right)))
-  }, [query, runtime.adapter, runtime.revision])
+  const needle = query.trim().toLocaleLowerCase()
+  const entities = (runtime.adapter?.listEntities() ?? [])
+    .filter((entity) => {
+      const domain = entity.entityId.split('.')[0] ?? ''
+      return isSupportedHomeAssistantDomain(domain)
+    })
+    .filter((entity) => {
+      if (!needle) return true
+      return (
+        entity.entityId.toLocaleLowerCase().includes(needle) ||
+        friendlyName(entity).toLocaleLowerCase().includes(needle)
+      )
+    })
+    .sort((left, right) => friendlyName(left).localeCompare(friendlyName(right)))
 
   const selectedBindings = selectedNodeId
     ? project.bindings.filter((binding) => binding.nodeId === selectedNodeId)
