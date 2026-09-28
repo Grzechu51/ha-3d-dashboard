@@ -1,6 +1,6 @@
 'use client'
 
-import { useScene } from '@pascal-app/core'
+import { type AnyNodeId, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useState, useSyncExternalStore } from 'react'
 import { createEntityBinding, isSupportedHomeAssistantDomain } from '../../lib/ha3d/entity-binding'
@@ -24,7 +24,7 @@ function friendlyName(entity: HomeAssistantEntityState): string {
 export default function Ha3dPanel() {
   const [query, setQuery] = useState('')
   const selectedIds = useViewer((state) => state.selection.selectedIds)
-  const selectedNodeId = selectedIds.length === 1 ? selectedIds[0] : null
+  const selectedNodeId = selectedIds.length === 1 ? (selectedIds[0] as AnyNodeId) : null
   const selectedNode = useScene((state) =>
     selectedNodeId ? state.nodes[selectedNodeId] : undefined,
   )
