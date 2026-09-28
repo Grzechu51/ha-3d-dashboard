@@ -14,12 +14,8 @@ afterEach(() => {
 
 describe('HA 3D project configuration', () => {
   test('keeps at most one binding per node and domain', () => {
-    upsertEntityBinding(
-      createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.first' }),
-    )
-    upsertEntityBinding(
-      createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.second' }),
-    )
+    upsertEntityBinding(createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.first' }))
+    upsertEntityBinding(createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.second' }))
     upsertEntityBinding(
       createEntityBinding({ nodeId: 'item_lamp', entityId: 'sensor.temperature' }),
     )
@@ -41,9 +37,7 @@ describe('HA 3D project configuration', () => {
   })
 
   test('round-trips through the Pascal presentation configuration seam', () => {
-    upsertEntityBinding(
-      createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.salon' }),
-    )
+    upsertEntityBinding(createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.salon' }))
     const persisted = ha3dProjectConfiguration.getSnapshot()
 
     resetHa3dProjectConfig()
@@ -79,9 +73,7 @@ describe('HA 3D project configuration', () => {
   })
 
   test('removes one domain without touching other bindings on the node', () => {
-    upsertEntityBinding(
-      createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.salon' }),
-    )
+    upsertEntityBinding(createEntityBinding({ nodeId: 'item_lamp', entityId: 'light.salon' }))
     upsertEntityBinding(
       createEntityBinding({ nodeId: 'item_lamp', entityId: 'sensor.temperature' }),
     )
