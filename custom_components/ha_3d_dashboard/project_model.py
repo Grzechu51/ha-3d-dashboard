@@ -42,6 +42,10 @@ class ProjectNotFoundError(ProjectError):
     """Raised when a project does not exist."""
 
 
+class EmptySceneRejectedError(ProjectError):
+    """Raised when a populated scene would be silently wiped."""
+
+
 class ProjectVersionConflictError(ProjectError):
     """Raised when optimistic concurrency detects a stale writer."""
 
@@ -207,6 +211,13 @@ def _normalize_persisted_project(
     return document
 
 
+def _scene_node_count(scene: Any) -> int:
+    if not isinstance(scene, dict):
+        return 0
+    nodes = scene.get("nodes")
+    return len(nodes) if isinstance(nodes, dict) else 0
+
+
 def project_metadata(document: dict[str, Any]) -> dict[str, Any]:
     """Return the small list-view shape for a stored project."""
     return {
@@ -319,6 +330,7 @@ class ProjectCollection:
         name: str | object = MISSING,
         scene: dict[str, Any] | None | object = MISSING,
         ha_config: dict[str, Any] | object = MISSING,
+        force_empty_scene: bool = False,
     ) -> dict[str, Any]:
         """Save changed fields if the caller owns the current revision."""
         normalized_id = _validate_project_id(project_id)
@@ -336,9 +348,16 @@ class ProjectCollection:
                 raise InvalidProjectError("project name must be a string")
             candidate["name"] = _validate_name(name)
         if scene is not MISSING:
-            candidate["scene"] = _validate_document_mapping(
-                scene, "scene", allow_none=True
-            )
+            next_scene = _validate_document_mapping(scene, "scene", allow_none=True)
+            if (
+                not force_empty_scene
+                and _scene_node_count(current["scene"]) > 0
+                and _scene_node_count(next_scene) == 0
+            ):
+                raise EmptySceneRejectedError(
+                    "Refusing to overwrite a populated project with an empty scene"
+                )
+            candidate["scene"] = next_scene
         if ha_config is not MISSING:
             candidate["ha_config"] = _validate_ha_config(ha_config)
 
