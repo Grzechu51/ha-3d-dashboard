@@ -18,15 +18,17 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: native Home Assistant project shell**
+**Checkpoint: project management + Home Assistant structure**
 
-Status: **PR #10 in progress**
+Status: **PR #11 in progress**
 
-PR #8 (Home Assistant project Store/WebSocket API) and PR #9 (frontend project session/revision coordinator) are merged to `main`.
+PR #8 (Home Assistant project Store/WebSocket API), PR #9 (frontend project
+session/revision coordinator) and PR #10 (native HA project shell with the real
+Pascal Editor/Viewer) are merged to `main`.
 
-The active checkpoint is the first complete native Home Assistant shell:
+The active checkpoint is:
 
-`Home Assistant panel -> project selector -> Editor / Dashboard -> HA project Store`
+`Project UX -> safe switching -> rename/delete/recent -> HA Floors/Areas/Devices/Entities`
 
 ## Completed
 
@@ -110,37 +112,36 @@ Implemented:
 
 ## In progress
 
-### PR #10 — native Home Assistant project shell
+### PR #11 — project management and safe switching
 
 Current implementation target:
 
-- replace the placeholder custom panel with a real React application,
-- list/create/open projects through `hass.callWS`,
-- mount Pascal Editor directly in Home Assistant without a Next.js server,
-- mount a read-only Dashboard mode from the same server-stored scene,
-- wire Editor autosave to `HomeAssistantProjectSession`,
-- use external HA-owned presentation/config persistence,
-- show save/revision/conflict/error state,
-- generate and ship isolated Pascal/Tailwind CSS with the integration bundle.
+- admin-aware project management,
+- rename projects through the existing revision-checked save API,
+- delete projects through the existing revision-checked delete API,
+- remember and highlight the last opened project,
+- wait for configuration persistence before leaving an open project,
+- prevent navigation while an editor scene save is pending/in flight,
+- improve revision-conflict reload flow,
+- keep non-admin users read-only at the project-management level.
 
-The custom panel remains Shadow-DOM isolated so editor styles do not leak into the rest of Home Assistant.
+After this PR the next active implementation is HA structure discovery:
+
+- HA Floors,
+- HA Areas,
+- Devices,
+- Entities grouped by area/device,
+- manual non-destructive mapping into Pascal Levels/Zones.
 
 ## Next checkpoints
 
 ### Checkpoint A — native project shell
 
-Build the actual Home Assistant panel application on top of the project session:
+**Completed in PR #10.**
 
-1. list projects from Home Assistant,
-2. create/open project,
-3. switch between **Dashboard** and **Edit**,
-4. mount the real Pascal Editor/Viewer,
-5. load scene from the HA project Store,
-6. autosave scene through the project session,
-7. restore/save HA bindings through the same revision stream,
-8. surface save/conflict/error state in the UI.
-
-This is the next implementation target.
+The Home Assistant panel now mounts the real Pascal Editor/Viewer, opens
+server-owned projects, switches Dashboard/Edit modes and persists through the
+Home Assistant project session.
 
 ### Checkpoint B — project UX
 
