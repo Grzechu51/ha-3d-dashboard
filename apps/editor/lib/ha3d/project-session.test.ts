@@ -278,12 +278,19 @@ describe('Home Assistant project session', () => {
   test('configuration changes during a save schedule a follow-up revision', async () => {
     const configuration = new TestConfiguration()
     let releaseSave: (() => void) | null = null
+    let markSaveStarted: (() => void) | null = null
     const blocked = new Promise<void>((resolve) => {
       releaseSave = resolve
     })
+    const saveStarted = new Promise<void>((resolve) => {
+      markSaveStarted = resolve
+    })
     const server = sequentialServer({
       onSave: async (_message, saveNumber) => {
-        if (saveNumber === 1) await blocked
+        if (saveNumber === 1) {
+          markSaveStarted?.()
+          await blocked
+        }
       },
     })
     const session = createHomeAssistantProjectSession(server.host, 'main_house', {
@@ -309,7 +316,7 @@ describe('Home Assistant project session', () => {
       rootNodeIds: ['site'],
     })
 
-    await Promise.resolve()
+    await saveStarted
     configuration.set({
       version: 1,
       bindings: [
