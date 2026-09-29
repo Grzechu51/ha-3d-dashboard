@@ -275,6 +275,7 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
     errorCode: string | null = null,
     message: string | null = null,
   ): void {
+    if (this.disposed && status !== 'disposed') return
     this.snapshot = {
       projectId: this.projectId,
       status,
