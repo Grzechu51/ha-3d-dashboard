@@ -130,7 +130,19 @@ class ProjectCollectionTests(unittest.TestCase):
             collection.create(
                 project_id="good",
                 name="Good",
-                scene={"bad": float("nan")},
+                scene={"nodes": {}, "rootNodeIds": [], "bad": float("nan")},
+            )
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
+                project_id="good",
+                name="Good",
+                scene={},
+            )
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
+                project_id="good",
+                name="Good",
+                scene={"nodes": {}, "rootNodeIds": ["missing"]},
             )
         with self.assertRaises(InvalidProjectError):
             collection.create(
