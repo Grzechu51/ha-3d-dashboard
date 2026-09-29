@@ -86,7 +86,12 @@ function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
       throw new Error('[ha3d] floor mapping must be an object')
     }
     const mapping = entry as Record<string, unknown>
-    if (typeof mapping.floorId !== 'string' || typeof mapping.levelNodeId !== 'string') {
+    if (
+      typeof mapping.floorId !== 'string' ||
+      !mapping.floorId.trim() ||
+      typeof mapping.levelNodeId !== 'string' ||
+      !mapping.levelNodeId.trim()
+    ) {
       throw new Error('[ha3d] floor mapping ids must be strings')
     }
     return { floorId: mapping.floorId, levelNodeId: mapping.levelNodeId }
