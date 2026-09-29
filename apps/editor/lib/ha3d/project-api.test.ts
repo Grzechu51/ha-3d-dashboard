@@ -7,6 +7,7 @@ import {
   listHomeAssistantProjects,
   saveHomeAssistantProject,
 } from './project-api'
+import { loadHomeAssistantStructureRaw } from './structure-api'
 
 function wireProject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -133,6 +134,23 @@ describe('Home Assistant project WebSocket client', () => {
       'main_house',
       7,
     )
+  })
+
+  test('loads Home Assistant structure registries', async () => {
+    const calls: string[] = []
+    await loadHomeAssistantStructureRaw(
+      host((message) => {
+        calls.push(String(message.type))
+        return message.type === 'config/entity_registry/list_for_display' ? { entities: [] } : []
+      }),
+    )
+
+    expect(calls).toEqual([
+      'config/floor_registry/list',
+      'config/area_registry/list',
+      'config/device_registry/list',
+      'config/entity_registry/list_for_display',
+    ])
   })
 
   test('rejects malformed backend HA project configuration', async () => {
