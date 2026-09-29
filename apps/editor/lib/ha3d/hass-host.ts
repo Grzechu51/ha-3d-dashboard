@@ -1,9 +1,6 @@
 import type { HomeAssistantHassLike } from './hass-adapter'
 import { HomeAssistantHassAdapter } from './hass-adapter'
-import {
-  getHomeAssistantRuntimeSnapshot,
-  setHomeAssistantAdapter,
-} from './runtime'
+import { getHomeAssistantRuntimeSnapshot, setHomeAssistantAdapter } from './runtime'
 
 export type HomeAssistantHassHost = Readonly<{
   setHass(hass: HomeAssistantHassLike): void
