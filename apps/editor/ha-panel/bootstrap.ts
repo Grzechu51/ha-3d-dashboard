@@ -1,15 +1,8 @@
-import {
-  type AnyNodeDefinition,
-  nodeRegistry,
-  registerNode,
-} from '@pascal-app/core'
+import { type AnyNodeDefinition, nodeRegistry, registerNode } from '@pascal-app/core'
 import { registerEditorHostPanel } from '@pascal-app/editor'
 import { builtinPlugin } from '@pascal-app/nodes'
 import { registerViewerPresentation } from '@pascal-app/viewer'
-import {
-  ha3dHostPanel,
-  ha3dPresentation,
-} from '../lib/ha3d/plugin'
+import { ha3dHostPanel, ha3dPresentation } from '../lib/ha3d/plugin'
 
 let initialized = false
 
