@@ -58,7 +58,7 @@ function revisionField(value: unknown): number {
   return value
 }
 
-function parseProjectMetadata(raw: unknown): Ha3dProjectMetadata {
+function parseProjectSummary(raw: unknown): Ha3dProjectMetadata {
   const value = record(raw, 'project metadata')
   return {
     id: stringField(value.id, 'project id'),
@@ -81,7 +81,7 @@ function parseStoredProject(raw: unknown): Ha3dStoredProject {
       : (record(value.scene, 'project scene') as Readonly<Record<string, unknown>>)
 
   return {
-    ...parseProjectMetadata(value),
+    ...parseProjectSummary(value),
     schemaVersion: PROJECT_DOCUMENT_VERSION,
     scene,
     haConfig: parseHa3dProjectConfig(value.ha_config),
@@ -102,7 +102,7 @@ export async function listHomeAssistantProjects(
   if (!Array.isArray(response.projects)) {
     throw new Error('[ha3d] project list response is missing projects')
   }
-  return response.projects.map(parseProjectMetadata)
+  return response.projects.map(parseProjectSummary)
 }
 
 export async function getHomeAssistantProject(
