@@ -203,7 +203,7 @@ export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
   }),
   restore: (raw) => {
     const restored = parseHa3dProjectConfig(raw)
-    publish(restored.bindings)
+    publish(restored.bindings, restored.structureMappings)
   },
   reset: resetHa3dProjectConfig,
   subscribe: subscribeHa3dProjectConfig,
