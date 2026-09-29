@@ -6,7 +6,9 @@ import {
 import type { HomeAssistantStructureSnapshot } from './structure-snapshot'
 import type { HomeAssistantStructureTree } from './structure-tree-types'
 
-export function groupHomeAssistantStructure(snapshot: HomeAssistantStructureSnapshot): HomeAssistantStructureTree {
+export function groupHomeAssistantStructure(
+  snapshot: HomeAssistantStructureSnapshot,
+): HomeAssistantStructureTree {
   const areaIds = new Set(snapshot.areas.map((area) => area.id))
   const floorIds = new Set(snapshot.floors.map((floor) => floor.id))
   const unassignedDevices = snapshot.devices.filter((device) => !snapshot.deviceAreaIds.get(device.id) || !areaIds.has(snapshot.deviceAreaIds.get(device.id) ?? ''))
