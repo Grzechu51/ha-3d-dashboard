@@ -2,13 +2,12 @@ import type { SceneGraph } from '@pascal-app/editor'
 import {
   getHomeAssistantProject,
   type Ha3dStoredProject,
-  homeAssistantProjectApiErrorCode,
   type HomeAssistantProjectApiHost,
+  homeAssistantProjectApiErrorCode,
   saveHomeAssistantProject,
 } from './project-api'
 import {
   getHa3dProjectConfigSnapshot,
-  type Ha3dProjectConfig,
   ha3dProjectConfiguration,
   parseHa3dProjectConfig,
   subscribeHa3dProjectConfig,
@@ -53,10 +52,7 @@ export type HomeAssistantProjectSession = Readonly<{
   getSnapshot: () => HomeAssistantProjectSessionSnapshot
   subscribe: (listener: () => void) => () => void
   load: () => Promise<SceneGraph | null>
-  saveScene: (
-    scene: SceneGraph,
-    options?: SaveHomeAssistantProjectSceneOptions,
-  ) => Promise<void>
+  saveScene: (scene: SceneGraph, options?: SaveHomeAssistantProjectSceneOptions) => Promise<void>
   flushConfiguration: () => Promise<void>
   getProject: () => Ha3dStoredProject | null
   dispose: () => void
@@ -107,9 +103,7 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
       errorCode: null,
       errorMessage: null,
     }
-    this.unsubscribeConfiguration = this.configuration.subscribe(
-      this.handleConfigurationChange,
-    )
+    this.unsubscribeConfiguration = this.configuration.subscribe(this.handleConfigurationChange)
   }
 
   getSnapshot = (): HomeAssistantProjectSessionSnapshot => this.snapshot
@@ -202,10 +196,12 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
 
   private enqueueWrite(operation: () => Promise<void>): Promise<void> {
     this.assertActive()
-    const run = this.writeTail.catch(() => undefined).then(async () => {
-      this.assertWritable()
-      await operation()
-    })
+    const run = this.writeTail
+      .catch(() => undefined)
+      .then(async () => {
+        this.assertWritable()
+        await operation()
+      })
     this.writeTail = run
     return run
   }
@@ -235,10 +231,7 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
       })
       this.project = updated
 
-      if (
-        includeConfiguration &&
-        configurationGeneration === this.configurationGeneration
-      ) {
+      if (includeConfiguration && configurationGeneration === this.configurationGeneration) {
         this.configurationDirty = false
       }
 
