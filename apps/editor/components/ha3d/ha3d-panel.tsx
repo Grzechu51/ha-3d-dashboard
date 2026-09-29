@@ -181,7 +181,8 @@ export default function Ha3dPanel() {
                   ) : null}
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <span className="text-muted-foreground text-xs">
-                      {binding.domain} · {entity ? formatHomeAssistantEntityValue(entity) : 'unavailable'}
+                      {binding.domain} ·{' '}
+                      {entity ? formatHomeAssistantEntityValue(entity) : 'unavailable'}
                     </span>
                     <div className="flex gap-1">
                       {binding.domain === 'light' && entity ? (
