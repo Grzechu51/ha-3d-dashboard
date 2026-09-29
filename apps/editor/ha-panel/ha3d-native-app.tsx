@@ -546,28 +546,38 @@ function NativeProject({
   metadata,
   session,
   mode,
+  leavingProject,
+  navigationError,
+  onClearNavigationError,
   onModeChange,
   onProjects,
 }: Readonly<{
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
   mode: PanelMode
+  leavingProject: boolean
+  navigationError: string | null
+  onClearNavigationError: () => void
   onModeChange: (mode: PanelMode) => void
-  onProjects: () => void
+  onProjects: () => Promise<void>
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
+  const sceneSaveBlocked = saveStatus === 'pending' || saveStatus === 'saving'
 
   const reloadEditor = useCallback(() => {
+    onClearNavigationError()
     setEditorEpoch((value) => value + 1)
-  }, [])
+  }, [onClearNavigationError])
 
   if (mode === 'dashboard') {
     return (
       <NativeDashboard
         onEdit={() => onModeChange('edit')}
-        onProjects={onProjects}
+        onProjects={() => {
+          void onProjects()
+        }}
         projectName={metadata.name}
         session={session}
       />
@@ -593,18 +603,22 @@ function NativeProject({
           <span className="text-border">|</span>
           <SessionStatus saveStatus={saveStatus} session={session} />
           <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent"
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={sceneSaveBlocked || leavingProject}
             onClick={() => onModeChange('dashboard')}
+            title={sceneSaveBlocked ? 'Wait for the current scene save to finish' : undefined}
             type="button"
           >
             Dashboard
           </button>
           <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent"
-            onClick={onProjects}
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={sceneSaveBlocked || leavingProject}
+            onClick={() => void onProjects()}
+            title={sceneSaveBlocked ? 'Wait for the current scene save to finish' : undefined}
             type="button"
           >
-            Projects
+            {leavingProject ? 'Saving…' : 'Projects'}
           </button>
         </div>
       </div>
@@ -620,7 +634,22 @@ function NativeProject({
             onClick={reloadEditor}
             type="button"
           >
-            Reload project
+            Reload server copy
+          </button>
+        </div>
+      ) : navigationError ? (
+        <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="font-semibold text-sm">Could not safely leave the project.</div>
+          <p className="mt-1 text-destructive text-xs">{navigationError}</p>
+          <p className="mt-1 text-muted-foreground text-xs">
+            The project stays open so unsaved Home Assistant configuration is not discarded.
+          </p>
+          <button
+            className="mt-3 rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent"
+            onClick={onClearNavigationError}
+            type="button"
+          >
+            Dismiss
           </button>
         </div>
       ) : null}
@@ -646,8 +675,12 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   const [projects, setProjects] = useState<readonly Ha3dProjectMetadata[]>([])
   const [loadingProjects, setLoadingProjects] = useState(false)
   const [projectError, setProjectError] = useState<string | null>(null)
+  const [busyProjectId, setBusyProjectId] = useState<string | null>(null)
+  const [recentProjectId, setRecentProjectId] = useState<string | null>(() => readLastProjectId())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [mode, setMode] = useState<PanelMode>('dashboard')
+  const [leavingProject, setLeavingProject] = useState(false)
+  const [navigationError, setNavigationError] = useState<string | null>(null)
 
   const refreshProjects = useCallback(async () => {
     if (!hassRef.current) return
@@ -656,6 +689,14 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     try {
       const result = await listHomeAssistantProjects(api)
       setProjects(result)
+
+      const lastProjectId = readLastProjectId()
+      if (lastProjectId && !result.some((project) => project.id === lastProjectId)) {
+        clearLastProjectId(lastProjectId)
+        setRecentProjectId(null)
+      } else {
+        setRecentProjectId(lastProjectId)
+      }
     } catch (error) {
       setProjectError(projectErrorMessage(error))
     } finally {
@@ -682,10 +723,21 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     [session],
   )
 
-  const openProject = useCallback((projectId: string) => {
-    setMode('dashboard')
-    setSelectedProjectId(projectId)
+  const rememberProject = useCallback((projectId: string) => {
+    writeLastProjectId(projectId)
+    setRecentProjectId(projectId)
   }, [])
+
+  const openProject = useCallback(
+    (projectId: string) => {
+      setProjectError(null)
+      setNavigationError(null)
+      rememberProject(projectId)
+      setMode('dashboard')
+      setSelectedProjectId(projectId)
+    },
+    [rememberProject],
+  )
 
   const createProject = useCallback(
     async (name: string) => {
@@ -696,6 +748,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
           ...current.filter((candidate) => candidate.id !== project.id),
           project,
         ])
+        rememberProject(project.id)
         setMode('edit')
         setSelectedProjectId(project.id)
       } catch (error) {
@@ -703,15 +756,80 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
         throw error
       }
     },
-    [api],
+    [api, rememberProject],
   )
 
-  const returnToProjects = useCallback(() => {
-    void session?.flushConfiguration().catch(() => undefined)
+  const renameProject = useCallback(
+    async (project: Ha3dProjectMetadata, name: string) => {
+      setBusyProjectId(project.id)
+      setProjectError(null)
+      try {
+        const updated = await saveHomeAssistantProject(api, {
+          projectId: project.id,
+          expectedRevision: project.revision,
+          name,
+        })
+        setProjects((current) =>
+          current.map((candidate) => (candidate.id === updated.id ? updated : candidate)),
+        )
+      } catch (error) {
+        setProjectError(projectErrorMessage(error))
+        if (homeAssistantProjectApiErrorCode(error) === 'version_conflict') {
+          await refreshProjects()
+        }
+        throw error
+      } finally {
+        setBusyProjectId(null)
+      }
+    },
+    [api, refreshProjects],
+  )
+
+  const deleteProject = useCallback(
+    async (project: Ha3dProjectMetadata) => {
+      setBusyProjectId(project.id)
+      setProjectError(null)
+      try {
+        await deleteHomeAssistantProject(api, project.id, project.revision)
+        setProjects((current) => current.filter((candidate) => candidate.id !== project.id))
+        if (recentProjectId === project.id) {
+          clearLastProjectId(project.id)
+          setRecentProjectId(null)
+        }
+      } catch (error) {
+        setProjectError(projectErrorMessage(error))
+        if (
+          homeAssistantProjectApiErrorCode(error) === 'version_conflict' ||
+          homeAssistantProjectApiErrorCode(error) === 'not_found'
+        ) {
+          await refreshProjects()
+        }
+        throw error
+      } finally {
+        setBusyProjectId(null)
+      }
+    },
+    [api, recentProjectId, refreshProjects],
+  )
+
+  const returnToProjects = useCallback(async () => {
+    if (leavingProject) return
+    setLeavingProject(true)
+    setNavigationError(null)
+
+    try {
+      await session?.flushConfiguration()
+    } catch (error) {
+      setNavigationError(projectErrorMessage(error))
+      setLeavingProject(false)
+      return
+    }
+
     setSelectedProjectId(null)
     setMode('dashboard')
-    void refreshProjects()
-  }, [refreshProjects, session])
+    setLeavingProject(false)
+    await refreshProjects()
+  }, [leavingProject, refreshProjects, session])
 
   if (!hass) {
     return (
@@ -721,15 +839,22 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     )
   }
 
+  const canManageProjects = hass.user?.is_admin === true
+
   if (!(selectedProjectId && session)) {
     return (
       <ProjectPicker
+        busyProjectId={busyProjectId}
+        canManage={canManageProjects}
         error={projectError}
         loading={loadingProjects}
         onCreate={createProject}
+        onDelete={deleteProject}
         onOpen={openProject}
         onRefresh={refreshProjects}
+        onRename={renameProject}
         projects={projects}
+        recentProjectId={recentProjectId}
       />
     )
   }
@@ -745,8 +870,11 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   return (
     <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
       <NativeProject
+        leavingProject={leavingProject}
         metadata={metadata}
         mode={mode}
+        navigationError={navigationError}
+        onClearNavigationError={() => setNavigationError(null)}
         onModeChange={setMode}
         onProjects={returnToProjects}
         session={session}
