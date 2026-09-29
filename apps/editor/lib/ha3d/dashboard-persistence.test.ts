@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from 'bun:test'
+import { restoreHa3dDashboardProjectConfig } from './dashboard-persistence'
 import { createEntityBinding } from './entity-binding'
 import {
   getHa3dProjectConfigSnapshot,
   resetHa3dProjectConfig,
   upsertEntityBinding,
 } from './project-config'
-import { restoreHa3dDashboardProjectConfig } from './dashboard-persistence'
 
 afterEach(() => {
   resetHa3dProjectConfig()
