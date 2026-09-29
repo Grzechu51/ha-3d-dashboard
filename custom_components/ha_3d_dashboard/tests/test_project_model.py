@@ -152,6 +152,12 @@ class ProjectCollectionTests(unittest.TestCase):
             )
         with self.assertRaises(InvalidProjectError):
             collection.create(
+                project_id="bad_mapping",
+                name="Bad mapping",
+                ha_config={"version": 1, "bindings": [], "structureMappings": []},
+            )
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
                 project_id="good",
                 name="Good",
                 ha_config={
