@@ -82,7 +82,7 @@ function parsePersistedBinding(raw: unknown): EntityBinding {
     throw new Error('[ha3d] binding enabled must be a boolean')
   }
 
-  const domain = entityDomain(record.entityId)
+  const domain = entityDomain(record.entityId.trim())
   if (domain !== 'cover' && record.coverMotion !== undefined) {
     throw new Error('[ha3d] persisted cover motion belongs to a non-cover entity')
   }
