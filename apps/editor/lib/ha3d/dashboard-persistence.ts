@@ -1,7 +1,4 @@
-import {
-  ha3dProjectConfiguration,
-  resetHa3dProjectConfig,
-} from './project-config'
+import { ha3dProjectConfiguration, resetHa3dProjectConfig } from './project-config'
 
 const LOCAL_PROJECT_PRESENTATION_STORAGE_KEY_PREFIX = 'pascal:project-presentation:v1:'
 const LOCAL_PROJECT_PRESENTATION_VERSION = 1
