@@ -53,6 +53,15 @@ export {
   parseHa3dProjectConfig,
 } from './project-config'
 export {
+  createHomeAssistantProjectSession,
+  type HomeAssistantProjectConfigurationPort,
+  type HomeAssistantProjectSession,
+  type HomeAssistantProjectSessionOptions,
+  type HomeAssistantProjectSessionSnapshot,
+  type HomeAssistantProjectSessionStatus,
+  type SaveHomeAssistantProjectSceneOptions,
+} from './project-session'
+export {
   getHomeAssistantRuntimeSnapshot,
   type HomeAssistantRuntimeSnapshot,
   setHomeAssistantAdapter,
