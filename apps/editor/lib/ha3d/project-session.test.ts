@@ -11,11 +11,9 @@ const EMPTY_SCENE: SceneGraph = {
   rootNodeIds: [],
 }
 
-function wireProject(options: {
-  revision?: number
-  scene?: SceneGraph | null
-  haConfig?: unknown
-} = {}): Record<string, unknown> {
+function wireProject(
+  options: { revision?: number; scene?: SceneGraph | null; haConfig?: unknown } = {},
+): Record<string, unknown> {
   return {
     schema_version: 1,
     id: 'main_house',
@@ -59,13 +57,15 @@ class TestConfiguration implements HomeAssistantProjectConfigurationPort {
   }
 }
 
-function sequentialServer(options: {
-  initialConfig?: unknown
-  onSave?: (
-    message: Readonly<Record<string, unknown>>,
-    saveNumber: number,
-  ) => Promise<void> | void
-} = {}): {
+function sequentialServer(
+  options: {
+    initialConfig?: unknown
+    onSave?: (
+      message: Readonly<Record<string, unknown>>,
+      saveNumber: number,
+    ) => Promise<void> | void
+  } = {},
+): {
   host: HomeAssistantProjectApiHost
   messages: Readonly<Record<string, unknown>>[]
 } {
@@ -125,9 +125,7 @@ describe('Home Assistant project session', () => {
 
     expect(scene).toEqual(EMPTY_SCENE)
     expect(configuration.restored).toHaveLength(1)
-    expect(server.messages.map((message) => message.type)).toEqual([
-      'ha_3d_dashboard/project/get',
-    ])
+    expect(server.messages.map((message) => message.type)).toEqual(['ha_3d_dashboard/project/get'])
     expect(session.getSnapshot()).toMatchObject({
       status: 'ready',
       revision: 1,
@@ -167,9 +165,7 @@ describe('Home Assistant project session', () => {
     }
     await session.saveScene(scene)
 
-    const save = server.messages.find(
-      (message) => message.type === 'ha_3d_dashboard/project/save',
-    )
+    const save = server.messages.find((message) => message.type === 'ha_3d_dashboard/project/save')
     expect(save).toMatchObject({
       expected_revision: 1,
       scene,
