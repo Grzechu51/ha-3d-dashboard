@@ -1,7 +1,38 @@
-# Pascal Editor
+# HA 3D Dashboard for Home Assistant
 
-An open-source, local-first 3D building editor built with React Three Fiber and
-WebGPU. Run it in the browser or from the CLI, and connect AI agents through MCP.
+A native Home Assistant 3D home editor and interactive dashboard built on top of
+the open-source Pascal Editor codebase.
+
+The target is an installable Home Assistant custom integration with a **3D Home**
+panel where the user can build/edit a house, bind Home Assistant entities directly
+to 3D objects, visualize live states and control the home from the model.
+
+> **Development status:** active. Home Assistant runtime/entity integration and
+> server-side project storage are implemented. The current checkpoint is the
+> native Home Assistant project session; the next checkpoint mounts the complete
+> project selector + Editor/Dashboard shell inside the HA panel.
+>
+> See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
+> completed checkpoints, architecture and next implementation steps.
+
+## Project-specific Home Assistant layer
+
+The HA-specific implementation lives primarily in:
+
+- `custom_components/ha_3d_dashboard/` — Home Assistant backend, custom panel and project Store,
+- `apps/editor/lib/ha3d/` — HA runtime adapters, entity bindings and project persistence,
+- `apps/editor/components/ha3d/` — dashboard/editor integration UI,
+- `docs/ha3d/` — architecture documentation.
+
+This repository retains Pascal's reusable editor/viewer architecture and upstream
+documentation below. HA-specific behavior is layered around it rather than moving
+Home Assistant concerns into Pascal core.
+
+## Upstream foundation: Pascal Editor
+
+Pascal Editor is an open-source, local-first 3D building editor built with React
+Three Fiber and WebGPU. The original editor can run in the browser or from the CLI
+and supports MCP/agent workflows.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![npm @pascal-app/core](https://img.shields.io/npm/v/@pascal-app/core?label=%40pascal-app%2Fcore)](https://www.npmjs.com/package/@pascal-app/core)

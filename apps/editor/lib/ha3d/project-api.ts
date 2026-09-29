@@ -167,3 +167,9 @@ export async function deleteHomeAssistantProject(
     throw new Error('[ha3d] invalid project delete response')
   }
 }
+
+export function homeAssistantProjectApiErrorCode(error: unknown): string | null {
+  if (!(error && typeof error === 'object')) return null
+  const code = (error as Record<string, unknown>).code
+  return typeof code === 'string' ? code : null
+}
