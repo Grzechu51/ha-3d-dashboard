@@ -11,6 +11,13 @@ export {
   type SupportedHomeAssistantDomain,
   supportedHomeAssistantDomains,
 } from './entity-binding'
+export {
+  entityFriendlyName,
+  formatHomeAssistantEntityDetail,
+  formatHomeAssistantEntityValue,
+  numericEntityAttribute,
+  stringListEntityAttribute,
+} from './entity-display'
 export type {
   HomeAssistantAdapter,
   HomeAssistantAttributes,
