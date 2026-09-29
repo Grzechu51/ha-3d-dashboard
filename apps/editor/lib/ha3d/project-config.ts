@@ -199,6 +199,7 @@ export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
   getSnapshot: () => ({
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: snapshot.bindings.map(cloneBinding),
+    structureMappings: snapshot.structureMappings,
   }),
   restore: (raw) => {
     const restored = parseHa3dProjectConfig(raw)
