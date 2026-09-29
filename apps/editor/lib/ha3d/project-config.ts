@@ -9,6 +9,11 @@ import {
 
 export const HA3D_PROJECT_CONFIG_VERSION = 1 as const
 
+export type Ha3dStructureMappings = Readonly<{
+  floors: readonly Readonly<{ floorId: string; levelNodeId: string }>[]
+  areas: readonly Readonly<{ areaId: string; zoneNodeId: string }>[]
+}>
+
 export type Ha3dProjectConfig = Readonly<{
   version: typeof HA3D_PROJECT_CONFIG_VERSION
   bindings: readonly EntityBinding[]
