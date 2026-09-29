@@ -146,6 +146,7 @@ describe('Home Assistant project WebSocket client', () => {
       }),
     )
 
+    expect(structure.floors).toEqual([])
     expect(calls).toEqual([
       'config/floor_registry/list',
       'config/area_registry/list',
