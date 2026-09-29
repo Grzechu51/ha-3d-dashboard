@@ -111,6 +111,8 @@ function ProjectPicker({
     try {
       await onCreate(trimmed)
       setName('My home')
+    } catch {
+      // The parent already surfaces the Home Assistant error in the picker.
     } finally {
       setCreating(false)
     }
@@ -120,15 +122,23 @@ function ProjectPicker({
     event.preventDefault()
     const trimmed = renameValue.trim()
     if (!trimmed || busyProjectId) return
-    await onRename(project, trimmed)
-    setEditingProjectId(null)
-    setRenameValue('')
+    try {
+      await onRename(project, trimmed)
+      setEditingProjectId(null)
+      setRenameValue('')
+    } catch {
+      // Keep the rename form open; the parent surfaces the Home Assistant error.
+    }
   }
 
   const confirmDelete = async (project: Ha3dProjectMetadata) => {
     if (busyProjectId) return
-    await onDelete(project)
-    setDeleteProjectId(null)
+    try {
+      await onDelete(project)
+      setDeleteProjectId(null)
+    } catch {
+      // Keep the confirmation open; the parent surfaces the Home Assistant error.
+    }
   }
 
   return (
@@ -359,11 +369,15 @@ function SessionStatus({
       ? 'Conflict — reload required'
       : snapshot.status === 'error'
         ? 'Project error'
-        : saveStatus === 'saving' || snapshot.status === 'saving'
-          ? 'Saving…'
-          : saveStatus === 'pending'
-            ? 'Pending…'
-            : `Saved · rev ${snapshot.revision ?? '—'}`
+        : saveStatus === 'error'
+          ? 'Scene save error'
+          : saveStatus === 'saving' || snapshot.status === 'saving'
+            ? 'Saving…'
+            : saveStatus === 'pending'
+              ? 'Pending…'
+              : saveStatus === 'paused'
+                ? 'Save paused'
+                : `Saved · rev ${snapshot.revision ?? '—'}`
 
   return (
     <span
@@ -386,7 +400,7 @@ function NativeDashboard({
 }: Readonly<{
   projectName: string
   session: HomeAssistantProjectSession
-  onEdit: () => void
+  onEdit?: () => void
   onProjects: () => void
 }>) {
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
@@ -445,13 +459,15 @@ function NativeDashboard({
             >
               Projects
             </button>
-            <button
-              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
-              onClick={onEdit}
-              type="button"
-            >
-              Open editor
-            </button>
+            {onEdit ? (
+              <button
+                className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
+                onClick={onEdit}
+                type="button"
+              >
+                Open editor
+              </button>
+            ) : null}
           </div>
         </div>
       </main>
@@ -482,13 +498,15 @@ function NativeDashboard({
             >
               Projects
             </button>
-            <button
-              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
-              onClick={onEdit}
-              type="button"
-            >
-              Build in editor
-            </button>
+            {onEdit ? (
+              <button
+                className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
+                onClick={onEdit}
+                type="button"
+              >
+                Build in editor
+              </button>
+            ) : null}
           </div>
         </div>
       </main>
@@ -524,13 +542,15 @@ function NativeDashboard({
           >
             Projects
           </button>
-          <button
-            className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
-            onClick={onEdit}
-            type="button"
-          >
-            Edit
-          </button>
+          {onEdit ? (
+            <button
+              className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
+              onClick={onEdit}
+              type="button"
+            >
+              Edit
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -549,6 +569,7 @@ function NativeProject({
   metadata,
   session,
   mode,
+  canManageProjects,
   leavingProject,
   navigationError,
   onClearNavigationError,
@@ -558,6 +579,7 @@ function NativeProject({
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
   mode: PanelMode
+  canManageProjects: boolean
   leavingProject: boolean
   navigationError: string | null
   onClearNavigationError: () => void
@@ -567,17 +589,23 @@ function NativeProject({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
-  const sceneSaveBlocked = saveStatus === 'pending' || saveStatus === 'saving'
+  const sceneSaveBlocked =
+    saveStatus === 'pending' ||
+    saveStatus === 'saving' ||
+    saveStatus === 'error' ||
+    snapshot.status === 'saving' ||
+    snapshot.status === 'error' ||
+    snapshot.status === 'conflict'
 
   const reloadEditor = useCallback(() => {
     onClearNavigationError()
     setEditorEpoch((value) => value + 1)
   }, [onClearNavigationError])
 
-  if (mode === 'dashboard') {
+  if (mode === 'dashboard' || !canManageProjects) {
     return (
       <NativeDashboard
-        onEdit={() => onModeChange('edit')}
+        onEdit={canManageProjects ? () => onModeChange('edit') : undefined}
         onProjects={() => {
           void onProjects()
         }}
@@ -639,6 +667,17 @@ function NativeProject({
           >
             Reload server copy
           </button>
+        </div>
+      ) : snapshot.status === 'error' || saveStatus === 'error' ? (
+        <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="font-semibold text-sm">The project has unsaved changes.</div>
+          <p className="mt-1 text-destructive text-xs">
+            {snapshot.errorMessage ?? 'The scene save was rejected before reaching Home Assistant.'}
+          </p>
+          <p className="mt-1 text-muted-foreground text-xs">
+            Navigation is blocked to avoid discarding local edits. Resolve the cause and press
+            Ctrl/Cmd+S to retry the save.
+          </p>
         </div>
       ) : navigationError ? (
         <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
@@ -873,6 +912,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   return (
     <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
       <NativeProject
+        canManageProjects={canManageProjects}
         leavingProject={leavingProject}
         metadata={metadata}
         mode={mode}
