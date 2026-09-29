@@ -275,7 +275,6 @@ describe('Home Assistant project session', () => {
     session.dispose()
   })
 
-
   test('flushConfiguration preserves a failed scene write when there is no config dirt', async () => {
     const configuration = new TestConfiguration()
     let failNextSave = true
