@@ -101,6 +101,33 @@ def _validate_document_mapping(
     return deepcopy(value)
 
 
+def _validate_scene(value: Any) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    scene = _validate_document_mapping(value, "scene")
+    assert scene is not None
+
+    nodes = scene.get("nodes")
+    roots = scene.get("rootNodeIds")
+    if not isinstance(nodes, dict):
+        raise InvalidProjectError("scene nodes must be an object")
+    if not isinstance(roots, list) or any(not isinstance(root, str) for root in roots):
+        raise InvalidProjectError("scene rootNodeIds must be an array of strings")
+    if any(root not in nodes for root in roots):
+        raise InvalidProjectError("scene rootNodeIds must reference existing nodes")
+
+    for key in ("collections", "materials"):
+        if key in scene and not isinstance(scene[key], dict):
+            raise InvalidProjectError(f"scene {key} must be an object")
+    if "installedPlugins" in scene and (
+        not isinstance(scene["installedPlugins"], list)
+        or any(not isinstance(plugin, str) for plugin in scene["installedPlugins"])
+    ):
+        raise InvalidProjectError("scene installedPlugins must be an array of strings")
+
+    return scene
+
+
 def _validate_timestamp(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value:
         raise InvalidProjectError(f"{field} must be a non-empty timestamp string")
@@ -202,7 +229,7 @@ def _normalize_persisted_project(
         "id": normalized_id,
         "name": _validate_name(raw.get("name", "")),
         "revision": _validate_revision(raw.get("revision")),
-        "scene": _validate_document_mapping(raw.get("scene"), "scene", allow_none=True),
+        "scene": _validate_scene(raw.get("scene")),
         "ha_config": _validate_ha_config(raw.get("ha_config")),
         "created_at": _validate_timestamp(raw.get("created_at"), "created_at"),
         "updated_at": _validate_timestamp(raw.get("updated_at"), "updated_at"),
@@ -311,7 +338,7 @@ class ProjectCollection:
             "id": normalized_id,
             "name": _validate_name(name),
             "revision": 1,
-            "scene": _validate_document_mapping(scene, "scene", allow_none=True),
+            "scene": _validate_scene(scene),
             "ha_config": _validate_ha_config(
                 default_ha_config() if ha_config is None else ha_config
             ),
@@ -348,7 +375,7 @@ class ProjectCollection:
                 raise InvalidProjectError("project name must be a string")
             candidate["name"] = _validate_name(name)
         if scene is not MISSING:
-            next_scene = _validate_document_mapping(scene, "scene", allow_none=True)
+            next_scene = _validate_scene(scene)
             if (
                 not force_empty_scene
                 and _scene_node_count(current["scene"]) > 0
