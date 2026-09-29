@@ -1,0 +1,29 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../../..",
+    "paths": {
+      "@pascal-app/core": ["packages/core/src/index.ts"],
+      "@pascal-app/core/capture": ["packages/core/src/capture/index.ts"],
+      "@pascal-app/core/clone-scene-graph": ["packages/core/src/utils/clone-scene-graph.ts"],
+      "@pascal-app/core/material-library": ["packages/core/src/material-library.ts"],
+      "@pascal-app/core/plan-footprint": ["packages/core/src/lib/plan-footprint.ts"],
+      "@pascal-app/core/procedural-items": ["packages/core/src/procedural-items/index.ts"],
+      "@pascal-app/core/registry": ["packages/core/src/registry/index.ts"],
+      "@pascal-app/core/scene-migrations": ["packages/core/src/utils/scene-migrations.ts"],
+      "@pascal-app/core/schema": ["packages/core/src/schema/index.ts"],
+      "@pascal-app/core/spatial-grid": ["packages/core/src/hooks/spatial-grid/spatial-grid-manager.ts"],
+      "@pascal-app/core/stair-openings": ["packages/core/src/systems/stair/stair-opening-sync.ts"],
+      "@pascal-app/core/store": ["packages/core/src/store/use-scene.ts"],
+      "@pascal-app/core/wall": ["packages/core/src/systems/wall/wall-footprint.ts"],
+      "@pascal-app/editor": ["packages/editor/src/index.tsx"],
+      "@pascal-app/editor/catalog": ["packages/editor/src/components/ui/item-catalog/catalog-items.tsx"],
+      "@pascal-app/editor/procedural-items": ["packages/editor/src/components/procedural-items/inspector.tsx"],
+      "@pascal-app/nodes": ["packages/nodes/src/index.ts"],
+      "@pascal-app/nodes/procedural-item": ["packages/nodes/src/procedural-item/index.ts"],
+      "@pascal-app/viewer": ["packages/viewer/src/index.ts"],
+      "@pascal-app/viewer/capture": ["packages/viewer/src/capture/index.ts"],
+      "@pascal-app/viewer/capture/preview": ["packages/viewer/src/capture/preview.ts"]
+    }
+  }
+}

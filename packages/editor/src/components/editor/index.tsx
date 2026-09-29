@@ -211,6 +211,13 @@ export interface EditorProps {
    */
   presentationPersistenceMode?: 'local' | 'external'
 
+  /**
+   * Standalone Pascal uses a document-level dark class. Embedded hosts can
+   * disable that side effect and provide theme variables/classes in their own
+   * isolated root.
+   */
+  manageDocumentDarkClass?: boolean
+
   // Scene persistence — defaults to localStorage when omitted
   guardAgainstSceneWipe?: boolean
   onLoad?: () => Promise<SceneGraph | null>
@@ -1276,6 +1283,7 @@ function EditorContent({
   floorplanSceneSlot,
   projectId,
   presentationPersistenceMode = 'local',
+  manageDocumentDarkClass = true,
   onLoad,
   onSave,
   onSaveShortcut,
@@ -1466,11 +1474,12 @@ function EditorContent({
   }, [isPreviewMode])
 
   useEffect(() => {
+    if (!manageDocumentDarkClass) return
     document.body.classList.add('dark')
     return () => {
       document.body.classList.remove('dark')
     }
-  }, [])
+  }, [manageDocumentDarkClass])
 
   const handleSceneReadyChange = useCallback((ready: boolean) => {
     setIsViewerSceneReady(ready)
