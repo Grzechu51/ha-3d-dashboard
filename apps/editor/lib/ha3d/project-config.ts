@@ -159,6 +159,7 @@ export function parseHa3dProjectConfig(raw: unknown): Ha3dProjectConfig {
   return {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(Array.from(byKey.values())),
+    structureMappings: parseStructureMappings(record.structureMappings),
   }
 }
 
