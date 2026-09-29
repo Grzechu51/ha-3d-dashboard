@@ -18,15 +18,17 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: native Home Assistant project shell**
+**Checkpoint: project UX and safe multi-client workflow**
 
-Status: **PR #10 in progress**
+Status: **PR #11 in progress**
 
-PR #8 (Home Assistant project Store/WebSocket API) and PR #9 (frontend project session/revision coordinator) are merged to `main`.
+PR #8 (Home Assistant Store/WebSocket API), PR #9 (frontend project session) and PR #10 (native Home Assistant project shell) are merged to `main`.
 
-The active checkpoint is the first complete native Home Assistant shell:
+The native Home Assistant panel can now mount the real Pascal Editor/Viewer, list/create/open server-stored projects, switch Dashboard/Edit modes, and save through Home Assistant-owned persistence.
 
-`Home Assistant panel -> project selector -> Editor / Dashboard -> HA project Store`
+The active checkpoint is project management and safer day-to-day use:
+
+`project picker -> rename/delete/recent project -> safe switching -> explicit conflict recovery`
 
 ## Completed
 
@@ -110,37 +112,35 @@ Implemented:
 
 ## In progress
 
-### PR #10 — native Home Assistant project shell
+### PR #11 — project UX
 
 Current implementation target:
 
-- replace the placeholder custom panel with a real React application,
-- list/create/open projects through `hass.callWS`,
-- mount Pascal Editor directly in Home Assistant without a Next.js server,
-- mount a read-only Dashboard mode from the same server-stored scene,
-- wire Editor autosave to `HomeAssistantProjectSession`,
-- use external HA-owned presentation/config persistence,
-- show save/revision/conflict/error state,
-- generate and ship isolated Pascal/Tailwind CSS with the integration bundle.
+- rename existing projects,
+- delete projects with explicit confirmation,
+- remember/reopen the most recently used project on the current client,
+- safer project switching when saves/config writes are still pending,
+- clearer save/conflict/error states,
+- explicit reload flow after optimistic-concurrency conflicts,
+- keep the server-side Home Assistant project store authoritative.
 
-The custom panel remains Shadow-DOM isolated so editor styles do not leak into the rest of Home Assistant.
+The native Pascal Editor/Viewer shell from PR #10 is already merged and is no longer the active blocker.
 
 ## Next checkpoints
 
 ### Checkpoint A — native project shell
 
-Build the actual Home Assistant panel application on top of the project session:
+**Completed in PR #10.**
 
-1. list projects from Home Assistant,
-2. create/open project,
-3. switch between **Dashboard** and **Edit**,
-4. mount the real Pascal Editor/Viewer,
-5. load scene from the HA project Store,
-6. autosave scene through the project session,
-7. restore/save HA bindings through the same revision stream,
-8. surface save/conflict/error state in the UI.
+Implemented:
 
-This is the next implementation target.
+1. project list/create/open in the native Home Assistant panel,
+2. Dashboard/Edit mode switching,
+3. real Pascal Editor/Viewer mounted without a Next.js runtime,
+4. scene load/save through the HA project Store,
+5. HA binding/config persistence through the shared project session,
+6. save/revision/conflict status,
+7. isolated generated frontend bundle and CSS.
 
 ### Checkpoint B — project UX
 
@@ -227,4 +227,4 @@ The project is based on the MIT-licensed Pascal Editor codebase. Upstream archit
 
 ## Definition of the next usable milestone
 
-The next milestone is reached when a user can install the custom integration, open **3D Home** in Home Assistant, create/open a project, build/edit a scene, bind real HA entities, refresh or open the panel on another client, and see the same server-stored project with live entity states.
+The next milestone is reached when project management is safe enough for normal use: create/open/rename/delete projects, switch projects without losing pending writes, and recover explicitly from multi-client revision conflicts. After that the focus moves to Home Assistant Floors/Areas/Devices integration and HACS packaging.
