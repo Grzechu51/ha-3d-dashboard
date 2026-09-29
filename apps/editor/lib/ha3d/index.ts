@@ -43,6 +43,7 @@ export {
 } from './runtime'
 
 export {
+  type CreateHomeAssistantProjectInput,
   createHomeAssistantProject,
   deleteHomeAssistantProject,
   getHomeAssistantProject,
@@ -51,6 +52,7 @@ export {
   type Ha3dProjectMetadata,
   type Ha3dStoredProject,
   type HomeAssistantProjectApiHost,
+  type SaveHomeAssistantProjectInput,
 } from './project-api'
 export {
   HA3D_PROJECT_CONFIG_VERSION,
