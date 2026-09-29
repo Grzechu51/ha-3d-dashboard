@@ -96,4 +96,13 @@ Read commands require an authenticated Home Assistant session. Create, save, and
 
 ## Current delivery status
 
-Steps 1–5 are implemented in the standalone editor. Step 6 now has a dedicated read-only operator surface at `/dashboard/[sceneId]`. It loads the same Pascal scene and presentation sidecar as the editor, keeps the semantic scene under a read-only lease, mounts HA 3D presentation contributions, and exposes only runtime Home Assistant controls. The native `hass` adapter and host are implemented. The Home Assistant custom integration now owns project persistence through `Store` and exposes a versioned WebSocket project API with optimistic concurrency. Standalone editor persistence remains available for development; the next checkpoint mounts the full editor/dashboard shell on the native HA project API.
+Steps 1–5 are implemented in the standalone editor. Step 6 now has a dedicated read-only operator surface at `/dashboard/[sceneId]`. It loads the same Pascal scene and presentation sidecar as the editor, keeps the semantic scene under a read-only lease, mounts HA 3D presentation contributions, and exposes only runtime Home Assistant controls. The native `hass` adapter and host are implemented. The Home Assistant custom integration now owns project persistence through `Store` and exposes a versioned WebSocket project API with optimistic concurrency. Standalone editor persistence remains available for development. The frontend project session now coordinates native HA scene and binding persistence through one revision stream; the next checkpoint mounts project selection plus the editor/dashboard shell inside the HA custom panel.
+
+
+## Native Home Assistant project session
+
+The native Home Assistant editor does not use the browser presentation sidecar. The Pascal `Editor` exposes a generic `presentationPersistenceMode="external"` host seam; standalone editors keep the existing local-storage default.
+
+`HomeAssistantProjectSession` is the single revision owner for the native HA project. Scene autosaves and HA binding/config changes are serialized through one queue so they cannot race each other with stale `expected_revision` values. A scene save folds an already-dirty HA sidecar into the same mutation when possible. A configuration change that lands while a save is in flight remains dirty and is persisted on the following revision.
+
+A `version_conflict` puts the session into a conflict state and blocks further writes until the project is explicitly reloaded. The session never silently retries stale data over a newer server copy.
