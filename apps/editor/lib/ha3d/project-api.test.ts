@@ -8,6 +8,7 @@ import {
   saveHomeAssistantProject,
 } from './project-api'
 import { loadHomeAssistantStructure } from './structure'
+import { groupHomeAssistantStructure } from './structure-tree'
 
 function wireProject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
