@@ -31,7 +31,8 @@ export function stepCoverOffset(
   durationMs: number,
 ): number {
   if (!Number.isFinite(current) || !Number.isFinite(target)) return target
-  if (durationMs <= 0 || deltaSeconds <= 0) return target
+  if (durationMs <= 0) return target
+  if (deltaSeconds <= 0) return current
 
   const durationSeconds = durationMs / 1000
   const factor = 1 - Math.exp((-4.605170186 * deltaSeconds) / durationSeconds)
