@@ -67,7 +67,8 @@ export {
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
-export {
-  type HomeAssistantStructureRaw,
-  loadHomeAssistantStructureRaw,
-} from './structure-api'
+export type { HomeAssistantRegistryEntity } from './registry-entity'
+export type { HomeAssistantDevice } from './structure-device'
+export type { HomeAssistantArea, HomeAssistantFloor } from './structure-floor'
+export type { HomeAssistantStructureSnapshot } from './structure-snapshot'
+export { loadHomeAssistantStructure } from './structure'
