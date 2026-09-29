@@ -7,7 +7,6 @@ import {
   listHomeAssistantProjects,
   saveHomeAssistantProject,
 } from './project-api'
-import { resolveHomeAssistantEntityAreaId } from './structure-area'
 import { loadHomeAssistantStructure } from './structure'
 
 function wireProject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
