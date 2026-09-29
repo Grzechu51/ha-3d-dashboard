@@ -10,10 +10,8 @@ import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pasca
 import { OrbitControls } from '@react-three/drei'
 import Link from 'next/link'
 import { useLayoutEffect, useState } from 'react'
-import {
-  resetHa3dProjectConfig,
-} from '../../lib/ha3d/project-config'
 import { restoreHa3dDashboardProjectConfig } from '../../lib/ha3d/dashboard-persistence'
+import { resetHa3dProjectConfig } from '../../lib/ha3d/project-config'
 import { Ha3dDashboardControls } from './ha3d-dashboard-controls'
 
 export interface Ha3dDashboardSceneMeta {
