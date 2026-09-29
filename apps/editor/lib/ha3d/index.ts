@@ -27,3 +27,10 @@ export {
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
+export {
+  entityFriendlyName,
+  formatHomeAssistantEntityDetail,
+  formatHomeAssistantEntityValue,
+  numericEntityAttribute,
+  stringListEntityAttribute,
+} from './entity-display'

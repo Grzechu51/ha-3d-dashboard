@@ -49,7 +49,15 @@ export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
       this.simulateLightService(call)
       return
     }
-    if (call.domain === 'cover') this.simulateCoverService(call)
+    if (call.domain === 'cover') {
+      this.simulateCoverService(call)
+      return
+    }
+    if (call.domain === 'switch') {
+      this.simulateSwitchService(call)
+      return
+    }
+    if (call.domain === 'climate') this.simulateClimateService(call)
   }
 
   setEntity(entity: HomeAssistantEntityState): void {
@@ -126,6 +134,53 @@ export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
           current_position: nextPosition,
         },
       })
+    }
+  }
+
+  private simulateSwitchService(call: HomeAssistantServiceCall): void {
+    for (const entityId of targetEntityIds(call)) {
+      const current = this.entities.get(entityId)
+      if (!current) continue
+
+      let nextState = current.state
+      if (call.service === 'turn_on') nextState = 'on'
+      else if (call.service === 'turn_off') nextState = 'off'
+      else if (call.service === 'toggle') nextState = current.state === 'on' ? 'off' : 'on'
+      else continue
+
+      this.setEntity({
+        ...current,
+        state: nextState,
+      })
+    }
+  }
+
+  private simulateClimateService(call: HomeAssistantServiceCall): void {
+    for (const entityId of targetEntityIds(call)) {
+      const current = this.entities.get(entityId)
+      if (!current) continue
+
+      if (
+        call.service === 'set_temperature' &&
+        typeof call.data?.temperature === 'number' &&
+        Number.isFinite(call.data.temperature)
+      ) {
+        this.setEntity({
+          ...current,
+          attributes: {
+            ...current.attributes,
+            temperature: call.data.temperature,
+          },
+        })
+        continue
+      }
+
+      if (call.service === 'set_hvac_mode' && typeof call.data?.hvac_mode === 'string') {
+        this.setEntity({
+          ...current,
+          state: call.data.hvac_mode,
+        })
+      }
     }
   }
 }

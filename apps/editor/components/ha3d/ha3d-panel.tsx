@@ -10,7 +10,12 @@ import {
   type EntityBinding,
   isSupportedHomeAssistantDomain,
 } from '../../lib/ha3d/entity-binding'
-import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
+import {
+  entityFriendlyName,
+  formatHomeAssistantEntityValue,
+  numericEntityAttribute,
+  stringListEntityAttribute,
+} from '../../lib/ha3d/entity-display'
 import {
   getHa3dProjectConfigSnapshot,
   removeEntityBinding,
@@ -21,11 +26,6 @@ import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
-
-function friendlyName(entity: HomeAssistantEntityState): string {
-  const name = entity.attributes.friendly_name
-  return typeof name === 'string' && name.trim() ? name : entity.entityId
-}
 
 export default function Ha3dPanel() {
   const [query, setQuery] = useState('')
@@ -55,21 +55,21 @@ export default function Ha3dPanel() {
       if (!needle) return true
       return (
         entity.entityId.toLocaleLowerCase().includes(needle) ||
-        friendlyName(entity).toLocaleLowerCase().includes(needle)
+        entityFriendlyName(entity).toLocaleLowerCase().includes(needle)
       )
     })
-    .sort((left, right) => friendlyName(left).localeCompare(friendlyName(right)))
+    .sort((left, right) => entityFriendlyName(left).localeCompare(entityFriendlyName(right)))
 
   const selectedBindings = selectedNodeId
     ? project.bindings.filter((binding) => binding.nodeId === selectedNodeId)
     : []
 
-  const toggleLight = async (entityId: string) => {
+  const togglePowerEntity = async (domain: 'light' | 'switch', entityId: string) => {
     const adapter = runtime.adapter
     const entity = adapter?.getEntity(entityId)
     if (!(adapter && entity)) return
     await adapter.callService({
-      domain: 'light',
+      domain,
       service: entity.state === 'on' ? 'turn_off' : 'turn_on',
       target: { entityId },
     })
@@ -88,6 +88,24 @@ export default function Ha3dPanel() {
       domain: 'cover',
       service: 'set_cover_position',
       data: { position },
+      target: { entityId },
+    })
+  }
+
+  const setClimateTemperature = async (entityId: string, temperature: number) => {
+    await runtime.adapter?.callService({
+      domain: 'climate',
+      service: 'set_temperature',
+      data: { temperature },
+      target: { entityId },
+    })
+  }
+
+  const setClimateMode = async (entityId: string, hvacMode: string) => {
+    await runtime.adapter?.callService({
+      domain: 'climate',
+      service: 'set_hvac_mode',
+      data: { hvac_mode: hvacMode },
       target: { entityId },
     })
   }
@@ -145,22 +163,40 @@ export default function Ha3dPanel() {
               const entity = runtime.adapter?.getEntity(binding.entityId)
               const motion = binding.coverMotion ?? DEFAULT_COVER_MOTION
               const coverPosition = Math.round(resolveHomeAssistantCoverOpenFraction(entity) * 100)
+              const climateTarget = numericEntityAttribute(entity, 'temperature')
+              const climateModes = stringListEntityAttribute(entity, 'hvac_modes')
 
               return (
                 <div
                   className="rounded-md border border-border/70 p-2"
                   key={`${binding.nodeId}:${binding.domain}`}
                 >
-                  <div className="text-sm">{binding.entityId}</div>
+                  <div className="text-sm">
+                    {entity ? entityFriendlyName(entity) : binding.entityId}
+                  </div>
+                  {entity && entityFriendlyName(entity) !== entity.entityId ? (
+                    <div className="truncate text-muted-foreground text-[10px]">
+                      {entity.entityId}
+                    </div>
+                  ) : null}
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <span className="text-muted-foreground text-xs">
-                      {binding.domain} · {entity?.state ?? 'unavailable'}
+                      {binding.domain} · {entity ? formatHomeAssistantEntityValue(entity) : 'unavailable'}
                     </span>
                     <div className="flex gap-1">
                       {binding.domain === 'light' && entity ? (
                         <button
                           className="rounded border border-border px-2 py-1 text-xs hover:bg-accent"
-                          onClick={() => void toggleLight(binding.entityId)}
+                          onClick={() => void togglePowerEntity('light', binding.entityId)}
+                          type="button"
+                        >
+                          {entity.state === 'on' ? 'Turn off' : 'Turn on'}
+                        </button>
+                      ) : null}
+                      {binding.domain === 'switch' && entity ? (
+                        <button
+                          className="rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                          onClick={() => void togglePowerEntity('switch', binding.entityId)}
                           type="button"
                         >
                           {entity.state === 'on' ? 'Turn off' : 'Turn on'}
@@ -263,6 +299,48 @@ export default function Ha3dPanel() {
                       </div>
                     </div>
                   ) : null}
+
+                  {binding.domain === 'climate' && entity ? (
+                    <div className="mt-3 grid grid-cols-2 gap-2 border-border/70 border-t pt-3">
+                      <label className="text-muted-foreground text-xs">
+                        Target temperature
+                        <input
+                          className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                          onChange={(event) => {
+                            if (!event.target.value.trim()) return
+                            const value = Number(event.target.value)
+                            if (Number.isFinite(value)) {
+                              void setClimateTemperature(binding.entityId, value)
+                            }
+                          }}
+                          step="0.5"
+                          type="number"
+                          value={climateTarget ?? ''}
+                        />
+                      </label>
+
+                      <label className="text-muted-foreground text-xs">
+                        HVAC mode
+                        <select
+                          className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                          onChange={(event) =>
+                            void setClimateMode(binding.entityId, event.target.value)
+                          }
+                          value={entity.state}
+                        >
+                          {climateModes.length > 0 ? (
+                            climateModes.map((mode) => (
+                              <option key={mode} value={mode}>
+                                {mode}
+                              </option>
+                            ))
+                          ) : (
+                            <option value={entity.state}>{entity.state}</option>
+                          )}
+                        </select>
+                      </label>
+                    </div>
+                  ) : null}
                 </div>
               )
             })}
@@ -302,13 +380,13 @@ export default function Ha3dPanel() {
                 type="button"
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-sm">{friendlyName(entity)}</span>
+                  <span className="block truncate text-sm">{entityFriendlyName(entity)}</span>
                   <span className="block truncate text-muted-foreground text-xs">
                     {entity.entityId}
                   </span>
                 </span>
                 <span className="shrink-0 text-muted-foreground text-xs">
-                  {isBound ? 'Bound' : entity.state}
+                  {isBound ? 'Bound' : formatHomeAssistantEntityValue(entity)}
                 </span>
               </button>
             )
