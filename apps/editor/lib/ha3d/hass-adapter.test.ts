@@ -1,8 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import {
-  HomeAssistantHassAdapter,
-  type HomeAssistantHassLike,
-} from './hass-adapter'
+import { HomeAssistantHassAdapter, type HomeAssistantHassLike } from './hass-adapter'
 
 function hass(
   states: HomeAssistantHassLike['states'],
