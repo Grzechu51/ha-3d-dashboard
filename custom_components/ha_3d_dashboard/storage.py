@@ -15,6 +15,10 @@ from .project_model import MISSING, ProjectCollection
 _LOGGER = logging.getLogger(__name__)
 
 
+class ProjectPersistenceError(Exception):
+    """Raised when Home Assistant Store did not durably persist a mutation."""
+
+
 class HomeAssistantProjectStore:
     """Serialize project mutations and persist them through Home Assistant Store."""
 
@@ -49,12 +53,20 @@ class HomeAssistantProjectStore:
         return self._projects.get(project_id)
 
     async def _async_save_with_rollback(self, before: dict[str, Any]) -> None:
-        """Persist current state or restore the previous in-memory snapshot."""
+        """Persist current state, verify it, or restore the previous RAM snapshot."""
+        expected = self._projects.export()
         try:
-            await self._store.async_save(self._projects.export())
+            await self._store.async_save(expected)
+            persisted = await self._store.async_load()
         except Exception:
             self._projects, _ = ProjectCollection.from_storage(before)
             raise
+
+        if persisted != expected:
+            self._projects, _ = ProjectCollection.from_storage(before)
+            raise ProjectPersistenceError(
+                "Home Assistant Store did not persist the HA 3D project mutation"
+            )
 
     async def async_create_project(
         self,
