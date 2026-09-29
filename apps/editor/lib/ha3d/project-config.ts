@@ -91,8 +91,7 @@ function parsePersistedBinding(raw: unknown): EntityBinding {
     nodeId: record.nodeId,
     entityId: record.entityId,
     enabled: record.enabled as boolean | undefined,
-    coverMotion:
-      domain === 'cover' ? normalizeCoverMotionConfig(record.coverMotion) : undefined,
+    coverMotion: domain === 'cover' ? normalizeCoverMotionConfig(record.coverMotion) : undefined,
   })
   if (record.domain !== undefined && record.domain !== binding.domain) {
     throw new Error('[ha3d] persisted binding domain does not match entity id')
@@ -135,10 +134,7 @@ export function upsertEntityBinding(binding: EntityBinding): void {
   const current = snapshot.bindings.find((candidate) => bindingKey(candidate) === key)
   if (current && bindingsEqual(current, binding)) return
 
-  publish([
-    ...snapshot.bindings.filter((candidate) => bindingKey(candidate) !== key),
-    binding,
-  ])
+  publish([...snapshot.bindings.filter((candidate) => bindingKey(candidate) !== key), binding])
 }
 
 export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssistantDomain): void {
