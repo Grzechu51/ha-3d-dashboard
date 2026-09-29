@@ -382,7 +382,7 @@ function SessionStatus({
   return (
     <span
       className={
-        snapshot.status === 'conflict' || snapshot.status === 'error'
+        snapshot.status === 'conflict' || snapshot.status === 'error' || saveStatus === 'error'
           ? 'text-destructive'
           : 'text-muted-foreground'
       }
@@ -637,7 +637,13 @@ function NativeProject({
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
             disabled={sceneSaveBlocked || leavingProject}
             onClick={() => onModeChange('dashboard')}
-            title={sceneSaveBlocked ? 'Wait for the current scene save to finish' : undefined}
+            title={
+              saveStatus === 'error' || snapshot.status === 'error'
+                ? 'Resolve or retry the save error before leaving the editor'
+                : sceneSaveBlocked
+                  ? 'Wait for the current scene save to finish'
+                  : undefined
+            }
             type="button"
           >
             Dashboard
@@ -646,7 +652,13 @@ function NativeProject({
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
             disabled={sceneSaveBlocked || leavingProject}
             onClick={() => void onProjects()}
-            title={sceneSaveBlocked ? 'Wait for the current scene save to finish' : undefined}
+            title={
+              saveStatus === 'error' || snapshot.status === 'error'
+                ? 'Resolve or retry the save error before leaving the editor'
+                : sceneSaveBlocked
+                  ? 'Wait for the current scene save to finish'
+                  : undefined
+            }
             type="button"
           >
             {leavingProject ? 'Saving…' : 'Projects'}
