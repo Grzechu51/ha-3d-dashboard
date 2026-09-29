@@ -139,7 +139,7 @@ describe('Home Assistant project WebSocket client', () => {
 
   test('loads Home Assistant structure registries', async () => {
     const calls: string[] = []
-    await loadHomeAssistantStructureRaw(
+    await loadHomeAssistantStructure(
       host((message) => {
         calls.push(String(message.type))
         return message.type === 'config/entity_registry/list_for_display' ? { entities: [] } : []
