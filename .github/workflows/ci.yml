@@ -14,7 +14,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -40,8 +40,6 @@ jobs:
           python3 -m json.tool custom_components/ha_3d_dashboard/manifest.json >/dev/null
           python3 -m unittest discover -s custom_components/ha_3d_dashboard/tests -p 'test_*.py'
           bun run --cwd apps/editor build:ha-panel
-          git diff --exit-code -- custom_components/ha_3d_dashboard/frontend
-          test -z "$(git status --porcelain --untracked-files=all -- custom_components/ha_3d_dashboard/frontend)"
 
       - name: Upload generated HA panel bundle
         if: always()
@@ -51,6 +49,42 @@ jobs:
           path: custom_components/ha_3d_dashboard/frontend/
           if-no-files-found: warn
           retention-days: 3
+
+      - name: Checkout PR head for generated frontend
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          path: pr-head
+
+      - name: Commit generated HA frontend
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          rm -rf pr-head/custom_components/ha_3d_dashboard/frontend
+          mkdir -p pr-head/custom_components/ha_3d_dashboard/frontend
+          cp -a custom_components/ha_3d_dashboard/frontend/. pr-head/custom_components/ha_3d_dashboard/frontend/
+
+          if test -n "$(git -C pr-head status --porcelain --untracked-files=all -- custom_components/ha_3d_dashboard/frontend)"; then
+            git -C pr-head config user.name "github-actions[bot]"
+            git -C pr-head config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git -C pr-head add custom_components/ha_3d_dashboard/frontend
+            git -C pr-head commit -m "build(ha3d): update generated HA frontend"
+            git -C pr-head push origin "HEAD:${PR_HEAD_REF}"
+          fi
+
+      - name: Verify generated HA frontend parity
+        env:
+          SAME_REPO_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        run: |
+          if test "$SAME_REPO_PR" = "true"; then
+            diff -qr custom_components/ha_3d_dashboard/frontend pr-head/custom_components/ha_3d_dashboard/frontend
+            test -z "$(git -C pr-head status --porcelain --untracked-files=all -- custom_components/ha_3d_dashboard/frontend)"
+          else
+            git diff --exit-code -- custom_components/ha_3d_dashboard/frontend
+            test -z "$(git status --porcelain --untracked-files=all -- custom_components/ha_3d_dashboard/frontend)"
+          fi
 
       - name: Type check
         run: bun run check-types
