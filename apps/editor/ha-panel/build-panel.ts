@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/postcss'
 import postcss from 'postcss'
@@ -12,22 +12,32 @@ const cssOutput = resolve(outputDir, 'ha3d-panel.css')
 await rm(outputDir, { recursive: true, force: true })
 await mkdir(outputDir, { recursive: true })
 
-const result = await Bun.build({
-  entrypoints: [jsEntry],
-  outdir: outputDir,
-  target: 'browser',
-  format: 'esm',
-  tsconfig,
-  minify: true,
-  define: {
-    'process.env.NODE_ENV': JSON.stringify('production'),
+const build = Bun.spawn(
+  [
+    'bun',
+    'build',
+    jsEntry,
+    '--target',
+    'browser',
+    '--format',
+    'esm',
+    '--tsconfig-override',
+    tsconfig,
+    '--outdir',
+    outputDir,
+    '--minify',
+    '--define',
+    'process.env.NODE_ENV="production"',
+  ],
+  {
+    cwd: resolve(import.meta.dir, '..'),
+    stdout: 'inherit',
+    stderr: 'inherit',
   },
-})
+)
 
-if (!result.success) {
-  for (const log of result.logs) console.error(log)
-  process.exit(1)
-}
+const exitCode = await build.exited
+if (exitCode !== 0) process.exit(exitCode)
 
 const css = await readFile(cssSource, 'utf8')
 const processed = await postcss([tailwindcss()]).process(css, {
@@ -36,9 +46,8 @@ const processed = await postcss([tailwindcss()]).process(css, {
 })
 await writeFile(cssOutput, processed.css)
 
-for (const output of result.outputs) {
-  console.info(
-    `[ha3d-panel] ${output.path.replace(outputDir, '') || output.path} ${output.size} bytes`,
-  )
+for (const file of (await readdir(outputDir)).sort()) {
+  const path = resolve(outputDir, file)
+  const info = await stat(path)
+  if (info.isFile()) console.info(`[ha3d-panel] /${file} ${info.size} bytes`)
 }
-console.info(`[ha3d-panel] /ha3d-panel.css ${Buffer.byteLength(processed.css)} bytes`)
