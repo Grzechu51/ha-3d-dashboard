@@ -12,7 +12,7 @@ export function parseHomeAssistantDevice(raw: unknown): HomeAssistantDevice {
   const value = objectValue(raw, 'device')
   return {
     id: stringValue(value.id, 'device id'),
-    name: stringValue(value.name, 'device name'),
+    name: optionalString(value.name, 'device name'),
     nameByUser: optionalString(value.name_by_user, 'device user name'),
     areaId: optionalString(value.area_id, 'device area id'),
     parentDeviceId: optionalString(value.parent_device_id, 'device parent id'),
