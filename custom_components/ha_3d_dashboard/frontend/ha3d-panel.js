@@ -268,8 +268,9 @@ class Ha3dDashboardPanel extends HTMLElement {
         <section class="card">
           <h1>HA 3D Dashboard</h1>
           <p>
-            Native Home Assistant panel host is active. The next checkpoint moves project
-            storage into Home Assistant and mounts the full editor/dashboard shell here.
+            Native Home Assistant panel host is active. Project storage and
+            optimistic-concurrency WebSocket APIs are available; the next checkpoint mounts
+            the full editor/dashboard shell here.
           </p>
           <div class="status">
             <span class="pill">hass: ${connected ? "connected" : "waiting"}</span>
