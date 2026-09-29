@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../../..",
+    "paths": {
+      "@pascal-app/core": ["packages/core/src/index.ts"],
+      "@pascal-app/editor": ["packages/editor/src/index.tsx"],
+      "@pascal-app/nodes": ["packages/nodes/src/index.ts"],
+      "@pascal-app/viewer": ["packages/viewer/src/index.ts"]
+    }
+  }
+}
