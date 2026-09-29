@@ -10,6 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    DATA_PROJECT_STORE,
+    DATA_WEBSOCKET_REGISTERED,
     DOMAIN,
     PANEL_COMPONENT_NAME,
     PANEL_ICON,
@@ -19,6 +21,8 @@ from .const import (
     STATIC_URL_PATH,
     VERSION,
 )
+from .storage import HomeAssistantProjectStore
+from .websocket import async_register_project_websocket_api
 
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
 _DATA_STATIC_REGISTERED = "static_registered"
@@ -27,6 +31,15 @@ _DATA_STATIC_REGISTERED = "static_registered"
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up HA 3D Dashboard integration resources."""
     domain_data: dict[str, Any] = hass.data.setdefault(DOMAIN, {})
+
+    if DATA_PROJECT_STORE not in domain_data:
+        project_store = HomeAssistantProjectStore(hass)
+        await project_store.async_load()
+        domain_data[DATA_PROJECT_STORE] = project_store
+
+    if not domain_data.get(DATA_WEBSOCKET_REGISTERED):
+        async_register_project_websocket_api(hass)
+        domain_data[DATA_WEBSOCKET_REGISTERED] = True
 
     if not domain_data.get(_DATA_STATIC_REGISTERED):
         await hass.http.async_register_static_paths(
