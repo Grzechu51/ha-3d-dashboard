@@ -14,6 +14,7 @@ _MODEL = importlib.util.module_from_spec(_SPEC)
 sys.modules[_SPEC.name] = _MODEL
 _SPEC.loader.exec_module(_MODEL)
 
+EmptySceneRejectedError = _MODEL.EmptySceneRejectedError
 InvalidProjectError = _MODEL.InvalidProjectError
 ProjectAlreadyExistsError = _MODEL.ProjectAlreadyExistsError
 ProjectCollection = _MODEL.ProjectCollection
@@ -71,6 +72,29 @@ class ProjectCollectionTests(unittest.TestCase):
         )
         self.assertEqual(updated["revision"], 2)
         self.assertEqual(updated["updated_at"], "2026-09-29T10:01:00+00:00")
+
+    def test_populated_scene_cannot_be_silently_replaced_with_empty_scene(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        collection.create(
+            project_id="main",
+            name="Main",
+            scene={"nodes": {"site": {"type": "site"}}, "rootNodeIds": ["site"]},
+        )
+
+        with self.assertRaises(EmptySceneRejectedError):
+            collection.save(
+                "main",
+                expected_revision=1,
+                scene={"nodes": {}, "rootNodeIds": []},
+            )
+
+        updated = collection.save(
+            "main",
+            expected_revision=1,
+            scene={"nodes": {}, "rootNodeIds": []},
+            force_empty_scene=True,
+        )
+        self.assertEqual(updated["revision"], 2)
 
     def test_stale_save_and_delete_are_rejected(self) -> None:
         times = iter(
