@@ -4,15 +4,9 @@ import { type AnyNodeId, sceneRegistry } from '@pascal-app/core'
 import { type LightSource, useItemLightPool } from '@pascal-app/viewer'
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
-import { Vector3, type Object3D } from 'three'
-import {
-  DEFAULT_COVER_MOTION,
-  type EntityBinding,
-} from '../../lib/ha3d/entity-binding'
-import {
-  resolveCoverOpenOffset,
-  stepCoverOffset,
-} from '../../lib/ha3d/cover-state'
+import type { Object3D, Vector3 } from 'three'
+import { resolveCoverOpenOffset, stepCoverOffset } from '../../lib/ha3d/cover-state'
+import { DEFAULT_COVER_MOTION, type EntityBinding } from '../../lib/ha3d/entity-binding'
 import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHa3dProjectConfigSnapshot,
