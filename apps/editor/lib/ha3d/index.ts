@@ -18,6 +18,13 @@ export {
   numericEntityAttribute,
   stringListEntityAttribute,
 } from './entity-display'
+export {
+  HomeAssistantHassAdapter,
+  type HomeAssistantHassLike,
+  type HomeAssistantHassServiceTarget,
+  type HomeAssistantHassState,
+} from './hass-adapter'
+export { createHomeAssistantHassHost, type HomeAssistantHassHost } from './hass-host'
 export type {
   HomeAssistantAdapter,
   HomeAssistantAttributes,
@@ -34,13 +41,3 @@ export {
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
-export {
-  HomeAssistantHassAdapter,
-  type HomeAssistantHassLike,
-  type HomeAssistantHassState,
-  type HomeAssistantHassServiceTarget,
-} from './hass-adapter'
-export {
-  createHomeAssistantHassHost,
-  type HomeAssistantHassHost,
-} from './hass-host'
