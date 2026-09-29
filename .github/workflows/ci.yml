@@ -34,11 +34,22 @@ jobs:
       - name: Validate agent skills and plugin packages
         run: bun run skills:validate
 
+      - name: Validate Home Assistant custom integration
+        run: |
+          python3 -m compileall -q custom_components/ha_3d_dashboard
+          python3 -m json.tool custom_components/ha_3d_dashboard/manifest.json >/dev/null
+          bun run --cwd apps/editor build:ha-panel
+          git diff --exit-code -- custom_components/ha_3d_dashboard/frontend/ha3d-panel.js
+
       - name: Type check
         run: bun run check-types
 
       - name: Test
-        run: bun run test
+        # Pascal's package suites create temporary source probes and include tight
+        # wall/history timing assertions. Running package suites concurrently can
+        # make those tests contend for CPU and race each other's temporary files.
+        # Keep each package's own test concurrency intact, but serialize packages.
+        run: bunx turbo run test --concurrency=1
 
       - name: Build
         run: bun run build

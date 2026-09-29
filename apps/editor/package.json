@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "biome lint",
     "check-types": "next typegen && tsc --noEmit",
-    "test": "bun test lib"
+    "test": "bun test lib",
+    "build:ha-panel": "bun build ha-panel/ha3d-panel.ts --target browser --format esm --outfile ../../custom_components/ha_3d_dashboard/frontend/ha3d-panel.js"
   },
   "dependencies": {
     "@iconify/react": "^6.0.2",
