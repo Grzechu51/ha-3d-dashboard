@@ -1,0 +1,14 @@
+{
+  "title": "HA 3D Dashboard",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Skonfiguruj HA 3D Dashboard",
+        "description": "Dodaje natywny panel HA 3D do paska bocznego Home Assistanta."
+      }
+    },
+    "abort": {
+      "already_configured": "HA 3D Dashboard jest już skonfigurowany."
+    }
+  }
+}

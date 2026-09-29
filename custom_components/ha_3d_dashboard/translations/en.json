@@ -1,0 +1,14 @@
+{
+  "title": "HA 3D Dashboard",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up HA 3D Dashboard",
+        "description": "Adds the native HA 3D panel to the Home Assistant sidebar."
+      }
+    },
+    "abort": {
+      "already_configured": "HA 3D Dashboard is already configured."
+    }
+  }
+}
