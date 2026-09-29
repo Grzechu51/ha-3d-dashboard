@@ -5,7 +5,9 @@ import {
   ha3dProjectConfiguration,
   removeEntityBinding,
   resetHa3dProjectConfig,
+  upsertAreaStructureMapping,
   upsertEntityBinding,
+  upsertFloorStructureMapping,
 } from './project-config'
 
 afterEach(() => {
