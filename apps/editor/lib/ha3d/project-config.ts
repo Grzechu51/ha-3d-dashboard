@@ -104,7 +104,10 @@ function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
   return { floors, areas }
 }
 
-function publish(bindings: readonly EntityBinding[]): void {
+function publish(
+  bindings: readonly EntityBinding[],
+  structureMappings: Ha3dStructureMappings = snapshot.structureMappings,
+): void {
   snapshot = {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(bindings).map(cloneBinding),
