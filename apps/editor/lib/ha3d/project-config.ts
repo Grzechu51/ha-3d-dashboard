@@ -101,7 +101,7 @@ function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
       throw new Error('[ha3d] area mapping must be an object')
     }
     const mapping = entry as Record<string, unknown>
-    if (typeof mapping.areaId !== 'string' || typeof mapping.zoneNodeId !== 'string') {
+    if (typeof mapping.areaId !== 'string' || !mapping.areaId.trim() || typeof mapping.zoneNodeId !== 'string') {
       throw new Error('[ha3d] area mapping ids must be strings')
     }
     return { areaId: mapping.areaId, zoneNodeId: mapping.zoneNodeId }
