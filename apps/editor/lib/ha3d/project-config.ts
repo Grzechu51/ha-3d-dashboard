@@ -191,8 +191,14 @@ export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssista
 }
 
 export function resetHa3dProjectConfig(): void {
-  if (snapshot.bindings.length === 0) return
-  publish([])
+  if (
+    snapshot.bindings.length === 0 &&
+    snapshot.structureMappings.floors.length === 0 &&
+    snapshot.structureMappings.areas.length === 0
+  ) {
+    return
+  }
+  publish([], { floors: [], areas: [] })
 }
 
 export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
