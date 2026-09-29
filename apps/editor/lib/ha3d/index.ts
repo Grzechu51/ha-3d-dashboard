@@ -52,6 +52,8 @@ export {
   type Ha3dProjectConfig,
   type Ha3dStructureMappings,
   parseHa3dProjectConfig,
+  removeAreaStructureMapping,
+  removeFloorStructureMapping,
   upsertAreaStructureMapping,
   upsertFloorStructureMapping,
 } from './project-config'
