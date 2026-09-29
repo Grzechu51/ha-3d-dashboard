@@ -8,47 +8,6 @@ import {
 
 afterEach(() => {
   setHomeAssistantAdapter(null)
-  test('mock adapter simulates switch and climate services', async () => {
-    const adapter = new MockHomeAssistantAdapter([
-      {
-        entityId: 'switch.salon_tv',
-        state: 'off',
-        attributes: {},
-      },
-      {
-        entityId: 'climate.salon',
-        state: 'heat',
-        attributes: {
-          current_temperature: 21.5,
-          temperature: 22,
-          hvac_modes: ['off', 'heat', 'cool'],
-        },
-      },
-    ])
-
-    await adapter.callService({
-      domain: 'switch',
-      service: 'turn_on',
-      target: { entityId: 'switch.salon_tv' },
-    })
-    expect(adapter.getEntity('switch.salon_tv')?.state).toBe('on')
-
-    await adapter.callService({
-      domain: 'climate',
-      service: 'set_temperature',
-      data: { temperature: 23.5 },
-      target: { entityId: 'climate.salon' },
-    })
-    expect(adapter.getEntity('climate.salon')?.attributes.temperature).toBe(23.5)
-
-    await adapter.callService({
-      domain: 'climate',
-      service: 'set_hvac_mode',
-      data: { hvac_mode: 'cool' },
-      target: { entityId: 'climate.salon' },
-    })
-    expect(adapter.getEntity('climate.salon')?.state).toBe('cool')
-  })
 })
 
 describe('Home Assistant runtime', () => {
@@ -155,5 +114,47 @@ describe('Home Assistant runtime', () => {
 
     expect(adapter.getEntity('cover.salon')?.attributes.current_position).toBe(0)
     expect(adapter.getEntity('cover.salon')?.state).toBe('closed')
+  })
+
+  test('mock adapter simulates switch and climate services', async () => {
+    const adapter = new MockHomeAssistantAdapter([
+      {
+        entityId: 'switch.salon_tv',
+        state: 'off',
+        attributes: {},
+      },
+      {
+        entityId: 'climate.salon',
+        state: 'heat',
+        attributes: {
+          current_temperature: 21.5,
+          temperature: 22,
+          hvac_modes: ['off', 'heat', 'cool'],
+        },
+      },
+    ])
+
+    await adapter.callService({
+      domain: 'switch',
+      service: 'turn_on',
+      target: { entityId: 'switch.salon_tv' },
+    })
+    expect(adapter.getEntity('switch.salon_tv')?.state).toBe('on')
+
+    await adapter.callService({
+      domain: 'climate',
+      service: 'set_temperature',
+      data: { temperature: 23.5 },
+      target: { entityId: 'climate.salon' },
+    })
+    expect(adapter.getEntity('climate.salon')?.attributes.temperature).toBe(23.5)
+
+    await adapter.callService({
+      domain: 'climate',
+      service: 'set_hvac_mode',
+      data: { hvac_mode: 'cool' },
+      target: { entityId: 'climate.salon' },
+    })
+    expect(adapter.getEntity('climate.salon')?.state).toBe('cool')
   })
 })
