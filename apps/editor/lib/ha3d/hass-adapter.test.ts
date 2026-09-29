@@ -67,29 +67,24 @@ describe('Home Assistant hass adapter', () => {
       changes.push([...ids].sort())
     })
 
+    const updatedLight = {
+      ...light,
+      state: 'on',
+    }
     adapter.updateHass(
       hass({
-        'light.salon': {
-          ...light,
-          state: 'on',
-        },
+        'light.salon': updatedLight,
         'sensor.salon_temperature': sensor,
       }),
     )
     adapter.updateHass(
       hass({
-        'light.salon': adapter.getEntity('light.salon')
-          ? {
-              entity_id: 'light.salon',
-              state: 'on',
-              attributes: {},
-            }
-          : light,
+        'light.salon': updatedLight,
         'sensor.salon_temperature': sensor,
       }),
     )
 
-    expect(changes).toEqual([['light.salon'], ['light.salon']])
+    expect(changes).toEqual([['light.salon']])
     unsubscribe()
   })
 
