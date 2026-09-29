@@ -71,6 +71,39 @@ function sortBindings(bindings: readonly EntityBinding[]): EntityBinding[] {
   )
 }
 
+function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
+  if (raw === undefined) return { floors: [], areas: [] }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('[ha3d] structureMappings must be an object')
+  }
+  const value = raw as Record<string, unknown>
+  if (!Array.isArray(value.floors) || !Array.isArray(value.areas)) {
+    throw new Error('[ha3d] structureMappings floors and areas must be arrays')
+  }
+
+  const floors = value.floors.map((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error('[ha3d] floor mapping must be an object')
+    }
+    const mapping = entry as Record<string, unknown>
+    if (typeof mapping.floorId !== 'string' || typeof mapping.levelNodeId !== 'string') {
+      throw new Error('[ha3d] floor mapping ids must be strings')
+    }
+    return { floorId: mapping.floorId, levelNodeId: mapping.levelNodeId }
+  })
+  const areas = value.areas.map((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error('[ha3d] area mapping must be an object')
+    }
+    const mapping = entry as Record<string, unknown>
+    if (typeof mapping.areaId !== 'string' || typeof mapping.zoneNodeId !== 'string') {
+      throw new Error('[ha3d] area mapping ids must be strings')
+    }
+    return { areaId: mapping.areaId, zoneNodeId: mapping.zoneNodeId }
+  })
+  return { floors, areas }
+}
+
 function publish(bindings: readonly EntityBinding[]): void {
   snapshot = {
     version: HA3D_PROJECT_CONFIG_VERSION,
