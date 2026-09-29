@@ -14,6 +14,7 @@ from homeassistant.helpers import config_validation as cv
 from .const import DATA_PROJECT_STORE, DOMAIN
 from .project_model import (
     MISSING,
+    EmptySceneRejectedError,
     InvalidProjectError,
     ProjectAlreadyExistsError,
     ProjectNotFoundError,
@@ -22,6 +23,7 @@ from .project_model import (
 from .storage import HomeAssistantProjectStore
 
 ERR_ALREADY_EXISTS = "already_exists"
+ERR_EMPTY_SCENE_REJECTED = "empty_scene_rejected"
 ERR_INVALID_PROJECT = "invalid_project"
 ERR_NOT_FOUND = "not_found"
 ERR_VERSION_CONFLICT = "version_conflict"
@@ -36,6 +38,9 @@ def _send_project_error(
     msg_id: int,
     error: Exception,
 ) -> None:
+    if isinstance(error, EmptySceneRejectedError):
+        connection.send_error(msg_id, ERR_EMPTY_SCENE_REJECTED, str(error))
+        return
     if isinstance(error, ProjectVersionConflictError):
         connection.send_error(msg_id, ERR_VERSION_CONFLICT, str(error))
         return
@@ -127,6 +132,7 @@ async def websocket_create_project(
         probatio.Optional("name"): cv.string,
         probatio.Optional("scene"): probatio.Any(dict, None),
         probatio.Optional("ha_config"): dict,
+        probatio.Optional("force_empty_scene", default=False): bool,
     }
 )
 @websocket_api.async_response
@@ -143,6 +149,7 @@ async def websocket_save_project(
             name=msg["name"] if "name" in msg else MISSING,
             scene=msg["scene"] if "scene" in msg else MISSING,
             ha_config=msg["ha_config"] if "ha_config" in msg else MISSING,
+            force_empty_scene=msg["force_empty_scene"],
         )
     except Exception as error:
         _send_project_error(connection, msg["id"], error)
