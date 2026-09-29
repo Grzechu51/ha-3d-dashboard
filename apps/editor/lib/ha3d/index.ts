@@ -41,3 +41,19 @@ export {
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
+
+export {
+  createHomeAssistantProject,
+  deleteHomeAssistantProject,
+  getHomeAssistantProject,
+  listHomeAssistantProjects,
+  saveHomeAssistantProject,
+  type Ha3dProjectMetadata,
+  type Ha3dStoredProject,
+  type HomeAssistantProjectApiHost,
+} from './project-api'
+export {
+  HA3D_PROJECT_CONFIG_VERSION,
+  type Ha3dProjectConfig,
+  parseHa3dProjectConfig,
+} from './project-config'
