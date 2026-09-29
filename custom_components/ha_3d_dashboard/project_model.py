@@ -64,7 +64,7 @@ def _utc_now() -> str:
 
 def default_ha_config() -> dict[str, Any]:
     """Return an empty HA-specific sidecar matching the frontend v1 contract."""
-    return {"version": 1, "bindings": []}
+    return {"version": 1, "bindings": [], "structureMappings": {"floors": [], "areas": []}}
 
 
 def _validate_project_id(project_id: str) -> str:
