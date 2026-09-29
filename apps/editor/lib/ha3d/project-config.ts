@@ -214,6 +214,12 @@ export function removeFloorStructureMapping(floorId: string): void {
   publish(snapshot.bindings, { ...snapshot.structureMappings, floors })
 }
 
+export function removeAreaStructureMapping(areaId: string): void {
+  const areas = snapshot.structureMappings.areas.filter((mapping) => mapping.areaId !== areaId)
+  if (areas.length === snapshot.structureMappings.areas.length) return
+  publish(snapshot.bindings, { ...snapshot.structureMappings, areas })
+}
+
 export function resetHa3dProjectConfig(): void {
   if (
     snapshot.bindings.length === 0 &&
