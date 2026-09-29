@@ -28,7 +28,7 @@ class ProjectCollectionTests(unittest.TestCase):
         created = collection.create(
             project_id="main_house",
             name=" Main house ",
-            scene={"nodes": {"site": {"type": "site"}}},
+            scene={"nodes": {"site": {"type": "site"}}, "rootNodeIds": ["site"]},
         )
 
         self.assertEqual(created["name"], "Main house")
