@@ -45,7 +45,11 @@ jobs:
         run: bun run check-types
 
       - name: Test
-        run: bun run test
+        # Pascal's package suites create temporary source probes and include tight
+        # wall/history timing assertions. Running package suites concurrently can
+        # make those tests contend for CPU and race each other's temporary files.
+        # Keep each package's own test concurrency intact, but serialize packages.
+        run: bunx turbo run test --concurrency=1
 
       - name: Build
         run: bun run build
