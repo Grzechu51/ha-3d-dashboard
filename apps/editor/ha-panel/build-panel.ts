@@ -1,12 +1,9 @@
-import tailwindcss from '@tailwindcss/postcss'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import tailwindcss from '@tailwindcss/postcss'
 import postcss from 'postcss'
 
-const outputDir = resolve(
-  import.meta.dir,
-  '../../../custom_components/ha_3d_dashboard/frontend',
-)
+const outputDir = resolve(import.meta.dir, '../../../custom_components/ha_3d_dashboard/frontend')
 const jsEntry = resolve(import.meta.dir, 'ha3d-panel.ts')
 const tsconfig = resolve(import.meta.dir, 'tsconfig.build.json')
 const cssSource = resolve(import.meta.dir, '../app/globals.css')
