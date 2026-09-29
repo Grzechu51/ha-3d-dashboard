@@ -240,7 +240,6 @@ function ProjectPicker({
                           onSubmit={(event) => void submitRename(event, project)}
                         >
                           <input
-                            autoFocus
                             className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring"
                             maxLength={120}
                             onChange={(event) => setRenameValue(event.target.value)}
@@ -269,7 +268,8 @@ function ProjectPicker({
                       {isDeleting ? (
                         <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-border border-t pt-3">
                           <p className="text-muted-foreground text-xs">
-                            Delete <span className="font-medium text-foreground">{project.name}</span>?
+                            Delete{' '}
+                            <span className="font-medium text-foreground">{project.name}</span>?
                             This removes the server-stored 3D project.
                           </p>
                           <div className="flex gap-2">
@@ -305,7 +305,10 @@ function ProjectPicker({
           </div>
 
           {canManage ? (
-            <form className="rounded-xl border border-border bg-background/60 p-4" onSubmit={submit}>
+            <form
+              className="rounded-xl border border-border bg-background/60 p-4"
+              onSubmit={submit}
+            >
               <div className="font-medium text-sm">Create project</div>
               <label className="mt-4 block text-muted-foreground text-xs">
                 Name
