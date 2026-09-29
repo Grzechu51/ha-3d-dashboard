@@ -11,6 +11,10 @@ function targetEntityIds(call: HomeAssistantServiceCall): readonly string[] {
   return entityId ?? []
 }
 
+function clampPosition(value: number): number {
+  return Math.min(100, Math.max(0, value))
+}
+
 export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
   readonly id = 'mock'
   private readonly entities = new Map<string, HomeAssistantEntityState>()
@@ -41,7 +45,27 @@ export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
   async callService(call: HomeAssistantServiceCall): Promise<void> {
     this.serviceCalls.push(call)
 
-    if (call.domain !== 'light') return
+    if (call.domain === 'light') {
+      this.simulateLightService(call)
+      return
+    }
+    if (call.domain === 'cover') this.simulateCoverService(call)
+  }
+
+  setEntity(entity: HomeAssistantEntityState): void {
+    this.entities.set(entity.entityId, entity)
+    for (const listener of this.listeners) listener([entity.entityId])
+  }
+
+  getServiceCalls(): readonly HomeAssistantServiceCall[] {
+    return this.serviceCalls.slice()
+  }
+
+  clearServiceCalls(): void {
+    this.serviceCalls.length = 0
+  }
+
+  private simulateLightService(call: HomeAssistantServiceCall): void {
     for (const entityId of targetEntityIds(call)) {
       const current = this.entities.get(entityId)
       if (!current) continue
@@ -68,16 +92,40 @@ export class MockHomeAssistantAdapter implements HomeAssistantAdapter {
     }
   }
 
-  setEntity(entity: HomeAssistantEntityState): void {
-    this.entities.set(entity.entityId, entity)
-    for (const listener of this.listeners) listener([entity.entityId])
-  }
+  private simulateCoverService(call: HomeAssistantServiceCall): void {
+    for (const entityId of targetEntityIds(call)) {
+      const current = this.entities.get(entityId)
+      if (!current) continue
 
-  getServiceCalls(): readonly HomeAssistantServiceCall[] {
-    return this.serviceCalls.slice()
-  }
+      const currentPosition =
+        typeof current.attributes.current_position === 'number'
+          ? clampPosition(current.attributes.current_position)
+          : current.state === 'open'
+            ? 100
+            : 0
 
-  clearServiceCalls(): void {
-    this.serviceCalls.length = 0
+      let nextPosition = currentPosition
+      if (call.service === 'open_cover') nextPosition = 100
+      else if (call.service === 'close_cover') nextPosition = 0
+      else if (call.service === 'toggle') nextPosition = currentPosition > 0 ? 0 : 100
+      else if (
+        call.service === 'set_cover_position' &&
+        typeof call.data?.position === 'number' &&
+        Number.isFinite(call.data.position)
+      ) {
+        nextPosition = clampPosition(call.data.position)
+      } else {
+        continue
+      }
+
+      this.setEntity({
+        ...current,
+        state: nextPosition === 0 ? 'closed' : 'open',
+        attributes: {
+          ...current.attributes,
+          current_position: nextPosition,
+        },
+      })
+    }
   }
 }

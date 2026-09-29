@@ -83,4 +83,36 @@ describe('Home Assistant runtime', () => {
 
     unsubscribe()
   })
+
+  test('mock adapter simulates cover position services', async () => {
+    const adapter = new MockHomeAssistantAdapter([
+      {
+        entityId: 'cover.salon',
+        state: 'closed',
+        attributes: { current_position: 0 },
+      },
+    ])
+
+    await adapter.callService({
+      domain: 'cover',
+      service: 'set_cover_position',
+      data: { position: 37 },
+      target: { entityId: 'cover.salon' },
+    })
+
+    expect(adapter.getEntity('cover.salon')).toEqual({
+      entityId: 'cover.salon',
+      state: 'open',
+      attributes: { current_position: 37 },
+    })
+
+    await adapter.callService({
+      domain: 'cover',
+      service: 'close_cover',
+      target: { entityId: 'cover.salon' },
+    })
+
+    expect(adapter.getEntity('cover.salon')?.attributes.current_position).toBe(0)
+    expect(adapter.getEntity('cover.salon')?.state).toBe('closed')
+  })
 })

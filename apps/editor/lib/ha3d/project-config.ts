@@ -2,6 +2,8 @@ import type { ViewerPresentationConfiguration } from '@pascal-app/viewer'
 import {
   createEntityBinding,
   type EntityBinding,
+  entityDomain,
+  normalizeCoverMotionConfig,
   type SupportedHomeAssistantDomain,
 } from './entity-binding'
 
@@ -23,6 +25,36 @@ function bindingKey(binding: Pick<EntityBinding, 'nodeId' | 'domain'>): string {
   return `${binding.nodeId}\u0000${binding.domain}`
 }
 
+function coverMotionEqual(left: EntityBinding, right: EntityBinding): boolean {
+  if (left.coverMotion === undefined || right.coverMotion === undefined) {
+    return left.coverMotion === right.coverMotion
+  }
+  return (
+    left.coverMotion.axis === right.coverMotion.axis &&
+    left.coverMotion.openOffsetMeters === right.coverMotion.openOffsetMeters &&
+    left.coverMotion.durationMs === right.coverMotion.durationMs
+  )
+}
+
+function bindingsEqual(left: EntityBinding, right: EntityBinding): boolean {
+  return (
+    left.nodeId === right.nodeId &&
+    left.entityId === right.entityId &&
+    left.domain === right.domain &&
+    left.enabled === right.enabled &&
+    coverMotionEqual(left, right)
+  )
+}
+
+function cloneBinding(binding: EntityBinding): EntityBinding {
+  return binding.coverMotion
+    ? {
+        ...binding,
+        coverMotion: { ...binding.coverMotion },
+      }
+    : { ...binding }
+}
+
 function sortBindings(bindings: readonly EntityBinding[]): EntityBinding[] {
   return [...bindings].sort(
     (left, right) =>
@@ -35,7 +67,7 @@ function sortBindings(bindings: readonly EntityBinding[]): EntityBinding[] {
 function publish(bindings: readonly EntityBinding[]): void {
   snapshot = {
     version: HA3D_PROJECT_CONFIG_VERSION,
-    bindings: sortBindings(bindings),
+    bindings: sortBindings(bindings).map(cloneBinding),
   }
   for (const listener of listeners) listener()
 }
@@ -50,10 +82,16 @@ function parsePersistedBinding(raw: unknown): EntityBinding {
     throw new Error('[ha3d] binding enabled must be a boolean')
   }
 
+  const domain = entityDomain(record.entityId.trim())
+  if (domain !== 'cover' && record.coverMotion !== undefined) {
+    throw new Error('[ha3d] persisted cover motion belongs to a non-cover entity')
+  }
+
   const binding = createEntityBinding({
     nodeId: record.nodeId,
     entityId: record.entityId,
     enabled: record.enabled as boolean | undefined,
+    coverMotion: domain === 'cover' ? normalizeCoverMotionConfig(record.coverMotion) : undefined,
   })
   if (record.domain !== undefined && record.domain !== binding.domain) {
     throw new Error('[ha3d] persisted binding domain does not match entity id')
@@ -94,18 +132,9 @@ export function subscribeHa3dProjectConfig(listener: () => void): () => void {
 export function upsertEntityBinding(binding: EntityBinding): void {
   const key = bindingKey(binding)
   const current = snapshot.bindings.find((candidate) => bindingKey(candidate) === key)
-  if (
-    current?.entityId === binding.entityId &&
-    current.enabled === binding.enabled &&
-    current.domain === binding.domain
-  ) {
-    return
-  }
+  if (current && bindingsEqual(current, binding)) return
 
-  publish([
-    ...snapshot.bindings.filter((candidate) => bindingKey(candidate) !== key),
-    { ...binding },
-  ])
+  publish([...snapshot.bindings.filter((candidate) => bindingKey(candidate) !== key), binding])
 }
 
 export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssistantDomain): void {
@@ -124,7 +153,7 @@ export function resetHa3dProjectConfig(): void {
 export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
   getSnapshot: () => ({
     version: HA3D_PROJECT_CONFIG_VERSION,
-    bindings: snapshot.bindings.map((binding) => ({ ...binding })),
+    bindings: snapshot.bindings.map(cloneBinding),
   }),
   restore: (raw) => {
     const restored = parseProjectConfig(raw)

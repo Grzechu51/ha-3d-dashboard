@@ -1,9 +1,13 @@
 export {
+  type CoverMotionAxis,
+  type CoverMotionConfig,
   type CreateEntityBindingInput,
   createEntityBinding,
+  DEFAULT_COVER_MOTION,
   type EntityBinding,
   entityDomain,
   isSupportedHomeAssistantDomain,
+  normalizeCoverMotionConfig,
   type SupportedHomeAssistantDomain,
   supportedHomeAssistantDomains,
 } from './entity-binding'

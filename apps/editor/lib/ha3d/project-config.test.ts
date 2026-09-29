@@ -54,6 +54,40 @@ describe('HA 3D project configuration', () => {
     ])
   })
 
+  test('persists and updates cover motion configuration', () => {
+    const cover = createEntityBinding({
+      nodeId: 'item_blind',
+      entityId: 'cover.salon',
+    })
+    upsertEntityBinding(cover)
+    upsertEntityBinding({
+      ...cover,
+      coverMotion: {
+        axis: 'z',
+        openOffsetMeters: -1.6,
+        durationMs: 1400,
+      },
+    })
+
+    const persisted = ha3dProjectConfiguration.getSnapshot()
+    resetHa3dProjectConfig()
+    ha3dProjectConfiguration.restore(persisted)
+
+    expect(getHa3dProjectConfigSnapshot().bindings).toEqual([
+      {
+        nodeId: 'item_blind',
+        entityId: 'cover.salon',
+        domain: 'cover',
+        enabled: true,
+        coverMotion: {
+          axis: 'z',
+          openOffsetMeters: -1.6,
+          durationMs: 1400,
+        },
+      },
+    ])
+  })
+
   test('rejects corrupted persisted data instead of partially restoring it', () => {
     expect(() =>
       ha3dProjectConfiguration.restore({
