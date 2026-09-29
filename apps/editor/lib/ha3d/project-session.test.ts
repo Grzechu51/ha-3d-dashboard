@@ -275,7 +275,57 @@ describe('Home Assistant project session', () => {
     session.dispose()
   })
 
-  test('configuration changes during a save schedule a follow-up revision', async () => {
+
+  test('flushConfiguration preserves a failed scene write when there is no config dirt', async () => {
+    const configuration = new TestConfiguration()
+    let failNextSave = true
+    const host: HomeAssistantProjectApiHost = {
+      callWS: async <T>(message: Readonly<Record<string, unknown>>) => {
+        if (message.type === 'ha_3d_dashboard/project/get') {
+          return wireProject() as T
+        }
+        if (message.type === 'ha_3d_dashboard/project/save' && failNextSave) {
+          failNextSave = false
+          throw { code: 'storage_error', message: 'disk unavailable' }
+        }
+        if (message.type === 'ha_3d_dashboard/project/save') {
+          return wireProject({ revision: 2 }) as T
+        }
+        throw new Error(`unexpected command: ${String(message.type)}`)
+      },
+    }
+    const session = createHomeAssistantProjectSession(host, 'main_house', {
+      configuration,
+      configurationFlushDelayMs: 60_000,
+    })
+    await session.load()
+
+    await expect(session.saveScene(EMPTY_SCENE)).rejects.toEqual({
+      code: 'storage_error',
+      message: 'disk unavailable',
+    })
+    expect(session.getSnapshot()).toMatchObject({
+      status: 'error',
+      revision: 1,
+      errorCode: 'storage_error',
+    })
+
+    await expect(session.flushConfiguration()).rejects.toEqual({
+      code: 'storage_error',
+      message: 'disk unavailable',
+    })
+
+    await session.saveScene(EMPTY_SCENE)
+    await session.flushConfiguration()
+    expect(session.getSnapshot()).toMatchObject({
+      status: 'ready',
+      revision: 2,
+      errorCode: null,
+    })
+    session.dispose()
+  })
+
+test('configuration changes during a save schedule a follow-up revision', async () => {
     const configuration = new TestConfiguration()
     let releaseSave: (() => void) | null = null
     let markSaveStarted: (() => void) | null = null
