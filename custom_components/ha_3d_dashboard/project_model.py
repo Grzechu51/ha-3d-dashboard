@@ -161,6 +161,14 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
             if not isinstance(mapping.get("levelNodeId"), str) or not mapping["levelNodeId"].strip():
                 raise InvalidProjectError("ha_config floor mapping levelNodeId must be a non-empty string")
 
+        for mapping in structure_mappings["areas"]:
+            if not isinstance(mapping, dict):
+                raise InvalidProjectError("ha_config area mapping must be an object")
+            if not isinstance(mapping.get("areaId"), str) or not mapping["areaId"].strip():
+                raise InvalidProjectError("ha_config area mapping areaId must be a non-empty string")
+            if not isinstance(mapping.get("zoneNodeId"), str) or not mapping["zoneNodeId"].strip():
+                raise InvalidProjectError("ha_config area mapping zoneNodeId must be a non-empty string")
+
     for binding in bindings:
         if not isinstance(binding, dict):
             raise InvalidProjectError("ha_config binding must be an object")
