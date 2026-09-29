@@ -133,6 +133,53 @@ describe('Home Assistant project session', () => {
     session.dispose()
   })
 
+  test('dispose during load does not restore stale project configuration', async () => {
+    const configuration = new TestConfiguration()
+    let releaseLoad: (() => void) | null = null
+    let markLoadStarted: (() => void) | null = null
+    const blocked = new Promise<void>((resolve) => {
+      releaseLoad = resolve
+    })
+    const loadStarted = new Promise<void>((resolve) => {
+      markLoadStarted = resolve
+    })
+    const host: HomeAssistantProjectApiHost = {
+      callWS: async <T>(message: Readonly<Record<string, unknown>>) => {
+        if (message.type !== 'ha_3d_dashboard/project/get') {
+          throw new Error(`unexpected command: ${String(message.type)}`)
+        }
+        markLoadStarted?.()
+        await blocked
+        return wireProject({
+          haConfig: {
+            version: 1,
+            bindings: [
+              {
+                nodeId: 'lamp',
+                entityId: 'light.stale',
+                domain: 'light',
+                enabled: true,
+              },
+            ],
+          },
+        }) as T
+      },
+    }
+    const session = createHomeAssistantProjectSession(host, 'main_house', {
+      configuration,
+      configurationFlushDelayMs: 60_000,
+    })
+
+    const load = session.load()
+    await loadStarted
+    session.dispose()
+    releaseLoad?.()
+
+    await expect(load).rejects.toThrow('project session is disposed')
+    expect(configuration.restored).toHaveLength(0)
+    expect(session.getSnapshot().status).toBe('disposed')
+  })
+
   test('scene save folds a pending HA config into the same revision', async () => {
     const configuration = new TestConfiguration()
     const server = sequentialServer()
@@ -275,7 +322,7 @@ describe('Home Assistant project session', () => {
     session.dispose()
   })
 
-  test('flushConfiguration preserves a failed scene write when there is no config dirt', async () => {
+  test('flushConfiguration preserves a failed scene write before flushing config', async () => {
     const configuration = new TestConfiguration()
     let failNextSave = true
     const host: HomeAssistantProjectApiHost = {
@@ -309,6 +356,18 @@ describe('Home Assistant project session', () => {
       errorCode: 'storage_error',
     })
 
+    configuration.set({
+      version: 1,
+      bindings: [
+        {
+          nodeId: 'lamp',
+          entityId: 'light.recovery',
+          domain: 'light',
+          enabled: true,
+        },
+      ],
+    })
+
     await expect(session.flushConfiguration()).rejects.toEqual({
       code: 'storage_error',
       message: 'disk unavailable',
@@ -319,6 +378,73 @@ describe('Home Assistant project session', () => {
     expect(session.getSnapshot()).toMatchObject({
       status: 'ready',
       revision: 2,
+      errorCode: null,
+    })
+    session.dispose()
+  })
+
+  test('flushConfiguration drains config changes made while a flush is in flight', async () => {
+    const configuration = new TestConfiguration()
+    let releaseFirstSave: (() => void) | null = null
+    let markFirstSaveStarted: (() => void) | null = null
+    const blocked = new Promise<void>((resolve) => {
+      releaseFirstSave = resolve
+    })
+    const firstSaveStarted = new Promise<void>((resolve) => {
+      markFirstSaveStarted = resolve
+    })
+    const server = sequentialServer({
+      onSave: async (_message, saveNumber) => {
+        if (saveNumber === 1) {
+          markFirstSaveStarted?.()
+          await blocked
+        }
+      },
+    })
+    const session = createHomeAssistantProjectSession(server.host, 'main_house', {
+      configuration,
+      configurationFlushDelayMs: 60_000,
+    })
+    await session.load()
+
+    configuration.set({
+      version: 1,
+      bindings: [
+        {
+          nodeId: 'lamp',
+          entityId: 'light.first',
+          domain: 'light',
+          enabled: true,
+        },
+      ],
+    })
+
+    const flush = session.flushConfiguration()
+    await firstSaveStarted
+    configuration.set({
+      version: 1,
+      bindings: [
+        {
+          nodeId: 'lamp',
+          entityId: 'light.latest',
+          domain: 'light',
+          enabled: true,
+        },
+      ],
+    })
+    releaseFirstSave?.()
+    await flush
+
+    const saves = server.messages.filter(
+      (message) => message.type === 'ha_3d_dashboard/project/save',
+    )
+    expect(saves).toHaveLength(2)
+    expect(saves.at(-1)?.ha_config).toMatchObject({
+      bindings: [{ entityId: 'light.latest' }],
+    })
+    expect(session.getSnapshot()).toMatchObject({
+      status: 'ready',
+      revision: 3,
       errorCode: null,
     })
     session.dispose()
