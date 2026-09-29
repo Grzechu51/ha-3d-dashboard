@@ -3,19 +3,17 @@
 import {
   acquireSceneReadOnlyLease,
   applySceneGraphToEditor,
-  createLocalProjectPresentationPersistence,
   type SceneGraph,
   useScene,
 } from '@pascal-app/editor'
-import {
-  SceneEnvironment,
-  useViewer,
-  Viewer,
-  ViewerPresentations,
-} from '@pascal-app/viewer'
+import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
 import { OrbitControls } from '@react-three/drei'
 import Link from 'next/link'
 import { useLayoutEffect, useState } from 'react'
+import {
+  resetHa3dProjectConfig,
+} from '../../lib/ha3d/project-config'
+import { restoreHa3dDashboardProjectConfig } from '../../lib/ha3d/dashboard-persistence'
 import { Ha3dDashboardControls } from './ha3d-dashboard-controls'
 
 export interface Ha3dDashboardSceneMeta {
@@ -37,13 +35,12 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   const [viewerReady, setViewerReady] = useState(false)
 
   useLayoutEffect(() => {
-    const persistence = createLocalProjectPresentationPersistence()
-    persistence.switchProject(projectId)
+    restoreHa3dDashboardProjectConfig(projectId)
     setPresentationsReady(true)
 
     return () => {
       setPresentationsReady(false)
-      persistence.dispose()
+      resetHa3dProjectConfig()
     }
   }, [projectId])
 

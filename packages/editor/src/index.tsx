@@ -394,12 +394,6 @@ export {
 export { canDirectMoveNode } from './lib/direct-manipulation'
 export { createEditorApi } from './lib/editor-api'
 export {
-  createLocalProjectPresentationPersistence,
-  getLocalProjectPresentationStorageKey,
-  type LocalProjectPresentationPersistence,
-  type LocalProjectPresentationPersistenceOptions,
-} from './lib/local-project-presentation-persistence'
-export {
   clearStructuralElevationGuide,
   collectElevationSnapTargets,
   ELEVATION_ALIGNMENT_THRESHOLD_M,

@@ -164,18 +164,14 @@ export function Ha3dDashboardControls() {
                   <div className="flex gap-2">
                     <button
                       className="flex-1 rounded-md border border-border px-2 py-2 text-xs hover:bg-accent"
-                      onClick={() =>
-                        void callService('cover', 'close_cover', binding.entityId)
-                      }
+                      onClick={() => void callService('cover', 'close_cover', binding.entityId)}
                       type="button"
                     >
                       Close
                     </button>
                     <button
                       className="flex-1 rounded-md border border-border px-2 py-2 text-xs hover:bg-accent"
-                      onClick={() =>
-                        void callService('cover', 'open_cover', binding.entityId)
-                      }
+                      onClick={() => void callService('cover', 'open_cover', binding.entityId)}
                       type="button"
                     >
                       Open
