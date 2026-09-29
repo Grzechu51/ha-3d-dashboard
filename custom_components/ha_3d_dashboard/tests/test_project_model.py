@@ -33,7 +33,7 @@ class ProjectCollectionTests(unittest.TestCase):
 
         self.assertEqual(created["name"], "Main house")
         self.assertEqual(created["revision"], 1)
-        self.assertEqual(created["ha_config"], {"version": 1, "bindings": []})
+        self.assertEqual(created["ha_config"]["structureMappings"], {"floors": [], "areas": []})
         self.assertEqual(collection.list_metadata()[0]["id"], "main_house")
 
         loaded = collection.get("main_house")
