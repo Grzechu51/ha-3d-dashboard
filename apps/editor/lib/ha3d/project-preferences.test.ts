@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import {
   clearLastProjectId,
-  readLastProjectId,
   type ProjectPreferenceStorage,
+  readLastProjectId,
   writeLastProjectId,
 } from './project-preferences'
 
