@@ -3,13 +3,13 @@
 import { type AnyNodeId, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useState, useSyncExternalStore } from 'react'
+import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   createEntityBinding,
   DEFAULT_COVER_MOTION,
   type EntityBinding,
   isSupportedHomeAssistantDomain,
 } from '../../lib/ha3d/entity-binding'
-import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
   getHa3dProjectConfigSnapshot,
@@ -75,10 +75,7 @@ export default function Ha3dPanel() {
     })
   }
 
-  const callCoverService = async (
-    entityId: string,
-    service: 'open_cover' | 'close_cover',
-  ) => {
+  const callCoverService = async (entityId: string, service: 'open_cover' | 'close_cover') => {
     await runtime.adapter?.callService({
       domain: 'cover',
       service,
@@ -147,9 +144,7 @@ export default function Ha3dPanel() {
             {selectedBindings.map((binding) => {
               const entity = runtime.adapter?.getEntity(binding.entityId)
               const motion = binding.coverMotion ?? DEFAULT_COVER_MOTION
-              const coverPosition = Math.round(
-                resolveHomeAssistantCoverOpenFraction(entity) * 100,
-              )
+              const coverPosition = Math.round(resolveHomeAssistantCoverOpenFraction(entity) * 100)
 
               return (
                 <div
