@@ -1,10 +1,16 @@
 {
   "domain": "ha_3d_dashboard",
   "name": "HA 3D Dashboard",
-  "codeowners": ["@Grzechu51"],
+  "codeowners": [
+    "@Grzechu51"
+  ],
   "config_flow": true,
-  "dependencies": ["frontend", "http", "panel_custom"],
+  "dependencies": [
+    "frontend",
+    "http",
+    "panel_custom"
+  ],
   "documentation": "https://github.com/Grzechu51/ha-3d-dashboard",
   "issue_tracker": "https://github.com/Grzechu51/ha-3d-dashboard/issues",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

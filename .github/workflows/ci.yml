@@ -38,6 +38,7 @@ jobs:
         run: |
           python3 -m compileall -q custom_components/ha_3d_dashboard
           python3 -m json.tool custom_components/ha_3d_dashboard/manifest.json >/dev/null
+          python3 -m unittest discover -s custom_components/ha_3d_dashboard/tests -p 'test_*.py'
           bun run --cwd apps/editor build:ha-panel
           git diff --exit-code -- custom_components/ha_3d_dashboard/frontend/ha3d-panel.js
 

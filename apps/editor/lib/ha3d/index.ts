@@ -36,6 +36,23 @@ export type {
 export { MockHomeAssistantAdapter } from './mock-home-assistant-adapter'
 export { ha3dHostPanel, ha3dPlugin } from './plugin'
 export {
+  type CreateHomeAssistantProjectInput,
+  createHomeAssistantProject,
+  deleteHomeAssistantProject,
+  getHomeAssistantProject,
+  type Ha3dProjectMetadata,
+  type Ha3dStoredProject,
+  type HomeAssistantProjectApiHost,
+  listHomeAssistantProjects,
+  type SaveHomeAssistantProjectInput,
+  saveHomeAssistantProject,
+} from './project-api'
+export {
+  HA3D_PROJECT_CONFIG_VERSION,
+  type Ha3dProjectConfig,
+  parseHa3dProjectConfig,
+} from './project-config'
+export {
   getHomeAssistantRuntimeSnapshot,
   type HomeAssistantRuntimeSnapshot,
   setHomeAssistantAdapter,
