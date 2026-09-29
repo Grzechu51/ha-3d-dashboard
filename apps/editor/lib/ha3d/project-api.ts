@@ -27,7 +27,6 @@ export type CreateHomeAssistantProjectInput = Readonly<{
   name: string
   scene?: Readonly<Record<string, unknown>> | null
   haConfig?: Ha3dProjectConfig
-  forceEmptyScene?: boolean
 }>
 
 export type SaveHomeAssistantProjectInput = Readonly<{
@@ -36,6 +35,7 @@ export type SaveHomeAssistantProjectInput = Readonly<{
   name?: string
   scene?: Readonly<Record<string, unknown>> | null
   haConfig?: Ha3dProjectConfig
+  forceEmptyScene?: boolean
 }>
 
 function record(raw: unknown, label: string): Record<string, unknown> {
