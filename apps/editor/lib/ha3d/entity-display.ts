@@ -76,9 +76,7 @@ export function formatHomeAssistantEntityValue(entity: HomeAssistantEntityState)
   return withUnit(entity.state, unitForEntity(entity))
 }
 
-export function formatHomeAssistantEntityDetail(
-  entity: HomeAssistantEntityState,
-): string | null {
+export function formatHomeAssistantEntityDetail(entity: HomeAssistantEntityState): string | null {
   const domain = entity.entityId.split('.')[0] ?? ''
   if (domain !== 'climate') return null
 
