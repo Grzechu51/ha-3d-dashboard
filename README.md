@@ -8,9 +8,9 @@ panel where the user can build/edit a house, bind Home Assistant entities direct
 to 3D objects, visualize live states and control the home from the model.
 
 > **Development status:** active. Home Assistant runtime/entity integration and
-> server-side project storage are implemented. The current checkpoint is the
-> native Home Assistant project session; the next checkpoint mounts the complete
-> project selector + Editor/Dashboard shell inside the HA panel.
+> server-side project storage and the native project selector + Editor/Dashboard
+> shell are implemented. The current checkpoint is project-management UX and
+> safer multi-client conflict handling.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
