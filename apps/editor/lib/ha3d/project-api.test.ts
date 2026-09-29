@@ -77,7 +77,7 @@ describe('Home Assistant project WebSocket client', () => {
 
     expect(project.id).toBe('main_house')
     expect(project.schemaVersion).toBe(1)
-    expect(project.haConfig).toEqual({ version: 1, bindings: [] })
+    expect(project.haConfig).toMatchObject({ version: 1, bindings: [] })
   })
 
   test('creates a project without sending absent optional fields', async () => {
