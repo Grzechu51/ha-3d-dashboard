@@ -17,6 +17,7 @@ export type Ha3dStructureMappings = Readonly<{
 export type Ha3dProjectConfig = Readonly<{
   version: typeof HA3D_PROJECT_CONFIG_VERSION
   bindings: readonly EntityBinding[]
+  structureMappings: Ha3dStructureMappings
 }>
 
 const listeners = new Set<() => void>()
