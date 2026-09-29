@@ -72,3 +72,10 @@ export type { HomeAssistantDevice } from './structure-device'
 export type { HomeAssistantArea, HomeAssistantFloor } from './structure-floor'
 export type { HomeAssistantStructureSnapshot } from './structure-snapshot'
 export { loadHomeAssistantStructure } from './structure'
+export { groupHomeAssistantStructure } from './structure-tree'
+export type {
+  HomeAssistantAreaGroup,
+  HomeAssistantDeviceGroup,
+  HomeAssistantFloorGroup,
+  HomeAssistantStructureTree,
+} from './structure-tree-types'
