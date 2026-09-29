@@ -93,6 +93,30 @@ def _validate_timestamp(value: Any, field: str) -> str:
     return value
 
 
+def _validate_ha_config(value: Any) -> dict[str, Any]:
+    config = _validate_document_mapping(value, "ha_config")
+    assert config is not None
+    if config.get("version") != 1:
+        raise InvalidProjectError("unsupported ha_config version")
+    bindings = config.get("bindings")
+    if not isinstance(bindings, list):
+        raise InvalidProjectError("ha_config bindings must be an array")
+    for binding in bindings:
+        if not isinstance(binding, dict):
+            raise InvalidProjectError("ha_config binding must be an object")
+        if not isinstance(binding.get("nodeId"), str) or not binding["nodeId"]:
+            raise InvalidProjectError("ha_config binding nodeId must be a non-empty string")
+        if not isinstance(binding.get("entityId"), str) or not binding["entityId"]:
+            raise InvalidProjectError("ha_config binding entityId must be a non-empty string")
+        if "domain" in binding and not isinstance(binding["domain"], str):
+            raise InvalidProjectError("ha_config binding domain must be a string")
+        if "enabled" in binding and not isinstance(binding["enabled"], bool):
+            raise InvalidProjectError("ha_config binding enabled must be a boolean")
+        if "coverMotion" in binding and not isinstance(binding["coverMotion"], dict):
+            raise InvalidProjectError("ha_config binding coverMotion must be an object")
+    return config
+
+
 def _ensure_json_size(document: dict[str, Any]) -> None:
     try:
         payload = json.dumps(
@@ -127,7 +151,7 @@ def _normalize_persisted_project(
         "name": _validate_name(raw.get("name", "")),
         "revision": _validate_revision(raw.get("revision")),
         "scene": _validate_document_mapping(raw.get("scene"), "scene", allow_none=True),
-        "ha_config": _validate_document_mapping(raw.get("ha_config"), "ha_config"),
+        "ha_config": _validate_ha_config(raw.get("ha_config")),
         "created_at": _validate_timestamp(raw.get("created_at"), "created_at"),
         "updated_at": _validate_timestamp(raw.get("updated_at"), "updated_at"),
     }
@@ -229,9 +253,8 @@ class ProjectCollection:
             "name": _validate_name(name),
             "revision": 1,
             "scene": _validate_document_mapping(scene, "scene", allow_none=True),
-            "ha_config": _validate_document_mapping(
-                default_ha_config() if ha_config is None else ha_config,
-                "ha_config",
+            "ha_config": _validate_ha_config(
+                default_ha_config() if ha_config is None else ha_config
             ),
             "created_at": timestamp,
             "updated_at": timestamp,
@@ -269,9 +292,7 @@ class ProjectCollection:
                 scene, "scene", allow_none=True
             )
         if ha_config is not MISSING:
-            candidate["ha_config"] = _validate_document_mapping(
-                ha_config, "ha_config"
-            )
+            candidate["ha_config"] = _validate_ha_config(ha_config)
 
         comparable = ("name", "scene", "ha_config")
         if all(candidate[key] == current[key] for key in comparable):
