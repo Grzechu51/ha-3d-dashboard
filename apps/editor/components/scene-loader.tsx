@@ -288,6 +288,12 @@ export function SceneLoader({ initialScene, meta }: SceneLoaderProps) {
         </button>
         <Link
           className="pointer-events-auto rounded-md border border-border bg-background/90 px-3 py-1.5 font-medium text-xs shadow-sm backdrop-blur hover:bg-accent/40"
+          href={`/dashboard/${meta.id}`}
+        >
+          Dashboard
+        </Link>
+        <Link
+          className="pointer-events-auto rounded-md border border-border bg-background/90 px-3 py-1.5 font-medium text-xs shadow-sm backdrop-blur hover:bg-accent/40"
           href="/scenes"
         >
           All scenes
