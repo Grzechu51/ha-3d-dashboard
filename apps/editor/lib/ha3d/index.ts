@@ -34,3 +34,13 @@ export {
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
+export {
+  HomeAssistantHassAdapter,
+  type HomeAssistantHassLike,
+  type HomeAssistantHassState,
+  type HomeAssistantHassServiceTarget,
+} from './hass-adapter'
+export {
+  createHomeAssistantHassHost,
+  type HomeAssistantHassHost,
+} from './hass-host'
