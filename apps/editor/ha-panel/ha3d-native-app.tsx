@@ -398,6 +398,7 @@ function NativeProject({
       <Editor
         key={editorEpoch}
         layoutVersion="v1"
+        manageDocumentDarkClass={false}
         onLoad={() => session.load()}
         onSave={(scene) => session.saveScene(scene)}
         onSaveStatusChange={setSaveStatus}
