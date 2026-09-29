@@ -120,11 +120,21 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
   load = async (): Promise<SceneGraph | null> => {
     this.assertActive()
     this.clearConfigurationTimer()
-    await this.writeTail.catch(() => undefined)
+    const recoveringFromConflict = this.snapshot.status === 'conflict'
+
+    if (recoveringFromConflict) {
+      await this.writeTail.catch(() => undefined)
+    } else {
+      await this.writeTail
+      if (this.configurationDirty) await this.flushConfiguration()
+    }
+
+    this.assertActive()
     this.publish('loading')
 
     try {
       const project = await getHomeAssistantProject(this.api, this.projectId)
+      this.assertActive()
       this.suppressConfigurationWrites = true
       try {
         this.configuration.restore(project.haConfig)
@@ -153,13 +163,16 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
       }),
     )
 
-  flushConfiguration = (): Promise<void> => {
+  flushConfiguration = async (): Promise<void> => {
     this.clearConfigurationTimer()
-    if (!this.configurationDirty) return this.writeTail
+    await this.writeTail
+    if (!this.configurationDirty) return
 
-    return this.enqueueWrite(async () => {
-      if (!this.configurationDirty) return
-      await this.persistMutation({})
+    await this.enqueueWrite(async () => {
+      while (this.configurationDirty) {
+        await this.persistMutation({})
+      }
+      this.clearConfigurationTimer()
     })
   }
 
