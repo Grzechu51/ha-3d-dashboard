@@ -90,6 +90,20 @@ describe('HA 3D project configuration', () => {
     ])
   })
 
+  test('round-trips manual Home Assistant structure mappings', () => {
+    upsertFloorStructureMapping('ground', 'level_ground')
+    upsertAreaStructureMapping('living', 'zone_living')
+
+    const persisted = ha3dProjectConfiguration.getSnapshot()
+    resetHa3dProjectConfig()
+    ha3dProjectConfiguration.restore(persisted)
+
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [{ floorId: 'ground', levelNodeId: 'level_ground' }],
+      areas: [{ areaId: 'living', zoneNodeId: 'zone_living' }],
+    })
+  })
+
   test('rejects corrupted persisted data instead of partially restoring it', () => {
     expect(() =>
       ha3dProjectConfiguration.restore({
