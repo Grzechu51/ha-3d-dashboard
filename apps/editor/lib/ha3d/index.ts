@@ -50,7 +50,10 @@ export {
 export {
   HA3D_PROJECT_CONFIG_VERSION,
   type Ha3dProjectConfig,
+  type Ha3dStructureMappings,
   parseHa3dProjectConfig,
+  upsertAreaStructureMapping,
+  upsertFloorStructureMapping,
 } from './project-config'
 export {
   createHomeAssistantProjectSession,
