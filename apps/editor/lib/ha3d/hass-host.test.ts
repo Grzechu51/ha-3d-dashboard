@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import type { HomeAssistantHassLike } from './hass-adapter'
 import { createHomeAssistantHassHost } from './hass-host'
-import {
-  getHomeAssistantRuntimeSnapshot,
-  setHomeAssistantAdapter,
-} from './runtime'
+import { getHomeAssistantRuntimeSnapshot, setHomeAssistantAdapter } from './runtime'
 
 const openHosts: Array<{ dispose(): void }> = []
 
