@@ -9,9 +9,7 @@ import {
   type EntityBinding,
   isSupportedHomeAssistantDomain,
 } from '../../lib/ha3d/entity-binding'
-import {
-  resolveHomeAssistantCoverOpenFraction,
-} from '../../lib/ha3d/cover-state'
+import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
   getHa3dProjectConfigSnapshot,
