@@ -18,13 +18,13 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: native Home Assistant project session**
+**Checkpoint: native Home Assistant project shell**
 
-Status: **PR #9 in progress**
+Status: **PR #10 in progress**
 
-The backend project store and WebSocket CRUD API are already merged to `main`. PR #9 adds the frontend session that coordinates Pascal scene saves and HA-specific configuration through one Home Assistant project revision stream.
+PR #8 (Home Assistant project Store/WebSocket API) and PR #9 (frontend project session/revision coordinator) are merged to `main`.
 
-The next major checkpoint is the first complete native Home Assistant shell:
+The active checkpoint is the first complete native Home Assistant shell:
 
 `Home Assistant panel -> project selector -> Editor / Dashboard -> HA project Store`
 
@@ -96,7 +96,9 @@ This replaces browser-only persistence as the target architecture for the native
 
 ### 4. Project-session layer
 
-PR **#9** adds:
+Merged in **PR #9** with full green CI.
+
+Implemented:
 
 - one revision owner per open HA 3D project,
 - serialized scene/config mutations,
@@ -108,18 +110,20 @@ PR **#9** adds:
 
 ## In progress
 
-### PR #9 — Home Assistant project session
+### PR #10 — native Home Assistant project shell
 
-Current CI state after the latest fix:
+Current implementation target:
 
-- lint / format: previously green,
-- HA integration validation: previously green,
-- TypeScript type-check: previously green,
-- CLI smoke: previously green,
-- full test suite: one timing-sensitive project-session test was corrected to wait until the first save is genuinely in flight,
-- latest CI run pending.
+- replace the placeholder custom panel with a real React application,
+- list/create/open projects through `hass.callWS`,
+- mount Pascal Editor directly in Home Assistant without a Next.js server,
+- mount a read-only Dashboard mode from the same server-stored scene,
+- wire Editor autosave to `HomeAssistantProjectSession`,
+- use external HA-owned presentation/config persistence,
+- show save/revision/conflict/error state,
+- generate and ship isolated Pascal/Tailwind CSS with the integration bundle.
 
-The implementation itself was not changed to hide the failing test. The test setup was corrected because the previous version could mutate configuration before the first WebSocket request had actually started, in which case combining both changes into one save is valid behavior.
+The custom panel remains Shadow-DOM isolated so editor styles do not leak into the rest of Home Assistant.
 
 ## Next checkpoints
 
