@@ -105,6 +105,7 @@ describe('Home Assistant project WebSocket client', () => {
           project_id: 'main_house',
           expected_revision: 4,
           ha_config: { version: 1, bindings: [] },
+          force_empty_scene: true,
         })
         return wireProject({ revision: 5 })
       }),
@@ -112,6 +113,7 @@ describe('Home Assistant project WebSocket client', () => {
         projectId: 'main_house',
         expectedRevision: 4,
         haConfig: { version: 1, bindings: [] },
+        forceEmptyScene: true,
       },
     )
 
