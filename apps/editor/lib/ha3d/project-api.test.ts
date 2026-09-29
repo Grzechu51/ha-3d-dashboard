@@ -106,7 +106,11 @@ describe('Home Assistant project WebSocket client', () => {
           type: 'ha_3d_dashboard/project/save',
           project_id: 'main_house',
           expected_revision: 4,
-          ha_config: { version: 1, bindings: [] },
+          ha_config: {
+            version: 1,
+            bindings: [],
+            structureMappings: { floors: [], areas: [] },
+          },
           force_empty_scene: true,
         })
         return wireProject({ revision: 5 })
