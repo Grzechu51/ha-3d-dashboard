@@ -7,19 +7,36 @@ const SUPPORTED_DOMAINS = [
   'climate',
 ] as const
 
+const COVER_MOTION_AXES = ['x', 'y', 'z'] as const
+
 export type SupportedHomeAssistantDomain = (typeof SUPPORTED_DOMAINS)[number]
+export type CoverMotionAxis = (typeof COVER_MOTION_AXES)[number]
+
+export type CoverMotionConfig = Readonly<{
+  axis: CoverMotionAxis
+  openOffsetMeters: number
+  durationMs: number
+}>
+
+export const DEFAULT_COVER_MOTION: CoverMotionConfig = {
+  axis: 'y',
+  openOffsetMeters: 1.8,
+  durationMs: 800,
+}
 
 export type EntityBinding = Readonly<{
   nodeId: string
   entityId: string
   domain: SupportedHomeAssistantDomain
   enabled: boolean
+  coverMotion?: CoverMotionConfig
 }>
 
 export type CreateEntityBindingInput = Readonly<{
   nodeId: string
   entityId: string
   enabled?: boolean
+  coverMotion?: CoverMotionConfig
 }>
 
 export function entityDomain(entityId: string): string | null {
@@ -32,6 +49,39 @@ export function isSupportedHomeAssistantDomain(
   domain: string,
 ): domain is SupportedHomeAssistantDomain {
   return (SUPPORTED_DOMAINS as readonly string[]).includes(domain)
+}
+
+export function normalizeCoverMotionConfig(value: unknown): CoverMotionConfig {
+  if (value === undefined) return { ...DEFAULT_COVER_MOTION }
+  if (!value || typeof value !== 'object') {
+    throw new Error('[ha3d] cover motion must be an object')
+  }
+
+  const record = value as Record<string, unknown>
+  const axis = record.axis
+  const openOffsetMeters = record.openOffsetMeters
+  const durationMs = record.durationMs
+
+  if (typeof axis !== 'string' || !(COVER_MOTION_AXES as readonly string[]).includes(axis)) {
+    throw new Error('[ha3d] cover motion axis must be x, y, or z')
+  }
+  if (typeof openOffsetMeters !== 'number' || !Number.isFinite(openOffsetMeters)) {
+    throw new Error('[ha3d] cover motion openOffsetMeters must be finite')
+  }
+  if (
+    typeof durationMs !== 'number' ||
+    !Number.isFinite(durationMs) ||
+    durationMs < 0 ||
+    durationMs > 60_000
+  ) {
+    throw new Error('[ha3d] cover motion durationMs must be between 0 and 60000')
+  }
+
+  return {
+    axis: axis as CoverMotionAxis,
+    openOffsetMeters,
+    durationMs,
+  }
 }
 
 export function createEntityBinding(input: CreateEntityBindingInput): EntityBinding {
@@ -47,13 +97,23 @@ export function createEntityBinding(input: CreateEntityBindingInput): EntityBind
   if (!isSupportedHomeAssistantDomain(domain)) {
     throw new Error(`[ha3d] unsupported Home Assistant domain: "${domain}"`)
   }
+  if (domain !== 'cover' && input.coverMotion !== undefined) {
+    throw new Error('[ha3d] cover motion is only valid for cover entities')
+  }
 
-  return {
+  const base = {
     nodeId,
     entityId,
     domain,
     enabled: input.enabled ?? true,
   }
+
+  return domain === 'cover'
+    ? {
+        ...base,
+        coverMotion: normalizeCoverMotionConfig(input.coverMotion),
+      }
+    : base
 }
 
 export const supportedHomeAssistantDomains: readonly SupportedHomeAssistantDomain[] =

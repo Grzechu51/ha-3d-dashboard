@@ -2,8 +2,17 @@
 
 import { type AnyNodeId, sceneRegistry } from '@pascal-app/core'
 import { type LightSource, useItemLightPool } from '@pascal-app/viewer'
-import { useEffect, useSyncExternalStore } from 'react'
-import type { EntityBinding } from '../../lib/ha3d/entity-binding'
+import { useFrame } from '@react-three/fiber'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { Vector3, type Object3D } from 'three'
+import {
+  DEFAULT_COVER_MOTION,
+  type EntityBinding,
+} from '../../lib/ha3d/entity-binding'
+import {
+  resolveCoverOpenOffset,
+  stepCoverOffset,
+} from '../../lib/ha3d/cover-state'
 import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHa3dProjectConfigSnapshot,
@@ -16,6 +25,7 @@ import {
 
 const MAX_LIGHT_INTENSITY = 2
 const LIGHT_DISTANCE = 8
+const EXTERNAL_POSITION_EPSILON_SQ = 0.00000001
 
 function HaLightBinding({
   binding,
@@ -60,6 +70,76 @@ function HaLightBinding({
   return null
 }
 
+function HaCoverBinding({
+  binding,
+  runtime,
+}: {
+  binding: EntityBinding
+  runtime: ReturnType<typeof getHomeAssistantRuntimeSnapshot>
+}) {
+  const motion = binding.coverMotion ?? DEFAULT_COVER_MOTION
+  const objectRef = useRef<Object3D | null>(null)
+  const basePositionRef = useRef<Vector3 | null>(null)
+  const expectedPositionRef = useRef<Vector3 | null>(null)
+  const currentOffsetRef = useRef(0)
+
+  useEffect(() => {
+    return () => {
+      const object = objectRef.current
+      const basePosition = basePositionRef.current
+      if (object && basePosition) object.position.copy(basePosition)
+      objectRef.current = null
+      basePositionRef.current = null
+      expectedPositionRef.current = null
+      currentOffsetRef.current = 0
+    }
+  }, [motion.axis])
+
+  useFrame((_, deltaSeconds) => {
+    const adapter = runtime.adapter
+    if (!adapter || !binding.enabled) return
+
+    const nodeId = binding.nodeId as AnyNodeId
+    const object = sceneRegistry.nodes.get(nodeId)
+    if (!object) return
+
+    const targetOffset = resolveCoverOpenOffset(adapter.getEntity(binding.entityId), motion)
+
+    if (objectRef.current !== object) {
+      objectRef.current = object
+      basePositionRef.current = object.position.clone()
+      expectedPositionRef.current = object.position.clone()
+      currentOffsetRef.current = targetOffset
+    } else {
+      const expectedPosition = expectedPositionRef.current
+      if (
+        expectedPosition &&
+        object.position.distanceToSquared(expectedPosition) > EXTERNAL_POSITION_EPSILON_SQ
+      ) {
+        basePositionRef.current = object.position.clone()
+      }
+      currentOffsetRef.current = stepCoverOffset(
+        currentOffsetRef.current,
+        targetOffset,
+        deltaSeconds,
+        motion.durationMs,
+      )
+    }
+
+    const basePosition = basePositionRef.current
+    if (!basePosition) return
+
+    const nextPosition = basePosition.clone()
+    nextPosition[motion.axis] += currentOffsetRef.current
+    object.position.copy(nextPosition)
+
+    if (expectedPositionRef.current) expectedPositionRef.current.copy(nextPosition)
+    else expectedPositionRef.current = nextPosition.clone()
+  })
+
+  return null
+}
+
 export default function Ha3dPresentation() {
   const project = useSyncExternalStore(
     subscribeHa3dProjectConfig,
@@ -78,6 +158,15 @@ export default function Ha3dPresentation() {
         .filter((binding) => binding.domain === 'light' && binding.enabled)
         .map((binding) => (
           <HaLightBinding
+            binding={binding}
+            key={`${binding.nodeId}:${binding.domain}`}
+            runtime={runtime}
+          />
+        ))}
+      {project.bindings
+        .filter((binding) => binding.domain === 'cover' && binding.enabled)
+        .map((binding) => (
+          <HaCoverBinding
             binding={binding}
             key={`${binding.nodeId}:${binding.domain}`}
             runtime={runtime}

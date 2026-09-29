@@ -3,7 +3,15 @@
 import { type AnyNodeId, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useState, useSyncExternalStore } from 'react'
-import { createEntityBinding, isSupportedHomeAssistantDomain } from '../../lib/ha3d/entity-binding'
+import {
+  createEntityBinding,
+  DEFAULT_COVER_MOTION,
+  type EntityBinding,
+  isSupportedHomeAssistantDomain,
+} from '../../lib/ha3d/entity-binding'
+import {
+  resolveHomeAssistantCoverOpenFraction,
+} from '../../lib/ha3d/cover-state'
 import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
   getHa3dProjectConfigSnapshot,
@@ -69,6 +77,39 @@ export default function Ha3dPanel() {
     })
   }
 
+  const callCoverService = async (
+    entityId: string,
+    service: 'open_cover' | 'close_cover',
+  ) => {
+    await runtime.adapter?.callService({
+      domain: 'cover',
+      service,
+      target: { entityId },
+    })
+  }
+
+  const setCoverPosition = async (entityId: string, position: number) => {
+    await runtime.adapter?.callService({
+      domain: 'cover',
+      service: 'set_cover_position',
+      data: { position },
+      target: { entityId },
+    })
+  }
+
+  const updateCoverMotion = (
+    binding: EntityBinding,
+    patch: Partial<NonNullable<EntityBinding['coverMotion']>>,
+  ) => {
+    upsertEntityBinding({
+      ...binding,
+      coverMotion: {
+        ...(binding.coverMotion ?? DEFAULT_COVER_MOTION),
+        ...patch,
+      },
+    })
+  }
+
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
       <div>
@@ -107,6 +148,11 @@ export default function Ha3dPanel() {
           <div className="mt-2 space-y-2">
             {selectedBindings.map((binding) => {
               const entity = runtime.adapter?.getEntity(binding.entityId)
+              const motion = binding.coverMotion ?? DEFAULT_COVER_MOTION
+              const coverPosition = Math.round(
+                resolveHomeAssistantCoverOpenFraction(entity) * 100,
+              )
+
               return (
                 <div
                   className="rounded-md border border-border/70 p-2"
@@ -136,6 +182,94 @@ export default function Ha3dPanel() {
                       </button>
                     </div>
                   </div>
+
+                  {binding.domain === 'cover' && entity ? (
+                    <div className="mt-3 space-y-3 border-border/70 border-t pt-3">
+                      <div className="flex gap-2">
+                        <button
+                          className="flex-1 rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                          onClick={() => void callCoverService(binding.entityId, 'close_cover')}
+                          type="button"
+                        >
+                          Close
+                        </button>
+                        <button
+                          className="flex-1 rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                          onClick={() => void callCoverService(binding.entityId, 'open_cover')}
+                          type="button"
+                        >
+                          Open
+                        </button>
+                      </div>
+
+                      <label className="block text-muted-foreground text-xs">
+                        Position · {coverPosition}%
+                        <input
+                          className="mt-1 block w-full"
+                          max="100"
+                          min="0"
+                          onChange={(event) =>
+                            void setCoverPosition(binding.entityId, Number(event.target.value))
+                          }
+                          type="range"
+                          value={coverPosition}
+                        />
+                      </label>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <label className="text-muted-foreground text-xs">
+                          Axis
+                          <select
+                            className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                            onChange={(event) =>
+                              updateCoverMotion(binding, {
+                                axis: event.target.value as 'x' | 'y' | 'z',
+                              })
+                            }
+                            value={motion.axis}
+                          >
+                            <option value="x">X</option>
+                            <option value="y">Y</option>
+                            <option value="z">Z</option>
+                          </select>
+                        </label>
+
+                        <label className="text-muted-foreground text-xs">
+                          Open offset
+                          <input
+                            className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                            onChange={(event) => {
+                              const value = Number(event.target.value)
+                              if (Number.isFinite(value)) {
+                                updateCoverMotion(binding, { openOffsetMeters: value })
+                              }
+                            }}
+                            step="0.1"
+                            type="number"
+                            value={motion.openOffsetMeters}
+                          />
+                        </label>
+
+                        <label className="text-muted-foreground text-xs">
+                          Time ms
+                          <input
+                            className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                            max="60000"
+                            min="0"
+                            onChange={(event) => {
+                              const value = Number(event.target.value)
+                              if (Number.isFinite(value)) {
+                                updateCoverMotion(binding, { durationMs: value })
+                              }
+                            }}
+                            step="100"
+                            type="number"
+                            value={motion.durationMs}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               )
             })}
