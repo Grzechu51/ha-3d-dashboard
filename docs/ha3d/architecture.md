@@ -80,3 +80,8 @@ The future Home Assistant backend will persist both project metadata and HA-spec
 6. Editor/dashboard mode split.
 7. Home Assistant custom integration, storage API, and custom panel registration.
 8. HACS packaging and mobile performance profiles.
+
+
+## Current delivery status
+
+Steps 1–5 are implemented in the standalone editor. Step 6 now has a dedicated read-only operator surface at `/dashboard/[sceneId]`. It loads the same Pascal scene and presentation sidecar as the editor, keeps the semantic scene under a read-only lease, mounts HA 3D presentation contributions, and exposes only runtime Home Assistant controls. The next checkpoint replaces the development mock transport with the Home Assistant custom-panel host and native `hass` adapter.
