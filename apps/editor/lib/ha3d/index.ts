@@ -67,3 +67,7 @@ export {
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
+export {
+  type HomeAssistantStructureRaw,
+  loadHomeAssistantStructureRaw,
+} from './structure-api'
