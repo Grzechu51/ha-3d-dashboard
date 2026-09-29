@@ -114,7 +114,7 @@ describe('Home Assistant project WebSocket client', () => {
       {
         projectId: 'main_house',
         expectedRevision: 4,
-        haConfig: { version: 1, bindings: [] },
+        haConfig: { version: 1, bindings: [], structureMappings: { floors: [], areas: [] } },
         forceEmptyScene: true,
       },
     )
