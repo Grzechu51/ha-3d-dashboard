@@ -94,11 +94,6 @@ export class HomeAssistantHassAdapter implements HomeAssistantAdapter {
     const hass = this.hass
     if (!hass) throw new Error('[ha3d] Home Assistant host is disconnected')
 
-    await hass.callService(
-      call.domain,
-      call.service,
-      call.data,
-      serviceTarget(call),
-    )
+    await hass.callService(call.domain, call.service, call.data, serviceTarget(call))
   }
 }
