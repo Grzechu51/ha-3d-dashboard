@@ -203,7 +203,15 @@ export interface EditorProps {
 
   projectId?: string | null
 
-  // Persistence — defaults to localStorage when omitted
+  /**
+   * Presentation-sidecar persistence. Standalone editors default to browser
+   * localStorage. Embedded hosts that persist presentation configuration
+   * together with their own project document set this to `external` so the
+   * editor never restores or writes the local sidecar.
+   */
+  presentationPersistenceMode?: 'local' | 'external'
+
+  // Scene persistence — defaults to localStorage when omitted
   guardAgainstSceneWipe?: boolean
   onLoad?: () => Promise<SceneGraph | null>
   onSave?: (scene: SceneGraph, options?: { keepalive?: boolean }) => Promise<void>
@@ -1267,6 +1275,7 @@ function EditorContent({
   viewerSceneSlot,
   floorplanSceneSlot,
   projectId,
+  presentationPersistenceMode = 'local',
   onLoad,
   onSave,
   onSaveShortcut,
@@ -1293,23 +1302,35 @@ function EditorContent({
   const [restoredPresentationProjectId, setRestoredPresentationProjectId] = useState<
     string | null | typeof PRESENTATION_PROJECT_NOT_RESTORED
   >(PRESENTATION_PROJECT_NOT_RESTORED)
-  const presentationsReady = restoredPresentationProjectId === presentationProjectId
+  const presentationsReady =
+    presentationPersistenceMode === 'external' ||
+    restoredPresentationProjectId === presentationProjectId
 
   useClientLayoutEffect(() => {
+    if (presentationPersistenceMode === 'external') {
+      presentationPersistenceRef.current = null
+      return
+    }
+
     const persistence = createLocalProjectPresentationPersistence()
     presentationPersistenceRef.current = persistence
     return () => {
       presentationPersistenceRef.current = null
       persistence.dispose()
     }
-  }, [])
+  }, [presentationPersistenceMode])
 
   useClientLayoutEffect(() => {
+    if (presentationPersistenceMode === 'external') {
+      setRestoredPresentationProjectId(presentationProjectId)
+      return
+    }
+
     const persistence = presentationPersistenceRef.current
     if (!persistence) return
     persistence.switchProject(presentationProjectId)
     setRestoredPresentationProjectId(presentationProjectId)
-  }, [presentationProjectId])
+  }, [presentationPersistenceMode, presentationProjectId])
 
   useKeyboard({ isVersionPreviewMode, disabled: isFirstPersonMode || isStudioMode })
 
