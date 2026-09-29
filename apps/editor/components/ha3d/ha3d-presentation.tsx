@@ -93,7 +93,7 @@ function HaCoverBinding({
       expectedPositionRef.current = null
       currentOffsetRef.current = 0
     }
-  }, [motion.axis])
+  }, [motion.axis, runtime.adapter])
 
   useFrame((_, deltaSeconds) => {
     const adapter = runtime.adapter
