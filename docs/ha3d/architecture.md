@@ -14,7 +14,7 @@ HA 3D owns:
 - Runtime reactions such as light output and cover animation.
 - Home Assistant-specific editor panels.
 - Project sidecar persistence for HA configuration.
-- The future Home Assistant custom integration and custom panel host.
+- The Home Assistant custom integration, custom panel host, and project persistence API.
 
 The first implementation lives under `apps/editor/lib/ha3d` so it participates in the existing app test/type-check pipeline without changing the workspace or lockfile. Once the contracts stabilize, the HA-specific layer can be extracted into a dedicated package without changing the Pascal core API.
 
@@ -50,7 +50,7 @@ HA 3D runtime
     +--> other domains  --> presentation / interaction
 ```
 
-## Planned persistence
+## Home Assistant persistence
 
 Pascal scene JSON stays compatible with upstream. HA configuration is a sidecar:
 
@@ -68,7 +68,19 @@ Pascal scene JSON stays compatible with upstream. HA configuration is a sidecar:
 }
 ```
 
-The future Home Assistant backend will persist both project metadata and HA-specific configuration. It will not rewrite Pascal node schemas merely to store entity ids.
+The Home Assistant backend persists project metadata, an opaque Pascal scene document, and HA-specific configuration in Home Assistant `Store`. It does not rewrite Pascal node schemas merely to store entity ids.
+
+Each stored project carries an independent monotonically increasing `revision`. Mutating WebSocket commands require `expected_revision`; a stale writer receives a `version_conflict` error and must reload before retrying. This prevents silent last-writer-wins data loss when the same project is open on multiple clients.
+
+The project WebSocket surface is:
+
+- `ha_3d_dashboard/project/list`
+- `ha_3d_dashboard/project/get`
+- `ha_3d_dashboard/project/create`
+- `ha_3d_dashboard/project/save`
+- `ha_3d_dashboard/project/delete`
+
+Read commands require an authenticated Home Assistant session. Create, save, and delete additionally require an administrator.
 
 ## Delivery sequence
 
@@ -84,4 +96,4 @@ The future Home Assistant backend will persist both project metadata and HA-spec
 
 ## Current delivery status
 
-Steps 1–5 are implemented in the standalone editor. Step 6 now has a dedicated read-only operator surface at `/dashboard/[sceneId]`. It loads the same Pascal scene and presentation sidecar as the editor, keeps the semantic scene under a read-only lease, mounts HA 3D presentation contributions, and exposes only runtime Home Assistant controls. The native `hass` adapter and host are implemented. The current checkpoint adds the Home Assistant custom integration and custom-element panel host. Project storage still uses the standalone/local persistence path and moves to Home Assistant `Store` + WebSocket APIs in the next checkpoint.
+Steps 1–5 are implemented in the standalone editor. Step 6 now has a dedicated read-only operator surface at `/dashboard/[sceneId]`. It loads the same Pascal scene and presentation sidecar as the editor, keeps the semantic scene under a read-only lease, mounts HA 3D presentation contributions, and exposes only runtime Home Assistant controls. The native `hass` adapter and host are implemented. The Home Assistant custom integration now owns project persistence through `Store` and exposes a versioned WebSocket project API with optimistic concurrency. Standalone editor persistence remains available for development; the next checkpoint mounts the full editor/dashboard shell on the native HA project API.
