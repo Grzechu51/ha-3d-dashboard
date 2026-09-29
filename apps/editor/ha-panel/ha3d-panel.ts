@@ -1,4 +1,4 @@
-import '../lib/bootstrap'
+import './bootstrap'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { HomeAssistantPanelHostController } from '../lib/ha3d/panel-host-controller'
