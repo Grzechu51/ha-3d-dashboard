@@ -88,6 +88,7 @@ def websocket_get_project(
     connection.send_result(msg["id"], project)
 
 
+@websocket_api.require_admin
 @websocket_api.websocket_command(
     {
         probatio.Required("type"): f"{DOMAIN}/project/create",
@@ -97,7 +98,6 @@ def websocket_get_project(
         probatio.Optional("ha_config"): dict,
     }
 )
-@websocket_api.require_admin
 @websocket_api.async_response
 async def websocket_create_project(
     hass: HomeAssistant,
@@ -118,6 +118,7 @@ async def websocket_create_project(
     connection.send_result(msg["id"], project)
 
 
+@websocket_api.require_admin
 @websocket_api.websocket_command(
     {
         probatio.Required("type"): f"{DOMAIN}/project/save",
@@ -128,7 +129,6 @@ async def websocket_create_project(
         probatio.Optional("ha_config"): dict,
     }
 )
-@websocket_api.require_admin
 @websocket_api.async_response
 async def websocket_save_project(
     hass: HomeAssistant,
@@ -150,6 +150,7 @@ async def websocket_save_project(
     connection.send_result(msg["id"], project)
 
 
+@websocket_api.require_admin
 @websocket_api.websocket_command(
     {
         probatio.Required("type"): f"{DOMAIN}/project/delete",
@@ -157,7 +158,6 @@ async def websocket_save_project(
         probatio.Required("expected_revision"): cv.positive_int,
     }
 )
-@websocket_api.require_admin
 @websocket_api.async_response
 async def websocket_delete_project(
     hass: HomeAssistant,
