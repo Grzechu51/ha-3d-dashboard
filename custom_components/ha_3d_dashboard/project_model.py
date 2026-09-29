@@ -147,6 +147,12 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
     if structure_mappings is not MISSING and not isinstance(structure_mappings, dict):
         raise InvalidProjectError("ha_config structureMappings must be an object")
 
+    if isinstance(structure_mappings, dict):
+        if not isinstance(structure_mappings.get("floors"), list):
+            raise InvalidProjectError("ha_config structureMappings floors must be an array")
+        if not isinstance(structure_mappings.get("areas"), list):
+            raise InvalidProjectError("ha_config structureMappings areas must be an array")
+
     for binding in bindings:
         if not isinstance(binding, dict):
             raise InvalidProjectError("ha_config binding must be an object")
