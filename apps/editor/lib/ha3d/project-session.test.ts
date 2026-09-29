@@ -324,7 +324,7 @@ describe('Home Assistant project session', () => {
     session.dispose()
   })
 
-test('configuration changes during a save schedule a follow-up revision', async () => {
+  test('configuration changes during a save schedule a follow-up revision', async () => {
     const configuration = new TestConfiguration()
     let releaseSave: (() => void) | null = null
     let markSaveStarted: (() => void) | null = null
