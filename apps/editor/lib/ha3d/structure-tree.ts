@@ -1,5 +1,8 @@
 import { resolveHomeAssistantEntityAreaId } from './structure-area'
-import { createHomeAssistantAreaGroup, createHomeAssistantDeviceGroup } from './structure-group-area'
+import {
+  createHomeAssistantAreaGroup,
+  createHomeAssistantDeviceGroup,
+} from './structure-group-area'
 import type { HomeAssistantStructureSnapshot } from './structure-snapshot'
 import type { HomeAssistantStructureTree } from './structure-tree-types'
 
