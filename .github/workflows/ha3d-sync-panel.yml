@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   sync-panel:
-    if: github.actor != 'github-actions[bot]' || !contains(github.event.head_commit.message, 'build(ha3d): sync native panel bundle')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,9 +31,11 @@ jobs:
 
       - name: Commit generated frontend
         run: |
-          if git diff --quiet -- custom_components/ha_3d_dashboard/frontend &&              test -z "$(git status --porcelain --untracked-files=all -- custom_components/ha_3d_dashboard/frontend)"; then
-            echo "Native panel bundle is already synchronized."
-            exit 0
+          if git diff --quiet -- custom_components/ha_3d_dashboard/frontend; then
+            if test -z "$(git status --porcelain --untracked-files=all -- custom_components/ha_3d_dashboard/frontend)"; then
+              echo "Native panel bundle is already synchronized."
+              exit 0
+            fi
           fi
 
           git config user.name "github-actions[bot]"
