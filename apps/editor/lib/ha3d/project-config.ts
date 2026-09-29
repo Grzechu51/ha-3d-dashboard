@@ -99,7 +99,7 @@ function parsePersistedBinding(raw: unknown): EntityBinding {
   return binding
 }
 
-function parseProjectConfig(raw: unknown): Ha3dProjectConfig {
+export function parseHa3dProjectConfig(raw: unknown): Ha3dProjectConfig {
   if (!raw || typeof raw !== 'object') throw new Error('[ha3d] project config must be an object')
   const record = raw as Record<string, unknown>
   if (record.version !== HA3D_PROJECT_CONFIG_VERSION) {
@@ -156,7 +156,7 @@ export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
     bindings: snapshot.bindings.map(cloneBinding),
   }),
   restore: (raw) => {
-    const restored = parseProjectConfig(raw)
+    const restored = parseHa3dProjectConfig(raw)
     publish(restored.bindings)
   },
   reset: resetHa3dProjectConfig,
