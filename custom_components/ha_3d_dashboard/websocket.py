@@ -20,12 +20,13 @@ from .project_model import (
     ProjectNotFoundError,
     ProjectVersionConflictError,
 )
-from .storage import HomeAssistantProjectStore
+from .storage import HomeAssistantProjectStore, ProjectPersistenceError
 
 ERR_ALREADY_EXISTS = "already_exists"
 ERR_EMPTY_SCENE_REJECTED = "empty_scene_rejected"
 ERR_INVALID_PROJECT = "invalid_project"
 ERR_NOT_FOUND = "not_found"
+ERR_STORAGE = "storage_error"
 ERR_VERSION_CONFLICT = "version_conflict"
 
 
@@ -43,6 +44,9 @@ def _send_project_error(
         return
     if isinstance(error, ProjectVersionConflictError):
         connection.send_error(msg_id, ERR_VERSION_CONFLICT, str(error))
+        return
+    if isinstance(error, ProjectPersistenceError):
+        connection.send_error(msg_id, ERR_STORAGE, str(error))
         return
     if isinstance(error, ProjectNotFoundError):
         connection.send_error(msg_id, ERR_NOT_FOUND, str(error))
