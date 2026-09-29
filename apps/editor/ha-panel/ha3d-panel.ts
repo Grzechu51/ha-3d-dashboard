@@ -1,9 +1,9 @@
 import '../lib/bootstrap'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import type { HomeAssistantPanelInfo } from './panel-types'
-import { Ha3dNativeApp, type NativeHomeAssistant } from './ha3d-native-app'
 import { HomeAssistantPanelHostController } from '../lib/ha3d/panel-host-controller'
+import { Ha3dNativeApp, type NativeHomeAssistant } from './ha3d-native-app'
+import type { HomeAssistantPanelInfo } from './panel-types'
 
 const STYLESHEET_PATH = '/ha3d_static/ha3d-panel.css'
 
