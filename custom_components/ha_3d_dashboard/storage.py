@@ -48,6 +48,14 @@ class HomeAssistantProjectStore:
         """Return one full project document."""
         return self._projects.get(project_id)
 
+    async def _async_save_with_rollback(self, before: dict[str, Any]) -> None:
+        """Persist current state or restore the previous in-memory snapshot."""
+        try:
+            await self._store.async_save(self._projects.export())
+        except Exception:
+            self._projects, _ = ProjectCollection.from_storage(before)
+            raise
+
     async def async_create_project(
         self,
         *,
@@ -58,13 +66,14 @@ class HomeAssistantProjectStore:
     ) -> dict[str, Any]:
         """Create and durably persist a project."""
         async with self._mutation_lock:
+            before = self._projects.export()
             project = self._projects.create(
                 project_id=project_id,
                 name=name,
                 scene=scene,
                 ha_config=ha_config,
             )
-            await self._store.async_save(self._projects.export())
+            await self._async_save_with_rollback(before)
             return project
 
     async def async_save_project(
@@ -75,17 +84,20 @@ class HomeAssistantProjectStore:
         name: str | object = MISSING,
         scene: dict[str, Any] | None | object = MISSING,
         ha_config: dict[str, Any] | object = MISSING,
+        force_empty_scene: bool = False,
     ) -> dict[str, Any]:
         """Persist a project update with optimistic concurrency."""
         async with self._mutation_lock:
+            before = self._projects.export()
             project = self._projects.save(
                 project_id,
                 expected_revision=expected_revision,
                 name=name,
                 scene=scene,
                 ha_config=ha_config,
+                force_empty_scene=force_empty_scene,
             )
-            await self._store.async_save(self._projects.export())
+            await self._async_save_with_rollback(before)
             return project
 
     async def async_delete_project(
@@ -93,8 +105,9 @@ class HomeAssistantProjectStore:
     ) -> None:
         """Delete a project with optimistic concurrency."""
         async with self._mutation_lock:
+            before = self._projects.export()
             self._projects.delete(
                 project_id,
                 expected_revision=expected_revision,
             )
-            await self._store.async_save(self._projects.export())
+            await self._async_save_with_rollback(before)
