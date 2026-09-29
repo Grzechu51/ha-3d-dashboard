@@ -18,6 +18,13 @@ export {
   numericEntityAttribute,
   stringListEntityAttribute,
 } from './entity-display'
+export {
+  HomeAssistantHassAdapter,
+  type HomeAssistantHassLike,
+  type HomeAssistantHassServiceTarget,
+  type HomeAssistantHassState,
+} from './hass-adapter'
+export { createHomeAssistantHassHost, type HomeAssistantHassHost } from './hass-host'
 export type {
   HomeAssistantAdapter,
   HomeAssistantAttributes,
