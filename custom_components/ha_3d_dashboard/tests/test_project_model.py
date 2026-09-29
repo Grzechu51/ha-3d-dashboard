@@ -108,6 +108,12 @@ class ProjectCollectionTests(unittest.TestCase):
                 name="Good",
                 scene={"bad": float("nan")},
             )
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
+                project_id="good",
+                name="Good",
+                ha_config={"version": 999, "bindings": []},
+            )
 
     def test_storage_reload_keeps_good_projects_and_drops_bad_entries(self) -> None:
         collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
