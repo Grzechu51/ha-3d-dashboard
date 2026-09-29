@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from datetime import UTC, datetime
 import json
+import math
 import re
 from typing import Any, Callable
 
@@ -13,6 +14,15 @@ STORAGE_PAYLOAD_VERSION = 1
 MAX_PROJECT_JSON_BYTES = 16 * 1024 * 1024
 
 _PROJECT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+_SUPPORTED_HA_DOMAINS = {
+    "light",
+    "cover",
+    "switch",
+    "sensor",
+    "binary_sensor",
+    "climate",
+}
+_COVER_MOTION_AXES = {"x", "y", "z"}
 MISSING = object()
 
 
@@ -101,21 +111,59 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
     bindings = config.get("bindings")
     if not isinstance(bindings, list):
         raise InvalidProjectError("ha_config bindings must be an array")
+
     for binding in bindings:
         if not isinstance(binding, dict):
             raise InvalidProjectError("ha_config binding must be an object")
-        if not isinstance(binding.get("nodeId"), str) or not binding["nodeId"]:
+
+        node_id = binding.get("nodeId")
+        entity_id = binding.get("entityId")
+        if not isinstance(node_id, str) or not node_id.strip():
             raise InvalidProjectError("ha_config binding nodeId must be a non-empty string")
-        if not isinstance(binding.get("entityId"), str) or not binding["entityId"]:
+        if not isinstance(entity_id, str) or not entity_id.strip():
             raise InvalidProjectError("ha_config binding entityId must be a non-empty string")
-        if "domain" in binding and not isinstance(binding["domain"], str):
-            raise InvalidProjectError("ha_config binding domain must be a string")
+
+        normalized_entity_id = entity_id.strip()
+        separator = normalized_entity_id.find(".")
+        if separator <= 0 or separator == len(normalized_entity_id) - 1:
+            raise InvalidProjectError("ha_config binding entityId is invalid")
+        domain = normalized_entity_id[:separator]
+        if domain not in _SUPPORTED_HA_DOMAINS:
+            raise InvalidProjectError("ha_config binding domain is unsupported")
+        if "domain" in binding and binding["domain"] != domain:
+            raise InvalidProjectError("ha_config binding domain does not match entityId")
         if "enabled" in binding and not isinstance(binding["enabled"], bool):
             raise InvalidProjectError("ha_config binding enabled must be a boolean")
-        if "coverMotion" in binding and not isinstance(binding["coverMotion"], dict):
-            raise InvalidProjectError("ha_config binding coverMotion must be an object")
-    return config
 
+        cover_motion = binding.get("coverMotion", MISSING)
+        if domain != "cover" and cover_motion is not MISSING:
+            raise InvalidProjectError("coverMotion is only valid for cover bindings")
+        if cover_motion is MISSING:
+            continue
+        if not isinstance(cover_motion, dict):
+            raise InvalidProjectError("ha_config binding coverMotion must be an object")
+
+        axis = cover_motion.get("axis")
+        offset = cover_motion.get("openOffsetMeters")
+        duration = cover_motion.get("durationMs")
+        if axis not in _COVER_MOTION_AXES:
+            raise InvalidProjectError("coverMotion axis must be x, y, or z")
+        if (
+            isinstance(offset, bool)
+            or not isinstance(offset, (int, float))
+            or not math.isfinite(offset)
+        ):
+            raise InvalidProjectError("coverMotion openOffsetMeters must be finite")
+        if (
+            isinstance(duration, bool)
+            or not isinstance(duration, (int, float))
+            or not math.isfinite(duration)
+            or duration < 0
+            or duration > 60_000
+        ):
+            raise InvalidProjectError("coverMotion durationMs must be between 0 and 60000")
+
+    return config
 
 def _ensure_json_size(document: dict[str, Any]) -> None:
     try:
