@@ -30,8 +30,7 @@ import {
   type HomeAssistantProjectSession,
 } from '../lib/ha3d/project-session'
 
-export type NativeHomeAssistant = HomeAssistantHassLike &
-  HomeAssistantProjectApiHost
+export type NativeHomeAssistant = HomeAssistantHassLike & HomeAssistantProjectApiHost
 
 type PanelMode = 'dashboard' | 'edit'
 
@@ -176,11 +175,7 @@ function SessionStatus({
   session: HomeAssistantProjectSession
   saveStatus: SaveStatus
 }>) {
-  const snapshot = useSyncExternalStore(
-    session.subscribe,
-    session.getSnapshot,
-    session.getSnapshot,
-  )
+  const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
 
   const label =
     snapshot.status === 'conflict'
@@ -266,10 +261,18 @@ function NativeDashboard({
           <h2 className="font-semibold">Project could not be loaded</h2>
           <p className="mt-2 text-destructive text-sm">{error}</p>
           <div className="mt-4 flex gap-2">
-            <button className="rounded-lg border border-border px-3 py-2 text-sm" onClick={onProjects} type="button">
+            <button
+              className="rounded-lg border border-border px-3 py-2 text-sm"
+              onClick={onProjects}
+              type="button"
+            >
               Projects
             </button>
-            <button className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm" onClick={onEdit} type="button">
+            <button
+              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
+              onClick={onEdit}
+              type="button"
+            >
               Open editor
             </button>
           </div>
@@ -295,10 +298,18 @@ function NativeDashboard({
             This project does not have a 3D scene yet.
           </p>
           <div className="mt-5 flex justify-center gap-2">
-            <button className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent" onClick={onProjects} type="button">
+            <button
+              className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent"
+              onClick={onProjects}
+              type="button"
+            >
               Projects
             </button>
-            <button className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm" onClick={onEdit} type="button">
+            <button
+              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
+              onClick={onEdit}
+              type="button"
+            >
               Build in editor
             </button>
           </div>
@@ -372,11 +383,7 @@ function NativeProject({
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
-  const snapshot = useSyncExternalStore(
-    session.subscribe,
-    session.getSnapshot,
-    session.getSnapshot,
-  )
+  const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
 
   const reloadEditor = useCallback(() => {
     setEditorEpoch((value) => value + 1)
@@ -482,16 +489,15 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     }
   }, [api])
 
+  const connected = hass !== null
+
   useEffect(() => {
-    if (!hass) return
+    if (!connected) return
     void refreshProjects()
-  }, [hass !== null, refreshProjects])
+  }, [connected, refreshProjects])
 
   const session = useMemo(
-    () =>
-      selectedProjectId
-        ? createHomeAssistantProjectSession(api, selectedProjectId)
-        : null,
+    () => (selectedProjectId ? createHomeAssistantProjectSession(api, selectedProjectId) : null),
     [api, selectedProjectId],
   )
 
