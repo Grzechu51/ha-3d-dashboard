@@ -2,7 +2,7 @@ import { objectValue, optionalString, stringValue } from './structure-parse'
 
 export type HomeAssistantDevice = Readonly<{
   id: string
-  name: string
+  name: string | null
   nameByUser: string | null
   areaId: string | null
   parentDeviceId: string | null
