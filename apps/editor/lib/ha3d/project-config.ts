@@ -111,6 +111,7 @@ function publish(
   snapshot = {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(bindings).map(cloneBinding),
+    structureMappings,
   }
   for (const listener of listeners) listener()
 }
