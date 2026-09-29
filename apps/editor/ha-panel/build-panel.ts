@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/postcss'
 import postcss from 'postcss'
