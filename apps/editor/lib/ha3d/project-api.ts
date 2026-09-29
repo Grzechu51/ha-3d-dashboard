@@ -27,6 +27,7 @@ export type CreateHomeAssistantProjectInput = Readonly<{
   name: string
   scene?: Readonly<Record<string, unknown>> | null
   haConfig?: Ha3dProjectConfig
+  forceEmptyScene?: boolean
 }>
 
 export type SaveHomeAssistantProjectInput = Readonly<{
@@ -144,6 +145,7 @@ export async function saveHomeAssistantProject(
   withOptional(message, 'name', input.name)
   withOptional(message, 'scene', input.scene)
   withOptional(message, 'ha_config', input.haConfig)
+  withOptional(message, 'force_empty_scene', input.forceEmptyScene)
 
   return parseStoredProject(await hass.callWS<unknown>(message))
 }
