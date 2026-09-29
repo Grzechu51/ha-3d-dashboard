@@ -3,9 +3,9 @@ import {
   createHomeAssistantProject,
   deleteHomeAssistantProject,
   getHomeAssistantProject,
+  type HomeAssistantProjectApiHost,
   listHomeAssistantProjects,
   saveHomeAssistantProject,
-  type HomeAssistantProjectApiHost,
 } from './project-api'
 
 function wireProject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
