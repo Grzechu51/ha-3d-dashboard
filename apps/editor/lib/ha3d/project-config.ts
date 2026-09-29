@@ -25,6 +25,7 @@ const listeners = new Set<() => void>()
 let snapshot: Ha3dProjectConfig = {
   version: HA3D_PROJECT_CONFIG_VERSION,
   bindings: [],
+  structureMappings: { floors: [], areas: [] },
 }
 
 function bindingKey(binding: Pick<EntityBinding, 'nodeId' | 'domain'>): string {
