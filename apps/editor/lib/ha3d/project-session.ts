@@ -155,7 +155,7 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
 
   flushConfiguration = (): Promise<void> => {
     this.clearConfigurationTimer()
-    if (!this.configurationDirty) return this.writeTail.catch(() => undefined)
+    if (!this.configurationDirty) return this.writeTail
 
     return this.enqueueWrite(async () => {
       if (!this.configurationDirty) return
