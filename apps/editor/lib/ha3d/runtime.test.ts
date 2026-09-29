@@ -11,7 +11,7 @@ afterEach(() => {
 })
 
 describe('Home Assistant runtime', () => {
-  test('publishes adapter lifecycle changes', () => {
+  test('publishes adapter lifecycle and entity-state changes', () => {
     const adapter = new MockHomeAssistantAdapter()
     let notifications = 0
     const unsubscribe = subscribeHomeAssistantRuntime(() => {
@@ -19,24 +19,34 @@ describe('Home Assistant runtime', () => {
     })
 
     setHomeAssistantAdapter(adapter)
+    const connectedRevision = getHomeAssistantRuntimeSnapshot().revision
 
     expect(getHomeAssistantRuntimeSnapshot()).toEqual({
       adapter,
       connected: true,
+      revision: connectedRevision,
     })
     expect(notifications).toBe(1)
 
+    adapter.setEntity({
+      entityId: 'light.salon',
+      state: 'on',
+      attributes: { brightness: 180 },
+    })
+    expect(getHomeAssistantRuntimeSnapshot().revision).toBe(connectedRevision + 1)
+    expect(notifications).toBe(2)
+
     setHomeAssistantAdapter(adapter)
-    expect(notifications).toBe(1)
+    expect(notifications).toBe(2)
 
     setHomeAssistantAdapter(null)
     expect(getHomeAssistantRuntimeSnapshot().connected).toBe(false)
-    expect(notifications).toBe(2)
+    expect(notifications).toBe(3)
 
     unsubscribe()
   })
 
-  test('mock adapter exposes state changes and records service calls', async () => {
+  test('mock adapter simulates light services and records the calls', async () => {
     const adapter = new MockHomeAssistantAdapter([
       {
         entityId: 'light.salon',
@@ -49,25 +59,24 @@ describe('Home Assistant runtime', () => {
       changed.push([...entityIds])
     })
 
-    adapter.setEntity({
+    await adapter.callService({
+      domain: 'light',
+      service: 'turn_on',
+      data: { brightness: 180 },
+      target: { entityId: 'light.salon' },
+    })
+
+    expect(adapter.getEntity('light.salon')).toEqual({
       entityId: 'light.salon',
       state: 'on',
       attributes: { brightness: 180 },
     })
-
-    expect(adapter.getEntity('light.salon')?.state).toBe('on')
     expect(changed).toEqual([['light.salon']])
-
-    await adapter.callService({
-      domain: 'light',
-      service: 'turn_off',
-      target: { entityId: 'light.salon' },
-    })
-
     expect(adapter.getServiceCalls()).toEqual([
       {
         domain: 'light',
-        service: 'turn_off',
+        service: 'turn_on',
+        data: { brightness: 180 },
         target: { entityId: 'light.salon' },
       },
     ])
