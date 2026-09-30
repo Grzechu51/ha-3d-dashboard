@@ -592,6 +592,7 @@ function NativeProject({
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
+  const [editorReady, setEditorReady] = useState(false)
   const [structureOpen, setStructureOpen] = useState(false)
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
   const sceneSaveBlocked =
@@ -602,15 +603,30 @@ function NativeProject({
     snapshot.status === 'error' ||
     snapshot.status === 'conflict'
 
+  const loadEditor = useCallback(async () => {
+    setEditorReady(false)
+    const scene = await session.load()
+    setEditorReady(true)
+    return scene
+  }, [session])
+
   const reloadEditor = useCallback(() => {
     onClearNavigationError()
+    setEditorReady(false)
     setEditorEpoch((value) => value + 1)
   }, [onClearNavigationError])
 
   if (mode === 'dashboard' || !canManageProjects) {
     return (
       <NativeDashboard
-        onEdit={canManageProjects ? () => onModeChange('edit') : undefined}
+        onEdit={
+          canManageProjects
+            ? () => {
+                setEditorReady(false)
+                onModeChange('edit')
+              }
+            : undefined
+        }
         onProjects={() => {
           void onProjects()
         }}
@@ -626,7 +642,7 @@ function NativeProject({
         key={editorEpoch}
         layoutVersion="v1"
         manageDocumentDarkClass={false}
-        onLoad={() => session.load()}
+        onLoad={loadEditor}
         onSave={(scene) => session.saveScene(scene)}
         onSaveStatusChange={setSaveStatus}
         presentationPersistenceMode="external"
@@ -640,8 +656,9 @@ function NativeProject({
           <SessionStatus saveStatus={saveStatus} session={session} />
           <button
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={sceneSaveBlocked || leavingProject}
+            disabled={!editorReady || sceneSaveBlocked || leavingProject}
             onClick={() => setStructureOpen(true)}
+            title={editorReady ? undefined : 'Wait for the Pascal scene to finish loading'}
             type="button"
           >
             HA structure
@@ -945,6 +962,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   return (
     <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
       <NativeProject
+        key={selectedProjectId}
         canManageProjects={canManageProjects}
         host={api}
         leavingProject={leavingProject}
