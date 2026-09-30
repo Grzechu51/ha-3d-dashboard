@@ -177,6 +177,26 @@ class ProjectCollectionTests(unittest.TestCase):
                 },
             )
 
+    def test_structure_mappings_persist(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        created = collection.create(
+            project_id="mapped",
+            name="Mapped",
+            ha_config={
+                "version": 1,
+                "bindings": [],
+                "structureMappings": {
+                    "floors": [{"floorId": "ground", "levelNodeId": "level_ground"}],
+                    "areas": [{"areaId": "living", "zoneNodeId": "zone_living"}],
+                },
+            },
+        )
+
+        self.assertEqual(
+            created["ha_config"]["structureMappings"]["areas"][0]["zoneNodeId"],
+            "zone_living",
+        )
+
     def test_storage_reload_keeps_good_projects_and_drops_bad_entries(self) -> None:
         collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
         collection.create(project_id="main", name="Main")
