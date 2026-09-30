@@ -68,6 +68,27 @@ export function Ha3dStructureManager({
       ),
     [projectConfig.structureMappings.areas],
   )
+  const staleFloorMappings = useMemo(() => {
+    if (!structure) return []
+    const floorIds = new Set(structure.floors.map((floor) => floor.id))
+    const levelIds = new Set(levels.map((level) => level.id))
+    return projectConfig.structureMappings.floors.filter(
+      (mapping) => !floorIds.has(mapping.floorId) || !levelIds.has(mapping.levelNodeId),
+    )
+  }, [levels, projectConfig.structureMappings.floors, structure])
+  const staleAreaMappings = useMemo(() => {
+    if (!structure) return []
+    const areasById = new Map(structure.areas.map((area) => [area.id, area]))
+    const zonesById = new Map(zones.map((zone) => [zone.id, zone]))
+    return projectConfig.structureMappings.areas.filter((mapping) => {
+      const area = areasById.get(mapping.areaId)
+      const zone = zonesById.get(mapping.zoneNodeId)
+      if (!area || !zone) return true
+      if (!area.floorId) return false
+      const mappedLevelNodeId = floorMappings.get(area.floorId)
+      return mappedLevelNodeId ? zone.parentId !== mappedLevelNodeId : false
+    })
+  }, [floorMappings, projectConfig.structureMappings.areas, structure, zones])
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -376,6 +397,52 @@ export function Ha3dStructureManager({
                         {entity.name ? (
                           <span className="ml-2 text-muted-foreground">{entity.entityId}</span>
                         ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {staleFloorMappings.length > 0 || staleAreaMappings.length > 0 ? (
+                <section className="rounded-xl border border-destructive/40 bg-destructive/5 p-4">
+                  <div className="font-medium text-sm">Mappings that need attention</div>
+                  <p className="mt-1 text-muted-foreground text-[10px]">
+                    A Home Assistant source, Pascal target, or Floor/Level relationship changed.
+                    Remove the stale mapping and select a current target.
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {staleFloorMappings.map((mapping) => (
+                      <div
+                        className="flex items-center justify-between gap-3 rounded-md bg-background/70 p-2 text-[10px]"
+                        key={mapping.floorId}
+                      >
+                        <span className="truncate">
+                          Floor {mapping.floorId} → {mapping.levelNodeId}
+                        </span>
+                        <button
+                          className="rounded border border-border px-2 py-1 hover:bg-accent"
+                          onClick={() => removeFloorStructureMapping(mapping.floorId)}
+                          type="button"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                    {staleAreaMappings.map((mapping) => (
+                      <div
+                        className="flex items-center justify-between gap-3 rounded-md bg-background/70 p-2 text-[10px]"
+                        key={mapping.areaId}
+                      >
+                        <span className="truncate">
+                          Area {mapping.areaId} → {mapping.zoneNodeId}
+                        </span>
+                        <button
+                          className="rounded border border-border px-2 py-1 hover:bg-accent"
+                          onClick={() => removeAreaStructureMapping(mapping.areaId)}
+                          type="button"
+                        >
+                          Remove
+                        </button>
                       </div>
                     ))}
                   </div>
