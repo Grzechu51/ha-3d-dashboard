@@ -125,6 +125,22 @@ describe('HA 3D project configuration', () => {
     })
   })
 
+  test('rejects duplicate persisted structure mapping targets', () => {
+    expect(() =>
+      ha3dProjectConfiguration.restore({
+        version: 1,
+        bindings: [],
+        structureMappings: {
+          floors: [
+            { floorId: 'ground', levelNodeId: 'level_shared' },
+            { floorId: 'upper', levelNodeId: 'level_shared' },
+          ],
+          areas: [],
+        },
+      }),
+    ).toThrow('floor mappings must be one-to-one')
+  })
+
   test('rejects corrupted persisted data instead of partially restoring it', () => {
     expect(() =>
       ha3dProjectConfiguration.restore({
