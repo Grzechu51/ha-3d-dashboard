@@ -7,14 +7,35 @@ The target is an installable Home Assistant custom integration with a **3D Home*
 panel where the user can build/edit a house, bind Home Assistant entities directly
 to 3D objects, visualize live states and control the home from the model.
 
-> **Development status:** active. The native Home Assistant project shell is
-> implemented: the custom panel can list/create projects, mount the real Pascal
-> Editor/Viewer, switch between Dashboard/Edit and persist projects through the
-> Home Assistant Store. The active checkpoint is project-management UX followed
-> by Home Assistant Floors/Areas/Devices/Entities integration.
+> **Development status:** active. The native Home Assistant project shell,
+> revision-safe project management, entity bindings, and Home Assistant
+> Floors/Areas/Devices/Entities structure mapping are implemented on the active
+> development stack. The current checkpoint is release/HACS packaging and
+> installation hardening.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
+
+## Installing the Home Assistant integration
+
+The release package is `ha_3d_dashboard.zip`. It contains the custom integration
+and the prebuilt native 3D panel.
+
+While this repository remains private, install release candidates manually by
+extracting the ZIP contents into:
+
+`/config/custom_components/ha_3d_dashboard/`
+
+Then restart Home Assistant and add **HA 3D Dashboard** from
+**Settings -> Devices & services -> Add integration**.
+
+HACS packaging is prepared in this repository, but HACS currently supports only
+public GitHub repositories. Repository visibility is not changed automatically.
+When the project is intentionally made public, it can be added to HACS as a custom
+**Integration** repository and installed from published GitHub releases.
+
+See **[docs/ha3d/release.md](docs/ha3d/release.md)** for the release checklist,
+version contract, archive layout, and HACS gate.
 
 ## Project-specific Home Assistant layer
 
