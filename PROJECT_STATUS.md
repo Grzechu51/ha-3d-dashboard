@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: project management + Home Assistant structure**
 
-Status: **PR #11 hardened; PR #12 active**
+Status: **PR #11 hardened; PR #12 structure; release packaging active**
 
 PR #8 (Home Assistant project Store/WebSocket API), PR #9 (frontend project
 session/revision coordinator) and PR #10 (native HA project shell with the real
@@ -28,7 +28,7 @@ Pascal Editor/Viewer) are merged to `main`.
 
 The active checkpoint is:
 
-`HA Floors/Areas/Devices/Entities -> manual Pascal Level/Zone mapping -> release packaging`
+`release/HACS packaging -> install/update verification -> mobile/tablet hardening`
 
 ## Completed
 
@@ -144,6 +144,22 @@ Active implementation:
 - mapping persistence in the versioned HA project sidecar,
 - one-to-one mapping semantics and removal,
 - no automatic HA/Pascal create/delete synchronization.
+
+### Release/HACS packaging branch
+
+A stacked release branch now contains:
+
+- repository-root `hacs.json` configured for a release ZIP,
+- a local 256x256 Home Assistant brand icon,
+- Hassfest and HACS validation workflow wiring,
+- a separate `HA 3D Release` workflow that rebuilds and verifies the native panel,
+- release ZIP content checks,
+- version consistency checks between `manifest.json` and `const.py`,
+- manual installation documentation for private-repository testing.
+
+The repository remains private. Current HACS publishing requirements support only
+public GitHub repositories, so the HACS validation job is skipped while the repository
+is private. Release automation never changes repository visibility.
 
 ## Next checkpoints
 
