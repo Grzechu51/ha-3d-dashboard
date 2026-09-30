@@ -5,6 +5,7 @@
     "@Grzechu51"
   ],
   "config_flow": true,
+  "single_config_entry": true,
   "dependencies": [
     "frontend",
     "http",
