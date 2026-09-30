@@ -655,6 +655,11 @@ function HaStructureManager({
     ? `${structure.floors.length} floors · ${structure.areas.length} areas · ${structure.devices.length} devices · ${structure.entities.length} entities`
     : 'Registry snapshot not loaded'
 
+  const zonesForFloor = (floorId: string) => {
+    const levelNodeId = floorMappings.get(floorId)
+    return levelNodeId ? zones.filter((zone) => zone.parentId === levelNodeId) : zones
+  }
+
   return (
     <div className="absolute inset-0 z-[100] flex justify-end bg-black/35">
       <button
@@ -775,7 +780,7 @@ function HaStructureManager({
                             value={areaMappings.get(areaGroup.area.id) ?? ''}
                           >
                             <option value="">Not mapped</option>
-                            {zones.map((zone) => (
+                            {zonesForFloor(floorGroup.floor.id).map((zone) => (
                               <option key={zone.id} value={zone.id}>
                                 {zone.name}
                               </option>
