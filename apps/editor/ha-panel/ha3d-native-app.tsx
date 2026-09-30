@@ -770,6 +770,60 @@ function HaStructureManager({
                             ))}
                           </select>
                         </div>
+
+                        {areaGroup.devices.length > 0 || areaGroup.entities.length > 0 ? (
+                          <div className="mt-3 space-y-2 border-border/60 border-t pt-3">
+                            {areaGroup.devices.map((deviceGroup) => (
+                              <div className="rounded-md bg-muted/35 p-2" key={deviceGroup.device.id}>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <div className="truncate font-medium text-[11px]">
+                                      {deviceGroup.device.nameByUser ??
+                                        deviceGroup.device.name ??
+                                        deviceGroup.device.id}
+                                    </div>
+                                    {deviceGroup.device.manufacturer || deviceGroup.device.model ? (
+                                      <div className="truncate text-muted-foreground text-[9px]">
+                                        {[deviceGroup.device.manufacturer, deviceGroup.device.model]
+                                          .filter(Boolean)
+                                          .join(' · ')}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                  <div className="text-muted-foreground text-[9px]">
+                                    {deviceGroup.entities.length} entities
+                                  </div>
+                                </div>
+                                {deviceGroup.entities.length > 0 ? (
+                                  <div className="mt-2 flex flex-wrap gap-1">
+                                    {deviceGroup.entities.map((entity) => (
+                                      <span
+                                        className="max-w-full truncate rounded bg-background px-1.5 py-0.5 text-[9px]"
+                                        key={entity.entityId}
+                                        title={entity.entityId}
+                                      >
+                                        {entity.name ?? entity.entityId}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : null}
+                              </div>
+                            ))}
+                            {areaGroup.entities.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {areaGroup.entities.map((entity) => (
+                                  <span
+                                    className="max-w-full truncate rounded border border-border/60 bg-background px-1.5 py-0.5 text-[9px]"
+                                    key={entity.entityId}
+                                    title={entity.entityId}
+                                  >
+                                    {entity.name ?? entity.entityId}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     ))}
                   </div>
