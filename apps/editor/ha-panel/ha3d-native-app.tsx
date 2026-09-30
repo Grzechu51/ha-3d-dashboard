@@ -37,6 +37,16 @@ import {
   createHomeAssistantProjectSession,
   type HomeAssistantProjectSession,
 } from '../lib/ha3d/project-session'
+import {
+  getHa3dProjectConfigSnapshot,
+  removeAreaStructureMapping,
+  removeFloorStructureMapping,
+  subscribeHa3dProjectConfig,
+  upsertAreaStructureMapping,
+  upsertFloorStructureMapping,
+} from '../lib/ha3d/project-config'
+import { loadHomeAssistantStructure } from '../lib/ha3d/structure'
+import { groupHomeAssistantStructure } from '../lib/ha3d/structure-tree'
 
 type NativeHomeAssistantUser = Readonly<{
   is_admin?: boolean
