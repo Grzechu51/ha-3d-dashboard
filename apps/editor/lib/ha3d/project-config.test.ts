@@ -3,7 +3,9 @@ import { createEntityBinding } from './entity-binding'
 import {
   getHa3dProjectConfigSnapshot,
   ha3dProjectConfiguration,
+  removeAreaStructureMapping,
   removeEntityBinding,
+  removeFloorStructureMapping,
   resetHa3dProjectConfig,
   upsertAreaStructureMapping,
   upsertEntityBinding,
@@ -101,6 +103,25 @@ describe('HA 3D project configuration', () => {
     expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
       floors: [{ floorId: 'ground', levelNodeId: 'level_ground' }],
       areas: [{ areaId: 'living', zoneNodeId: 'zone_living' }],
+    })
+  })
+
+  test('keeps structure mappings one-to-one and removable', () => {
+    upsertFloorStructureMapping('ground', 'level_shared')
+    upsertFloorStructureMapping('upper', 'level_shared')
+    upsertAreaStructureMapping('living', 'zone_shared')
+    upsertAreaStructureMapping('kitchen', 'zone_shared')
+
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [{ floorId: 'upper', levelNodeId: 'level_shared' }],
+      areas: [{ areaId: 'kitchen', zoneNodeId: 'zone_shared' }],
+    })
+
+    removeFloorStructureMapping('upper')
+    removeAreaStructureMapping('kitchen')
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [],
+      areas: [],
     })
   })
 
