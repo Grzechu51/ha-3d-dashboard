@@ -152,30 +152,56 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
         raise InvalidProjectError("ha_config structureMappings must be an object")
 
     if isinstance(structure_mappings, dict):
-        if not isinstance(structure_mappings.get("floors"), list):
+        floors = structure_mappings.get("floors")
+        areas = structure_mappings.get("areas")
+        if not isinstance(floors, list):
             raise InvalidProjectError(
                 "ha_config structureMappings floors must be an array"
             )
-        if not isinstance(structure_mappings.get("areas"), list):
+        if not isinstance(areas, list):
             raise InvalidProjectError(
                 "ha_config structureMappings areas must be an array"
             )
 
-        for mapping in structure_mappings["floors"]:
+        seen_floor_ids: set[str] = set()
+        seen_level_node_ids: set[str] = set()
+        for mapping in floors:
             if not isinstance(mapping, dict):
                 raise InvalidProjectError("ha_config floor mapping must be an object")
-            if not isinstance(mapping.get("floorId"), str) or not mapping["floorId"].strip():
-                raise InvalidProjectError("ha_config floor mapping floorId must be a non-empty string")
-            if not isinstance(mapping.get("levelNodeId"), str) or not mapping["levelNodeId"].strip():
-                raise InvalidProjectError("ha_config floor mapping levelNodeId must be a non-empty string")
+            floor_id = mapping.get("floorId")
+            level_node_id = mapping.get("levelNodeId")
+            if not isinstance(floor_id, str) or not floor_id.strip():
+                raise InvalidProjectError(
+                    "ha_config floor mapping floorId must be a non-empty string"
+                )
+            if not isinstance(level_node_id, str) or not level_node_id.strip():
+                raise InvalidProjectError(
+                    "ha_config floor mapping levelNodeId must be a non-empty string"
+                )
+            if floor_id in seen_floor_ids or level_node_id in seen_level_node_ids:
+                raise InvalidProjectError("ha_config floor mappings must be one-to-one")
+            seen_floor_ids.add(floor_id)
+            seen_level_node_ids.add(level_node_id)
 
-        for mapping in structure_mappings["areas"]:
+        seen_area_ids: set[str] = set()
+        seen_zone_node_ids: set[str] = set()
+        for mapping in areas:
             if not isinstance(mapping, dict):
                 raise InvalidProjectError("ha_config area mapping must be an object")
-            if not isinstance(mapping.get("areaId"), str) or not mapping["areaId"].strip():
-                raise InvalidProjectError("ha_config area mapping areaId must be a non-empty string")
-            if not isinstance(mapping.get("zoneNodeId"), str) or not mapping["zoneNodeId"].strip():
-                raise InvalidProjectError("ha_config area mapping zoneNodeId must be a non-empty string")
+            area_id = mapping.get("areaId")
+            zone_node_id = mapping.get("zoneNodeId")
+            if not isinstance(area_id, str) or not area_id.strip():
+                raise InvalidProjectError(
+                    "ha_config area mapping areaId must be a non-empty string"
+                )
+            if not isinstance(zone_node_id, str) or not zone_node_id.strip():
+                raise InvalidProjectError(
+                    "ha_config area mapping zoneNodeId must be a non-empty string"
+                )
+            if area_id in seen_area_ids or zone_node_id in seen_zone_node_ids:
+                raise InvalidProjectError("ha_config area mappings must be one-to-one")
+            seen_area_ids.add(area_id)
+            seen_zone_node_ids.add(zone_node_id)
 
     for binding in bindings:
         if not isinstance(binding, dict):
