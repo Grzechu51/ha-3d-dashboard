@@ -11,12 +11,24 @@ export function groupHomeAssistantStructure(
 ): HomeAssistantStructureTree {
   const areaIds = new Set(snapshot.areas.map((area) => area.id))
   const floorIds = new Set(snapshot.floors.map((floor) => floor.id))
-  const unassignedDevices = snapshot.devices.filter((device) => !snapshot.deviceAreaIds.get(device.id) || !areaIds.has(snapshot.deviceAreaIds.get(device.id) ?? ''))
+  const unassignedDevices = snapshot.devices.filter((device) => {
+    const areaId = snapshot.deviceAreaIds.get(device.id) ?? null
+    return !areaId || !areaIds.has(areaId)
+  })
   const unassignedDeviceIds = new Set(unassignedDevices.map((device) => device.id))
   return {
-    floors: snapshot.floors.map((floor) => ({ floor, areas: snapshot.areas.filter((area) => area.floorId === floor.id).map((area) => createHomeAssistantAreaGroup(snapshot, area)) })),
-    unassignedAreas: snapshot.areas.filter((area) => !area.floorId || !floorIds.has(area.floorId)).map((area) => createHomeAssistantAreaGroup(snapshot, area)),
-    unassignedDevices: unassignedDevices.map((device) => createHomeAssistantDeviceGroup(snapshot, device)),
+    floors: snapshot.floors.map((floor) => ({
+      floor,
+      areas: snapshot.areas
+        .filter((area) => area.floorId === floor.id)
+        .map((area) => createHomeAssistantAreaGroup(snapshot, area)),
+    })),
+    unassignedAreas: snapshot.areas
+      .filter((area) => !area.floorId || !floorIds.has(area.floorId))
+      .map((area) => createHomeAssistantAreaGroup(snapshot, area)),
+    unassignedDevices: unassignedDevices.map((device) =>
+      createHomeAssistantDeviceGroup(snapshot, device),
+    ),
     unassignedEntities: snapshot.entities.filter((entity) => {
       const areaId = resolveHomeAssistantEntityAreaId(entity, snapshot.deviceAreaIds)
       if (areaId && areaIds.has(areaId)) return false
