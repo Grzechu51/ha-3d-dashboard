@@ -107,7 +107,12 @@ export function Ha3dStructureManager({
   }, [reload])
 
   const structureSummary = structure
-    ? `${structure.floors.length} floors · ${structure.areas.length} areas · ${structure.devices.length} devices · ${structure.entities.length} entities`
+    ? [
+        `${structure.floors.length} floors`,
+        `${structure.areas.length} areas`,
+        `${structure.devices.length} devices`,
+        `${structure.entities.length} entities`,
+      ].join(' · ')
     : 'Registry snapshot not loaded'
 
   const zonesForFloor = (floorId: string) => {
