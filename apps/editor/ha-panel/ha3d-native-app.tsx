@@ -832,6 +832,7 @@ function HaStructureManager({
 function NativeProject({
   metadata,
   session,
+  host,
   mode,
   canManageProjects,
   leavingProject,
@@ -842,6 +843,7 @@ function NativeProject({
 }: Readonly<{
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
+  host: HomeAssistantProjectApiHost
   mode: PanelMode
   canManageProjects: boolean
   leavingProject: boolean
@@ -852,6 +854,7 @@ function NativeProject({
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
+  const [structureOpen, setStructureOpen] = useState(false)
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
   const sceneSaveBlocked =
     saveStatus === 'pending' ||
