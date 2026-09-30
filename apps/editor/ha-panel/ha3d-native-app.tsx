@@ -624,18 +624,22 @@ function HaStructureManager({
 
     const sceneNodes = useScene.getState().nodes
     setLevels(
-      Object.values(sceneNodes).flatMap((node) =>
-        node.type === 'level'
-          ? [{ id: node.id, name: node.name ?? `Level ${node.level}`, level: node.level }]
-          : [],
-      ),
+      Object.values(sceneNodes)
+        .flatMap((node) =>
+          node.type === 'level'
+            ? [{ id: node.id, name: node.name ?? `Level ${node.level}`, level: node.level }]
+            : [],
+        )
+        .sort((left, right) => left.level - right.level || left.name.localeCompare(right.name)),
     )
     setZones(
-      Object.values(sceneNodes).flatMap((node) =>
-        node.type === 'zone'
-          ? [{ id: node.id, name: node.name, parentId: node.parentId }]
-          : [],
-      ),
+      Object.values(sceneNodes)
+        .flatMap((node) =>
+          node.type === 'zone'
+            ? [{ id: node.id, name: node.name, parentId: node.parentId }]
+            : [],
+        )
+        .sort((left, right) => left.name.localeCompare(right.name)),
     )
 
     try {
