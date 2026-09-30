@@ -6,6 +6,8 @@ export type HomeAssistantDevice = Readonly<{
   nameByUser: string | null
   areaId: string | null
   parentDeviceId: string | null
+  manufacturer: string | null
+  model: string | null
 }>
 
 export function parseHomeAssistantDevice(raw: unknown): HomeAssistantDevice {
@@ -16,5 +18,7 @@ export function parseHomeAssistantDevice(raw: unknown): HomeAssistantDevice {
     nameByUser: optionalString(value.name_by_user, 'device user name'),
     areaId: optionalString(value.area_id, 'device area id'),
     parentDeviceId: optionalString(value.parent_device_id, 'device parent id'),
+    manufacturer: optionalString(value.manufacturer, 'device manufacturer'),
+    model: optionalString(value.model, 'device model'),
   }
 }
