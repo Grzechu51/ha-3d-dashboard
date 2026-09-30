@@ -46,6 +46,7 @@ import {
   upsertFloorStructureMapping,
 } from '../lib/ha3d/project-config'
 import { loadHomeAssistantStructure } from '../lib/ha3d/structure'
+import type { HomeAssistantStructureSnapshot } from '../lib/ha3d/structure-snapshot'
 import { groupHomeAssistantStructure } from '../lib/ha3d/structure-tree'
 
 type NativeHomeAssistantUser = Readonly<{
