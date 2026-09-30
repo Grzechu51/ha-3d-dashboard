@@ -111,6 +111,27 @@ function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
     }
     return { areaId: mapping.areaId, zoneNodeId: mapping.zoneNodeId }
   })
+
+  const floorIds = new Set<string>()
+  const levelNodeIds = new Set<string>()
+  for (const mapping of floors) {
+    if (floorIds.has(mapping.floorId) || levelNodeIds.has(mapping.levelNodeId)) {
+      throw new Error('[ha3d] floor mappings must be one-to-one')
+    }
+    floorIds.add(mapping.floorId)
+    levelNodeIds.add(mapping.levelNodeId)
+  }
+
+  const areaIds = new Set<string>()
+  const zoneNodeIds = new Set<string>()
+  for (const mapping of areas) {
+    if (areaIds.has(mapping.areaId) || zoneNodeIds.has(mapping.zoneNodeId)) {
+      throw new Error('[ha3d] area mappings must be one-to-one')
+    }
+    areaIds.add(mapping.areaId)
+    zoneNodeIds.add(mapping.zoneNodeId)
+  }
+
   return { floors, areas }
 }
 
