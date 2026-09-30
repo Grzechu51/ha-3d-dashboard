@@ -64,7 +64,21 @@ Pascal scene JSON stays compatible with upstream. HA configuration is a sidecar:
       "domain": "light",
       "enabled": true
     }
-  ]
+  ],
+  "structureMappings": {
+    "floors": [
+      {
+        "floorId": "ground_floor",
+        "levelNodeId": "level_ground"
+      }
+    ],
+    "areas": [
+      {
+        "areaId": "living_room",
+        "zoneNodeId": "zone_living"
+      }
+    ]
+  }
 }
 ```
 
@@ -81,6 +95,27 @@ The project WebSocket surface is:
 - `ha_3d_dashboard/project/delete`
 
 Read commands require an authenticated Home Assistant session. Create, save, and delete additionally require an administrator.
+
+## Home Assistant structure discovery
+
+The native HA host reads Home Assistant's registry WebSocket APIs directly:
+
+- `config/floor_registry/list`
+- `config/area_registry/list`
+- `config/device_registry/list`
+- `config/entity_registry/list_for_display`
+
+The HA-specific app layer validates and normalizes these payloads into a
+`Floor -> Area -> Device -> Entity` hierarchy. Child devices inherit their
+parent device's Area when they do not define one explicitly, matching current
+Home Assistant area semantics. Entity-level Area assignment overrides the
+device-derived Area.
+
+Structure synchronization is intentionally manual and non-destructive at this
+stage. A user maps HA Floors to existing Pascal Levels and HA Areas to existing
+Pascal Zones. The mapping is stored in the HA project sidecar; it does not alter
+Pascal node schemas and does not create, rename, move, or delete Home Assistant
+registry entries.
 
 ## Delivery sequence
 
