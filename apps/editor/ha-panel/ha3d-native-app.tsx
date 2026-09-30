@@ -929,7 +929,10 @@ function NativeProject({
           <button
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
             disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => void onProjects()}
+            onClick={() => {
+              setStructureOpen(false)
+              void onProjects()
+            }}
             title={
               saveStatus === 'error' || snapshot.status === 'error'
                 ? 'Resolve or retry the save error before leaving the editor'
@@ -943,6 +946,8 @@ function NativeProject({
           </button>
         </div>
       </div>
+
+      {structureOpen ? <HaStructureManager host={host} onClose={() => setStructureOpen(false)} /> : null}
 
       {snapshot.status === 'conflict' ? (
         <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
