@@ -101,7 +101,12 @@ function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
       throw new Error('[ha3d] area mapping must be an object')
     }
     const mapping = entry as Record<string, unknown>
-    if (typeof mapping.areaId !== 'string' || !mapping.areaId.trim() || typeof mapping.zoneNodeId !== 'string') {
+    if (
+      typeof mapping.areaId !== 'string' ||
+      !mapping.areaId.trim() ||
+      typeof mapping.zoneNodeId !== 'string' ||
+      !mapping.zoneNodeId.trim()
+    ) {
       throw new Error('[ha3d] area mapping ids must be strings')
     }
     return { areaId: mapping.areaId, zoneNodeId: mapping.zoneNodeId }
@@ -214,13 +219,17 @@ export function upsertAreaStructureMapping(areaId: string, zoneNodeId: string): 
 }
 
 export function removeFloorStructureMapping(floorId: string): void {
-  const floors = snapshot.structureMappings.floors.filter((mapping) => mapping.floorId !== floorId)
+  const floors = snapshot.structureMappings.floors.filter(
+    (mapping) => mapping.floorId !== floorId,
+  )
   if (floors.length === snapshot.structureMappings.floors.length) return
   publish(snapshot.bindings, { ...snapshot.structureMappings, floors })
 }
 
 export function removeAreaStructureMapping(areaId: string): void {
-  const areas = snapshot.structureMappings.areas.filter((mapping) => mapping.areaId !== areaId)
+  const areas = snapshot.structureMappings.areas.filter(
+    (mapping) => mapping.areaId !== areaId,
+  )
   if (areas.length === snapshot.structureMappings.areas.length) return
   publish(snapshot.bindings, { ...snapshot.structureMappings, areas })
 }
