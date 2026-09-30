@@ -1,0 +1,41 @@
+name: Validate HA Distribution
+
+on:
+  pull_request:
+    paths:
+      - "custom_components/ha_3d_dashboard/**"
+      - "hacs.json"
+      - "info.md"
+      - ".github/workflows/ha-*.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "custom_components/ha_3d_dashboard/**"
+      - "hacs.json"
+      - "info.md"
+      - ".github/workflows/ha-*.yml"
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    name: HACS
+    if: ${{ github.event.repository.private == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
