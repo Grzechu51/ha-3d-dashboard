@@ -647,6 +647,10 @@ function HaStructureManager({
     void reload()
   }, [reload])
 
+  const structureSummary = structure
+    ? `${structure.floors.length} floors · ${structure.areas.length} areas · ${structure.devices.length} devices · ${structure.entities.length} entities`
+    : 'Registry snapshot not loaded'
+
   return (
     <div className="absolute inset-0 z-[100] flex justify-end bg-black/35">
       <button
@@ -675,9 +679,7 @@ function HaStructureManager({
 
         <div className="flex items-center justify-between border-border border-b px-5 py-3">
           <div className="text-muted-foreground text-xs">
-            {structure
-              ? `${structure.floors.length} floors · ${structure.areas.length} areas · ${structure.devices.length} devices · ${structure.entities.length} entities`
-              : 'Registry snapshot not loaded'}
+            {structureSummary}
           </div>
           <button
             className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
