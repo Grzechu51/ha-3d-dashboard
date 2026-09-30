@@ -1208,6 +1208,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
       <NativeProject
         canManageProjects={canManageProjects}
+        host={api}
         leavingProject={leavingProject}
         metadata={metadata}
         mode={mode}
