@@ -5,8 +5,11 @@ test('entity area overrides device area', () => {
   const entity = {
     entityId: 'light.lamp',
     platform: 'demo',
+    name: 'Lamp',
+    icon: null,
     areaId: 'desk',
     deviceId: 'device-1',
+    hidden: false,
   }
   const deviceAreas = new Map([['device-1', 'living']])
   expect(resolveHomeAssistantEntityAreaId(entity, deviceAreas)).toBe('desk')
