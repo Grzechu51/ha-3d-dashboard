@@ -871,11 +871,39 @@ function HaStructureManager({
               ) : null}
 
               {tree.unassignedDevices.length > 0 || tree.unassignedEntities.length > 0 ? (
-                <div className="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground text-xs">
-                  Unassigned in HA: {tree.unassignedDevices.length} devices ·{' '}
-                  {tree.unassignedEntities.length} entities. They remain discoverable but are not
-                  attached to a Floor/Area mapping.
-                </div>
+                <section className="rounded-xl border border-border bg-card/60 p-4">
+                  <div className="font-medium text-sm">Unassigned in Home Assistant</div>
+                  <p className="mt-1 text-muted-foreground text-[10px]">
+                    These entries have no valid Area. Nothing is changed in Home Assistant.
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    {tree.unassignedDevices.map((deviceGroup) => (
+                      <div className="rounded-md bg-muted/35 p-2" key={deviceGroup.device.id}>
+                        <div className="font-medium text-[11px]">
+                          {deviceGroup.device.nameByUser ??
+                            deviceGroup.device.name ??
+                            deviceGroup.device.id}
+                        </div>
+                        {deviceGroup.entities.length > 0 ? (
+                          <div className="mt-1 text-muted-foreground text-[9px]">
+                            {deviceGroup.entities.map((entity) => entity.entityId).join(' · ')}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                    {tree.unassignedEntities.map((entity) => (
+                      <div
+                        className="rounded-md border border-border/60 bg-background px-2 py-1.5 text-[10px]"
+                        key={entity.entityId}
+                      >
+                        {entity.name ?? entity.entityId}
+                        {entity.name ? (
+                          <span className="ml-2 text-muted-foreground">{entity.entityId}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </section>
               ) : null}
 
               {tree.floors.length === 0 && tree.unassignedAreas.length === 0 ? (
