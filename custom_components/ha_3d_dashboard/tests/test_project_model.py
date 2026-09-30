@@ -33,7 +33,9 @@ class ProjectCollectionTests(unittest.TestCase):
 
         self.assertEqual(created["name"], "Main house")
         self.assertEqual(created["revision"], 1)
-        self.assertEqual(created["ha_config"]["structureMappings"], {"floors": [], "areas": []})
+        self.assertEqual(
+            created["ha_config"]["structureMappings"], {"floors": [], "areas": []}
+        )
         self.assertEqual(collection.list_metadata()[0]["id"], "main_house")
 
         loaded = collection.get("main_house")
@@ -196,6 +198,26 @@ class ProjectCollectionTests(unittest.TestCase):
             created["ha_config"]["structureMappings"]["areas"][0]["zoneNodeId"],
             "zone_living",
         )
+
+    def test_duplicate_structure_mapping_targets_are_rejected(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
+                project_id="duplicate_mapping",
+                name="Duplicate mapping",
+                ha_config={
+                    "version": 1,
+                    "bindings": [],
+                    "structureMappings": {
+                        "floors": [
+                            {"floorId": "ground", "levelNodeId": "level_shared"},
+                            {"floorId": "upper", "levelNodeId": "level_shared"},
+                        ],
+                        "areas": [],
+                    },
+                },
+            )
 
     def test_storage_reload_keeps_good_projects_and_drops_bad_entries(self) -> None:
         collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
