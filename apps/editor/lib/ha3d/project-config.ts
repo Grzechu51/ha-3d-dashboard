@@ -203,7 +203,9 @@ export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssista
 export function upsertFloorStructureMapping(floorId: string, levelNodeId: string): void {
   if (!floorId || !levelNodeId) throw new Error('[ha3d] floor mapping ids must not be empty')
   const floors = [
-    ...snapshot.structureMappings.floors.filter((mapping) => mapping.floorId !== floorId),
+    ...snapshot.structureMappings.floors.filter(
+      (mapping) => mapping.floorId !== floorId && mapping.levelNodeId !== levelNodeId,
+    ),
     { floorId, levelNodeId },
   ]
   publish(snapshot.bindings, { ...snapshot.structureMappings, floors })
@@ -212,7 +214,9 @@ export function upsertFloorStructureMapping(floorId: string, levelNodeId: string
 export function upsertAreaStructureMapping(areaId: string, zoneNodeId: string): void {
   if (!areaId || !zoneNodeId) throw new Error('[ha3d] area mapping ids must not be empty')
   const areas = [
-    ...snapshot.structureMappings.areas.filter((mapping) => mapping.areaId !== areaId),
+    ...snapshot.structureMappings.areas.filter(
+      (mapping) => mapping.areaId !== areaId && mapping.zoneNodeId !== zoneNodeId,
+    ),
     { areaId, zoneNodeId },
   ]
   publish(snapshot.bindings, { ...snapshot.structureMappings, areas })
