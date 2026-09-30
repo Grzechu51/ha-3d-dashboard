@@ -903,7 +903,18 @@ function NativeProject({
           <button
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
             disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => onModeChange('dashboard')}
+            onClick={() => setStructureOpen(true)}
+            type="button"
+          >
+            HA structure
+          </button>
+          <button
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={sceneSaveBlocked || leavingProject}
+            onClick={() => {
+              setStructureOpen(false)
+              onModeChange('dashboard')
+            }}
             title={
               saveStatus === 'error' || snapshot.status === 'error'
                 ? 'Resolve or retry the save error before leaving the editor'
