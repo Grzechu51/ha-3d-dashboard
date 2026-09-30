@@ -64,7 +64,11 @@ def _utc_now() -> str:
 
 def default_ha_config() -> dict[str, Any]:
     """Return an empty HA-specific sidecar matching the frontend v1 contract."""
-    return {"version": 1, "bindings": [], "structureMappings": {"floors": [], "areas": []}}
+    return {
+        "version": 1,
+        "bindings": [],
+        "structureMappings": {"floors": [], "areas": []},
+    }
 
 
 def _validate_project_id(project_id: str) -> str:
@@ -149,9 +153,13 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
 
     if isinstance(structure_mappings, dict):
         if not isinstance(structure_mappings.get("floors"), list):
-            raise InvalidProjectError("ha_config structureMappings floors must be an array")
+            raise InvalidProjectError(
+                "ha_config structureMappings floors must be an array"
+            )
         if not isinstance(structure_mappings.get("areas"), list):
-            raise InvalidProjectError("ha_config structureMappings areas must be an array")
+            raise InvalidProjectError(
+                "ha_config structureMappings areas must be an array"
+            )
 
         for mapping in structure_mappings["floors"]:
             if not isinstance(mapping, dict):
