@@ -617,11 +617,17 @@ function HaStructureManager({
     [structure],
   )
   const floorMappings = useMemo(
-    () => new Map(projectConfig.structureMappings.floors.map((mapping) => [mapping.floorId, mapping.levelNodeId])),
+    () =>
+      new Map(
+        projectConfig.structureMappings.floors.map((mapping) => [mapping.floorId, mapping.levelNodeId]),
+      ),
     [projectConfig.structureMappings.floors],
   )
   const areaMappings = useMemo(
-    () => new Map(projectConfig.structureMappings.areas.map((mapping) => [mapping.areaId, mapping.zoneNodeId])),
+    () =>
+      new Map(
+        projectConfig.structureMappings.areas.map((mapping) => [mapping.areaId, mapping.zoneNodeId]),
+      ),
     [projectConfig.structureMappings.areas],
   )
 
