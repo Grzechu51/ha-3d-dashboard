@@ -587,31 +587,18 @@ function HaStructureManager({
   const [structure, setStructure] = useState<HomeAssistantStructureSnapshot | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const nodes = useScene((state) => state.nodes)
+  const [levels, setLevels] = useState<
+    readonly Readonly<{ id: string; name: string; level: number }>[]
+  >([])
+  const [zones, setZones] = useState<
+    readonly Readonly<{ id: string; name: string; parentId: string | null }>[]
+  >([])
   const projectConfig = useSyncExternalStore(
     subscribeHa3dProjectConfig,
     getHa3dProjectConfigSnapshot,
     getHa3dProjectConfigSnapshot,
   )
 
-  const levels = useMemo(
-    () =>
-      Object.values(nodes).flatMap((node) =>
-        node.type === 'level'
-          ? [{ id: node.id, name: node.name ?? `Level ${node.level}`, level: node.level }]
-          : [],
-      ),
-    [nodes],
-  )
-  const zones = useMemo(
-    () =>
-      Object.values(nodes).flatMap((node) =>
-        node.type === 'zone'
-          ? [{ id: node.id, name: node.name, parentId: node.parentId }]
-          : [],
-      ),
-    [nodes],
-  )
   const tree = useMemo(
     () => (structure ? groupHomeAssistantStructure(structure) : null),
     [structure],
@@ -634,6 +621,23 @@ function HaStructureManager({
   const reload = useCallback(async () => {
     setLoading(true)
     setError(null)
+
+    const sceneNodes = useScene.getState().nodes
+    setLevels(
+      Object.values(sceneNodes).flatMap((node) =>
+        node.type === 'level'
+          ? [{ id: node.id, name: node.name ?? `Level ${node.level}`, level: node.level }]
+          : [],
+      ),
+    )
+    setZones(
+      Object.values(sceneNodes).flatMap((node) =>
+        node.type === 'zone'
+          ? [{ id: node.id, name: node.name, parentId: node.parentId }]
+          : [],
+      ),
+    )
+
     try {
       setStructure(await loadHomeAssistantStructure(host))
     } catch (cause) {
