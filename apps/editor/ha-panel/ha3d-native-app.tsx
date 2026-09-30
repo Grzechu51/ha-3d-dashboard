@@ -711,6 +711,13 @@ function HaStructureManager({
             </div>
           ) : null}
 
+          {levels.length === 0 || zones.length === 0 ? (
+            <div className="mb-4 rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground text-xs">
+              Pascal scene: {levels.length} Levels · {zones.length} Zones. Create the missing
+              Levels/Zones in the editor before mapping the corresponding HA structure.
+            </div>
+          ) : null}
+
           {loading && !tree ? (
             <div className="py-10 text-center text-muted-foreground text-sm">
               Reading Home Assistant registries…
