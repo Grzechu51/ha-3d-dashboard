@@ -8,9 +8,10 @@ panel where the user can build/edit a house, bind Home Assistant entities direct
 to 3D objects, visualize live states and control the home from the model.
 
 > **Development status:** active. The native Home Assistant project shell,
-> project management and Home Assistant Floors/Areas/Devices/Entities mapping
-> are implemented and merged. The active checkpoint is release readiness:
-> repeatable manual packaging first, then HACS/GitHub Release packaging.
+> project management, Home Assistant Floors/Areas/Devices/Entities mapping and
+> repeatable manual packaging are implemented and merged. The active checkpoint
+> is HACS/GitHub Release readiness. HACS itself cannot use this repository while
+> it remains private.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
@@ -46,6 +47,26 @@ into the Home Assistant configuration directory because it contains
 
 See [Manual Home Assistant installation](docs/ha3d/manual-install.md) for
 installation, update and project-data details.
+
+## HACS / release packaging
+
+The repository also defines the HACS release layout:
+
+```bash
+bun run ha:package:hacs
+```
+
+This creates `dist/ha_3d_dashboard.zip`, whose integration files live at the
+archive root for HACS release installation. The repository includes `hacs.json`,
+local Home Assistant brand icons, an on-demand HACS validation workflow and a
+separate **HA Release** workflow with dry-run enabled by default.
+
+HACS only works with public GitHub repositories. This repository is currently
+private, so manual installation remains the usable distribution path until the
+repository owner explicitly decides to publish it.
+
+See [HACS and GitHub Release](docs/ha3d/hacs-release.md) for the publication
+checklist and release procedure.
 
 ## Upstream foundation: Pascal Editor
 
