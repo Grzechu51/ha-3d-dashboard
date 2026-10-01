@@ -1,6 +1,6 @@
 # HA 3D Dashboard — Project Status
 
-_Last updated: 2026-09-29_
+_Last updated: 2026-09-30_
 
 This repository is a Home Assistant 3D dashboard/editor project built on top of the open-source Pascal Editor codebase.
 
@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: project management + Home Assistant structure**
 
-Status: **PR #11 in progress**
+Status: **PR #11 hardened; PR #12 active**
 
 PR #8 (Home Assistant project Store/WebSocket API), PR #9 (frontend project
 session/revision coordinator) and PR #10 (native HA project shell with the real
@@ -28,7 +28,7 @@ Pascal Editor/Viewer) are merged to `main`.
 
 The active checkpoint is:
 
-`Project UX -> safe switching -> rename/delete/recent -> HA Floors/Areas/Devices/Entities`
+`HA Floors/Areas/Devices/Entities -> manual Pascal Level/Zone mapping -> release packaging`
 
 ## Completed
 
@@ -114,24 +114,36 @@ Implemented:
 
 ### PR #11 — project management and safe switching
 
-Current implementation target:
+Implementation is complete and hardened for the identified data-loss/race edges:
 
 - admin-aware project management,
-- rename projects through the existing revision-checked save API,
-- delete projects through the existing revision-checked delete API,
-- remember and highlight the last opened project,
-- wait for configuration persistence before leaving an open project,
-- prevent navigation while an editor scene save is pending/in flight,
-- improve revision-conflict reload flow,
-- keep non-admin users read-only at the project-management level.
+- revision-checked rename/delete,
+- recent-project persistence,
+- final configuration flush before leaving a project,
+- navigation blocking while scene/config saves are pending or failed,
+- explicit revision-conflict recovery,
+- lossless config flushes when changes arrive during an in-flight write,
+- stale/disposed session protection,
+- non-admin users constrained to Dashboard mode.
 
-After this PR the next active implementation is HA structure discovery:
+PR #11 remains a draft until GitHub Actions can execute a fresh gate. The latest
+rerun failed before either hosted runner started (runner_id=0, zero steps), so
+that failure is currently an Actions execution blocker rather than a test result.
 
-- HA Floors,
-- HA Areas,
-- Devices,
-- Entities grouped by area/device,
-- manual non-destructive mapping into Pascal Levels/Zones.
+### PR #12 — Home Assistant structure integration
+
+Active implementation:
+
+- native HA WebSocket discovery for Floors, Areas, Devices and display Entities,
+- Home Assistant 2026.9 child-device support with parent-area inheritance,
+- normalized `Floor -> Area -> Device -> Entity` hierarchy,
+- explicit unassigned device/entity handling,
+- a native editor-side structure browser,
+- manual, non-destructive HA Floor -> Pascal Level mapping,
+- manual, non-destructive HA Area -> Pascal Zone mapping,
+- mapping persistence in the versioned HA project sidecar,
+- one-to-one mapping semantics and removal,
+- no automatic HA/Pascal create/delete synchronization.
 
 ## Next checkpoints
 

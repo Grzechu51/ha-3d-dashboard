@@ -9,9 +9,15 @@ import {
 
 export const HA3D_PROJECT_CONFIG_VERSION = 1 as const
 
+export type Ha3dStructureMappings = Readonly<{
+  floors: readonly Readonly<{ floorId: string; levelNodeId: string }>[]
+  areas: readonly Readonly<{ areaId: string; zoneNodeId: string }>[]
+}>
+
 export type Ha3dProjectConfig = Readonly<{
   version: typeof HA3D_PROJECT_CONFIG_VERSION
   bindings: readonly EntityBinding[]
+  structureMappings: Ha3dStructureMappings
 }>
 
 const listeners = new Set<() => void>()
@@ -19,6 +25,7 @@ const listeners = new Set<() => void>()
 let snapshot: Ha3dProjectConfig = {
   version: HA3D_PROJECT_CONFIG_VERSION,
   bindings: [],
+  structureMappings: { floors: [], areas: [] },
 }
 
 function bindingKey(binding: Pick<EntityBinding, 'nodeId' | 'domain'>): string {
@@ -64,10 +71,78 @@ function sortBindings(bindings: readonly EntityBinding[]): EntityBinding[] {
   )
 }
 
-function publish(bindings: readonly EntityBinding[]): void {
+function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
+  if (raw === undefined) return { floors: [], areas: [] }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('[ha3d] structureMappings must be an object')
+  }
+  const value = raw as Record<string, unknown>
+  if (!Array.isArray(value.floors) || !Array.isArray(value.areas)) {
+    throw new Error('[ha3d] structureMappings floors and areas must be arrays')
+  }
+
+  const floors = value.floors.map((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error('[ha3d] floor mapping must be an object')
+    }
+    const mapping = entry as Record<string, unknown>
+    if (
+      typeof mapping.floorId !== 'string' ||
+      !mapping.floorId.trim() ||
+      typeof mapping.levelNodeId !== 'string' ||
+      !mapping.levelNodeId.trim()
+    ) {
+      throw new Error('[ha3d] floor mapping ids must be strings')
+    }
+    return { floorId: mapping.floorId, levelNodeId: mapping.levelNodeId }
+  })
+  const areas = value.areas.map((entry) => {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error('[ha3d] area mapping must be an object')
+    }
+    const mapping = entry as Record<string, unknown>
+    if (
+      typeof mapping.areaId !== 'string' ||
+      !mapping.areaId.trim() ||
+      typeof mapping.zoneNodeId !== 'string' ||
+      !mapping.zoneNodeId.trim()
+    ) {
+      throw new Error('[ha3d] area mapping ids must be strings')
+    }
+    return { areaId: mapping.areaId, zoneNodeId: mapping.zoneNodeId }
+  })
+
+  const floorIds = new Set<string>()
+  const levelNodeIds = new Set<string>()
+  for (const mapping of floors) {
+    if (floorIds.has(mapping.floorId) || levelNodeIds.has(mapping.levelNodeId)) {
+      throw new Error('[ha3d] floor mappings must be one-to-one')
+    }
+    floorIds.add(mapping.floorId)
+    levelNodeIds.add(mapping.levelNodeId)
+  }
+
+  const areaIds = new Set<string>()
+  const zoneNodeIds = new Set<string>()
+  for (const mapping of areas) {
+    if (areaIds.has(mapping.areaId) || zoneNodeIds.has(mapping.zoneNodeId)) {
+      throw new Error('[ha3d] area mappings must be one-to-one')
+    }
+    areaIds.add(mapping.areaId)
+    zoneNodeIds.add(mapping.zoneNodeId)
+  }
+
+  return { floors, areas }
+}
+
+function publish(
+  bindings: readonly EntityBinding[],
+  structureMappings: Ha3dStructureMappings = snapshot.structureMappings,
+): void {
   snapshot = {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(bindings).map(cloneBinding),
+    structureMappings,
   }
   for (const listener of listeners) listener()
 }
@@ -115,6 +190,7 @@ export function parseHa3dProjectConfig(raw: unknown): Ha3dProjectConfig {
   return {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(Array.from(byKey.values())),
+    structureMappings: parseStructureMappings(record.structureMappings),
   }
 }
 
@@ -145,19 +221,64 @@ export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssista
   publish(next)
 }
 
+export function upsertFloorStructureMapping(floorId: string, levelNodeId: string): void {
+  if (!floorId || !levelNodeId) throw new Error('[ha3d] floor mapping ids must not be empty')
+  const current = snapshot.structureMappings.floors.find((mapping) => mapping.floorId === floorId)
+  if (current?.levelNodeId === levelNodeId) return
+  const floors = [
+    ...snapshot.structureMappings.floors.filter(
+      (mapping) => mapping.floorId !== floorId && mapping.levelNodeId !== levelNodeId,
+    ),
+    { floorId, levelNodeId },
+  ]
+  publish(snapshot.bindings, { ...snapshot.structureMappings, floors })
+}
+
+export function upsertAreaStructureMapping(areaId: string, zoneNodeId: string): void {
+  if (!areaId || !zoneNodeId) throw new Error('[ha3d] area mapping ids must not be empty')
+  const current = snapshot.structureMappings.areas.find((mapping) => mapping.areaId === areaId)
+  if (current?.zoneNodeId === zoneNodeId) return
+  const areas = [
+    ...snapshot.structureMappings.areas.filter(
+      (mapping) => mapping.areaId !== areaId && mapping.zoneNodeId !== zoneNodeId,
+    ),
+    { areaId, zoneNodeId },
+  ]
+  publish(snapshot.bindings, { ...snapshot.structureMappings, areas })
+}
+
+export function removeFloorStructureMapping(floorId: string): void {
+  const floors = snapshot.structureMappings.floors.filter((mapping) => mapping.floorId !== floorId)
+  if (floors.length === snapshot.structureMappings.floors.length) return
+  publish(snapshot.bindings, { ...snapshot.structureMappings, floors })
+}
+
+export function removeAreaStructureMapping(areaId: string): void {
+  const areas = snapshot.structureMappings.areas.filter((mapping) => mapping.areaId !== areaId)
+  if (areas.length === snapshot.structureMappings.areas.length) return
+  publish(snapshot.bindings, { ...snapshot.structureMappings, areas })
+}
+
 export function resetHa3dProjectConfig(): void {
-  if (snapshot.bindings.length === 0) return
-  publish([])
+  if (
+    snapshot.bindings.length === 0 &&
+    snapshot.structureMappings.floors.length === 0 &&
+    snapshot.structureMappings.areas.length === 0
+  ) {
+    return
+  }
+  publish([], { floors: [], areas: [] })
 }
 
 export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
   getSnapshot: () => ({
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: snapshot.bindings.map(cloneBinding),
+    structureMappings: snapshot.structureMappings,
   }),
   restore: (raw) => {
     const restored = parseHa3dProjectConfig(raw)
-    publish(restored.bindings)
+    publish(restored.bindings, restored.structureMappings)
   },
   reset: resetHa3dProjectConfig,
   subscribe: subscribeHa3dProjectConfig,

@@ -64,7 +64,11 @@ def _utc_now() -> str:
 
 def default_ha_config() -> dict[str, Any]:
     """Return an empty HA-specific sidecar matching the frontend v1 contract."""
-    return {"version": 1, "bindings": []}
+    return {
+        "version": 1,
+        "bindings": [],
+        "structureMappings": {"floors": [], "areas": []},
+    }
 
 
 def _validate_project_id(project_id: str) -> str:
@@ -142,6 +146,62 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
     bindings = config.get("bindings")
     if not isinstance(bindings, list):
         raise InvalidProjectError("ha_config bindings must be an array")
+
+    structure_mappings = config.get("structureMappings", MISSING)
+    if structure_mappings is not MISSING and not isinstance(structure_mappings, dict):
+        raise InvalidProjectError("ha_config structureMappings must be an object")
+
+    if isinstance(structure_mappings, dict):
+        floors = structure_mappings.get("floors")
+        areas = structure_mappings.get("areas")
+        if not isinstance(floors, list):
+            raise InvalidProjectError(
+                "ha_config structureMappings floors must be an array"
+            )
+        if not isinstance(areas, list):
+            raise InvalidProjectError(
+                "ha_config structureMappings areas must be an array"
+            )
+
+        seen_floor_ids: set[str] = set()
+        seen_level_node_ids: set[str] = set()
+        for mapping in floors:
+            if not isinstance(mapping, dict):
+                raise InvalidProjectError("ha_config floor mapping must be an object")
+            floor_id = mapping.get("floorId")
+            level_node_id = mapping.get("levelNodeId")
+            if not isinstance(floor_id, str) or not floor_id.strip():
+                raise InvalidProjectError(
+                    "ha_config floor mapping floorId must be a non-empty string"
+                )
+            if not isinstance(level_node_id, str) or not level_node_id.strip():
+                raise InvalidProjectError(
+                    "ha_config floor mapping levelNodeId must be a non-empty string"
+                )
+            if floor_id in seen_floor_ids or level_node_id in seen_level_node_ids:
+                raise InvalidProjectError("ha_config floor mappings must be one-to-one")
+            seen_floor_ids.add(floor_id)
+            seen_level_node_ids.add(level_node_id)
+
+        seen_area_ids: set[str] = set()
+        seen_zone_node_ids: set[str] = set()
+        for mapping in areas:
+            if not isinstance(mapping, dict):
+                raise InvalidProjectError("ha_config area mapping must be an object")
+            area_id = mapping.get("areaId")
+            zone_node_id = mapping.get("zoneNodeId")
+            if not isinstance(area_id, str) or not area_id.strip():
+                raise InvalidProjectError(
+                    "ha_config area mapping areaId must be a non-empty string"
+                )
+            if not isinstance(zone_node_id, str) or not zone_node_id.strip():
+                raise InvalidProjectError(
+                    "ha_config area mapping zoneNodeId must be a non-empty string"
+                )
+            if area_id in seen_area_ids or zone_node_id in seen_zone_node_ids:
+                raise InvalidProjectError("ha_config area mappings must be one-to-one")
+            seen_area_ids.add(area_id)
+            seen_zone_node_ids.add(zone_node_id)
 
     for binding in bindings:
         if not isinstance(binding, dict):
@@ -386,7 +446,12 @@ class ProjectCollection:
                 )
             candidate["scene"] = next_scene
         if ha_config is not MISSING:
-            candidate["ha_config"] = _validate_ha_config(ha_config)
+            next_ha_config = deepcopy(ha_config)
+            if isinstance(next_ha_config, dict) and "structureMappings" not in next_ha_config:
+                current_mappings = current["ha_config"].get("structureMappings")
+                if current_mappings is not None:
+                    next_ha_config["structureMappings"] = deepcopy(current_mappings)
+            candidate["ha_config"] = _validate_ha_config(next_ha_config)
 
         comparable = ("name", "scene", "ha_config")
         if all(candidate[key] == current[key] for key in comparable):

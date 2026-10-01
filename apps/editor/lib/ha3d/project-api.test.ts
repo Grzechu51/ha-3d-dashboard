@@ -7,6 +7,8 @@ import {
   listHomeAssistantProjects,
   saveHomeAssistantProject,
 } from './project-api'
+import { loadHomeAssistantStructure } from './structure'
+import { groupHomeAssistantStructure } from './structure-tree'
 
 function wireProject(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
@@ -75,7 +77,7 @@ describe('Home Assistant project WebSocket client', () => {
 
     expect(project.id).toBe('main_house')
     expect(project.schemaVersion).toBe(1)
-    expect(project.haConfig).toEqual({ version: 1, bindings: [] })
+    expect(project.haConfig).toMatchObject({ version: 1, bindings: [] })
   })
 
   test('creates a project without sending absent optional fields', async () => {
@@ -104,7 +106,11 @@ describe('Home Assistant project WebSocket client', () => {
           type: 'ha_3d_dashboard/project/save',
           project_id: 'main_house',
           expected_revision: 4,
-          ha_config: { version: 1, bindings: [] },
+          ha_config: {
+            version: 1,
+            bindings: [],
+            structureMappings: { floors: [], areas: [] },
+          },
           force_empty_scene: true,
         })
         return wireProject({ revision: 5 })
@@ -112,7 +118,11 @@ describe('Home Assistant project WebSocket client', () => {
       {
         projectId: 'main_house',
         expectedRevision: 4,
-        haConfig: { version: 1, bindings: [] },
+        haConfig: {
+          version: 1,
+          bindings: [],
+          structureMappings: { floors: [], areas: [] },
+        },
         forceEmptyScene: true,
       },
     )
@@ -133,6 +143,24 @@ describe('Home Assistant project WebSocket client', () => {
       'main_house',
       7,
     )
+  })
+
+  test('loads Home Assistant structure registries', async () => {
+    const calls: string[] = []
+    const structure = await loadHomeAssistantStructure(
+      host((message) => {
+        calls.push(String(message.type))
+        return message.type === 'config/entity_registry/list_for_display' ? { entities: [] } : []
+      }),
+    )
+
+    expect(groupHomeAssistantStructure(structure).floors).toEqual([])
+    expect(calls).toEqual([
+      'config/floor_registry/list',
+      'config/area_registry/list',
+      'config/device_registry/list',
+      'config/entity_registry/list_for_display',
+    ])
   })
 
   test('rejects malformed backend HA project configuration', async () => {

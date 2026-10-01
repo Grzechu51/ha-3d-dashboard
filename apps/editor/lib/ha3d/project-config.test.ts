@@ -3,9 +3,13 @@ import { createEntityBinding } from './entity-binding'
 import {
   getHa3dProjectConfigSnapshot,
   ha3dProjectConfiguration,
+  removeAreaStructureMapping,
   removeEntityBinding,
+  removeFloorStructureMapping,
   resetHa3dProjectConfig,
+  upsertAreaStructureMapping,
   upsertEntityBinding,
+  upsertFloorStructureMapping,
 } from './project-config'
 
 afterEach(() => {
@@ -86,6 +90,76 @@ describe('HA 3D project configuration', () => {
         },
       },
     ])
+  })
+
+  test('loads legacy project config with empty structure mappings', () => {
+    ha3dProjectConfiguration.restore({
+      version: 1,
+      bindings: [],
+    })
+
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [],
+      areas: [],
+    })
+  })
+
+  test('round-trips manual Home Assistant structure mappings', () => {
+    upsertFloorStructureMapping('ground', 'level_ground')
+    upsertAreaStructureMapping('living', 'zone_living')
+
+    const persisted = ha3dProjectConfiguration.getSnapshot()
+    resetHa3dProjectConfig()
+    ha3dProjectConfiguration.restore(persisted)
+
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [{ floorId: 'ground', levelNodeId: 'level_ground' }],
+      areas: [{ areaId: 'living', zoneNodeId: 'zone_living' }],
+    })
+  })
+
+  test('does not publish a redundant structure mapping update', () => {
+    upsertFloorStructureMapping('ground', 'level_ground')
+    const before = getHa3dProjectConfigSnapshot()
+
+    upsertFloorStructureMapping('ground', 'level_ground')
+
+    expect(getHa3dProjectConfigSnapshot()).toBe(before)
+  })
+
+  test('keeps structure mappings one-to-one and removable', () => {
+    upsertFloorStructureMapping('ground', 'level_shared')
+    upsertFloorStructureMapping('upper', 'level_shared')
+    upsertAreaStructureMapping('living', 'zone_shared')
+    upsertAreaStructureMapping('kitchen', 'zone_shared')
+
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [{ floorId: 'upper', levelNodeId: 'level_shared' }],
+      areas: [{ areaId: 'kitchen', zoneNodeId: 'zone_shared' }],
+    })
+
+    removeFloorStructureMapping('upper')
+    removeAreaStructureMapping('kitchen')
+    expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
+      floors: [],
+      areas: [],
+    })
+  })
+
+  test('rejects duplicate persisted structure mapping targets', () => {
+    expect(() =>
+      ha3dProjectConfiguration.restore({
+        version: 1,
+        bindings: [],
+        structureMappings: {
+          floors: [
+            { floorId: 'ground', levelNodeId: 'level_shared' },
+            { floorId: 'upper', levelNodeId: 'level_shared' },
+          ],
+          areas: [],
+        },
+      }),
+    ).toThrow('floor mappings must be one-to-one')
   })
 
   test('rejects corrupted persisted data instead of partially restoring it', () => {

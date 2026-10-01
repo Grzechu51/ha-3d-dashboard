@@ -50,7 +50,12 @@ export {
 export {
   HA3D_PROJECT_CONFIG_VERSION,
   type Ha3dProjectConfig,
+  type Ha3dStructureMappings,
   parseHa3dProjectConfig,
+  removeAreaStructureMapping,
+  removeFloorStructureMapping,
+  upsertAreaStructureMapping,
+  upsertFloorStructureMapping,
 } from './project-config'
 export {
   createHomeAssistantProjectSession,
@@ -61,9 +66,21 @@ export {
   type HomeAssistantProjectSessionStatus,
   type SaveHomeAssistantProjectSceneOptions,
 } from './project-session'
+export type { HomeAssistantRegistryEntity } from './registry-entity'
 export {
   getHomeAssistantRuntimeSnapshot,
   type HomeAssistantRuntimeSnapshot,
   setHomeAssistantAdapter,
   subscribeHomeAssistantRuntime,
 } from './runtime'
+export { loadHomeAssistantStructure } from './structure'
+export type { HomeAssistantDevice } from './structure-device'
+export type { HomeAssistantArea, HomeAssistantFloor } from './structure-floor'
+export type { HomeAssistantStructureSnapshot } from './structure-snapshot'
+export { groupHomeAssistantStructure } from './structure-tree'
+export type {
+  HomeAssistantAreaGroup,
+  HomeAssistantDeviceGroup,
+  HomeAssistantFloorGroup,
+  HomeAssistantStructureTree,
+} from './structure-tree-types'
