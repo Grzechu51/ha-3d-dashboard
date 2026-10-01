@@ -1,19 +1,25 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "PROJECT_STATUS.md"
+      - "LICENSE"
+      - "LICENSE.md"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
+      # The HA panel bundle is generated in CI and synced back to same-repository PRs.
       contents: write
     steps:
       - uses: actions/checkout@v4
@@ -51,14 +57,14 @@ jobs:
           retention-days: 3
 
       - name: Checkout PR head for generated frontend
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           path: pr-head
 
       - name: Commit generated HA frontend
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event.pull_request.head.repo.full_name == github.repository
         env:
           PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
@@ -70,13 +76,13 @@ jobs:
             git -C pr-head config user.name "github-actions[bot]"
             git -C pr-head config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git -C pr-head add custom_components/ha_3d_dashboard/frontend
-            git -C pr-head commit -m "build(ha3d): update generated HA frontend"
+            git -C pr-head commit -m "build(ha3d): update generated HA frontend [skip ci]"
             git -C pr-head push origin "HEAD:${PR_HEAD_REF}"
           fi
 
       - name: Verify generated HA frontend parity
         env:
-          SAME_REPO_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+          SAME_REPO_PR: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           if test "$SAME_REPO_PR" = "true"; then
             diff -qr custom_components/ha_3d_dashboard/frontend pr-head/custom_components/ha_3d_dashboard/frontend
@@ -100,7 +106,10 @@ jobs:
         run: bun run build
 
   cli-smoke:
-    runs-on: macos-latest
+    # Release keeps the macOS smoke. PR CI uses Linux to avoid paying the
+    # macOS runner premium on every development iteration.
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
     permissions:
       contents: read
     steps:
