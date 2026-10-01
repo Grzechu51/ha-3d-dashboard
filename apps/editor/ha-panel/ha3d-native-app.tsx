@@ -21,16 +21,32 @@ import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-control
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
 import {
   createHomeAssistantProject,
+  deleteHomeAssistantProject,
   type Ha3dProjectMetadata,
   type HomeAssistantProjectApiHost,
+  homeAssistantProjectApiErrorCode,
   listHomeAssistantProjects,
+  saveHomeAssistantProject,
 } from '../lib/ha3d/project-api'
+import {
+  clearLastProjectId,
+  readLastProjectId,
+  writeLastProjectId,
+} from '../lib/ha3d/project-preferences'
 import {
   createHomeAssistantProjectSession,
   type HomeAssistantProjectSession,
 } from '../lib/ha3d/project-session'
 
-export type NativeHomeAssistant = HomeAssistantHassLike & HomeAssistantProjectApiHost
+type NativeHomeAssistantUser = Readonly<{
+  is_admin?: boolean
+}>
+
+export type NativeHomeAssistant = HomeAssistantHassLike &
+  HomeAssistantProjectApiHost &
+  Readonly<{
+    user?: NativeHomeAssistantUser
+  }>
 
 type PanelMode = 'dashboard' | 'edit'
 
@@ -52,19 +68,40 @@ function ProjectPicker({
   projects,
   loading,
   error,
+  canManage,
+  recentProjectId,
+  busyProjectId,
   onOpen,
   onCreate,
+  onRename,
+  onDelete,
   onRefresh,
 }: Readonly<{
   projects: readonly Ha3dProjectMetadata[]
   loading: boolean
   error: string | null
+  canManage: boolean
+  recentProjectId: string | null
+  busyProjectId: string | null
   onOpen: (projectId: string) => void
   onCreate: (name: string) => Promise<void>
+  onRename: (project: Ha3dProjectMetadata, name: string) => Promise<void>
+  onDelete: (project: Ha3dProjectMetadata) => Promise<void>
   onRefresh: () => Promise<void>
 }>) {
   const [name, setName] = useState('My home')
   const [creating, setCreating] = useState(false)
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null)
+
+  const orderedProjects =
+    recentProjectId === null
+      ? projects
+      : [
+          ...projects.filter((project) => project.id === recentProjectId),
+          ...projects.filter((project) => project.id !== recentProjectId),
+        ]
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
@@ -73,14 +110,40 @@ function ProjectPicker({
     setCreating(true)
     try {
       await onCreate(trimmed)
+      setName('My home')
+    } catch {
+      // The parent already surfaces the Home Assistant error in the picker.
     } finally {
       setCreating(false)
     }
   }
 
+  const submitRename = async (event: FormEvent, project: Ha3dProjectMetadata) => {
+    event.preventDefault()
+    const trimmed = renameValue.trim()
+    if (!trimmed || busyProjectId) return
+    try {
+      await onRename(project, trimmed)
+      setEditingProjectId(null)
+      setRenameValue('')
+    } catch {
+      // Keep the rename form open; the parent surfaces the Home Assistant error.
+    }
+  }
+
+  const confirmDelete = async (project: Ha3dProjectMetadata) => {
+    if (busyProjectId) return
+    try {
+      await onDelete(project)
+      setDeleteProjectId(null)
+    } catch {
+      // Keep the confirmation open; the parent surfaces the Home Assistant error.
+    }
+  }
+
   return (
     <main className="dark flex min-h-screen items-center justify-center bg-background p-4 text-foreground md:p-8">
-      <section className="w-full max-w-4xl rounded-2xl border border-border bg-card shadow-2xl">
+      <section className="w-full max-w-5xl rounded-2xl border border-border bg-card shadow-2xl">
         <header className="flex flex-wrap items-center justify-between gap-3 border-border border-b px-5 py-4">
           <div>
             <h1 className="font-semibold text-xl">HA 3D Dashboard</h1>
@@ -90,7 +153,7 @@ function ProjectPicker({
           </div>
           <button
             className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent disabled:opacity-50"
-            disabled={loading}
+            disabled={loading || busyProjectId !== null}
             onClick={() => void onRefresh()}
             type="button"
           >
@@ -100,35 +163,147 @@ function ProjectPicker({
 
         <div className="grid gap-5 p-5 md:grid-cols-[1fr_22rem]">
           <div>
-            <div className="mb-3 font-medium text-sm">Projects</div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="font-medium text-sm">Projects</div>
+              {!canManage ? (
+                <span className="rounded-full border border-border px-2 py-1 text-[10px] text-muted-foreground">
+                  read-only project management
+                </span>
+              ) : null}
+            </div>
+
             {loading ? (
               <div className="rounded-xl border border-border p-5 text-muted-foreground text-sm">
                 Loading projects…
               </div>
-            ) : projects.length === 0 ? (
+            ) : orderedProjects.length === 0 ? (
               <div className="rounded-xl border border-dashed border-border p-5 text-muted-foreground text-sm">
-                No HA 3D projects yet. Create the first one.
+                {canManage
+                  ? 'No HA 3D projects yet. Create the first one.'
+                  : 'No HA 3D projects are available.'}
               </div>
             ) : (
               <div className="space-y-2">
-                {projects.map((project) => (
-                  <button
-                    className="flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-background/60 p-4 text-left hover:bg-accent"
-                    key={project.id}
-                    onClick={() => onOpen(project.id)}
-                    type="button"
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{project.name}</span>
-                      <span className="mt-1 block truncate text-muted-foreground text-xs">
-                        {project.id}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-muted-foreground text-xs">
-                      rev {project.revision}
-                    </span>
-                  </button>
-                ))}
+                {orderedProjects.map((project) => {
+                  const isBusy = busyProjectId === project.id
+                  const isEditing = editingProjectId === project.id
+                  const isDeleting = deleteProjectId === project.id
+                  const isRecent = recentProjectId === project.id
+
+                  return (
+                    <div
+                      className="rounded-xl border border-border bg-background/60 p-3"
+                      key={project.id}
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="min-w-0 flex-1 rounded-lg p-2 text-left hover:bg-accent disabled:opacity-50"
+                          disabled={isBusy}
+                          onClick={() => onOpen(project.id)}
+                          type="button"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="truncate font-medium">{project.name}</span>
+                            {isRecent ? (
+                              <span className="shrink-0 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] text-primary">
+                                last opened
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="mt-1 block truncate text-muted-foreground text-xs">
+                            {project.id} · rev {project.revision}
+                          </span>
+                        </button>
+
+                        {canManage && !isEditing && !isDeleting ? (
+                          <div className="flex shrink-0 gap-1">
+                            <button
+                              className="rounded-lg border border-border px-2.5 py-2 text-xs hover:bg-accent disabled:opacity-50"
+                              disabled={isBusy}
+                              onClick={() => {
+                                setDeleteProjectId(null)
+                                setEditingProjectId(project.id)
+                                setRenameValue(project.name)
+                              }}
+                              type="button"
+                            >
+                              Rename
+                            </button>
+                            <button
+                              className="rounded-lg border border-destructive/40 px-2.5 py-2 text-destructive text-xs hover:bg-destructive/10 disabled:opacity-50"
+                              disabled={isBusy}
+                              onClick={() => {
+                                setEditingProjectId(null)
+                                setDeleteProjectId(project.id)
+                              }}
+                              type="button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {isEditing ? (
+                        <form
+                          className="mt-2 flex gap-2 border-border border-t pt-3"
+                          onSubmit={(event) => void submitRename(event, project)}
+                        >
+                          <input
+                            className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring"
+                            maxLength={120}
+                            onChange={(event) => setRenameValue(event.target.value)}
+                            value={renameValue}
+                          />
+                          <button
+                            className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-xs disabled:opacity-50"
+                            disabled={isBusy || !renameValue.trim()}
+                            type="submit"
+                          >
+                            {isBusy ? 'Saving…' : 'Save'}
+                          </button>
+                          <button
+                            className="rounded-lg border border-border px-3 py-2 text-xs hover:bg-accent"
+                            onClick={() => {
+                              setEditingProjectId(null)
+                              setRenameValue('')
+                            }}
+                            type="button"
+                          >
+                            Cancel
+                          </button>
+                        </form>
+                      ) : null}
+
+                      {isDeleting ? (
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-3 border-border border-t pt-3">
+                          <p className="text-muted-foreground text-xs">
+                            Delete{' '}
+                            <span className="font-medium text-foreground">{project.name}</span>?
+                            This removes the server-stored 3D project.
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              className="rounded-lg border border-border px-3 py-2 text-xs hover:bg-accent"
+                              onClick={() => setDeleteProjectId(null)}
+                              type="button"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="rounded-lg bg-destructive px-3 py-2 text-destructive-foreground text-xs disabled:opacity-50"
+                              disabled={isBusy}
+                              onClick={() => void confirmDelete(project)}
+                              type="button"
+                            >
+                              {isBusy ? 'Deleting…' : 'Delete project'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })}
               </div>
             )}
 
@@ -139,29 +314,41 @@ function ProjectPicker({
             ) : null}
           </div>
 
-          <form className="rounded-xl border border-border bg-background/60 p-4" onSubmit={submit}>
-            <div className="font-medium text-sm">Create project</div>
-            <label className="mt-4 block text-muted-foreground text-xs">
-              Name
-              <input
-                className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-foreground text-sm outline-none focus:border-ring"
-                maxLength={120}
-                onChange={(event) => setName(event.target.value)}
-                value={name}
-              />
-            </label>
-            <button
-              className="mt-3 w-full rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground text-sm disabled:opacity-50"
-              disabled={creating || !name.trim()}
-              type="submit"
+          {canManage ? (
+            <form
+              className="rounded-xl border border-border bg-background/60 p-4"
+              onSubmit={submit}
             >
-              {creating ? 'Creating…' : 'Create and open'}
-            </button>
-            <p className="mt-3 text-muted-foreground text-xs leading-relaxed">
-              New projects start without a scene. Open Edit mode to build the site, building and
-              levels with Pascal.
-            </p>
-          </form>
+              <div className="font-medium text-sm">Create project</div>
+              <label className="mt-4 block text-muted-foreground text-xs">
+                Name
+                <input
+                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-foreground text-sm outline-none focus:border-ring"
+                  maxLength={120}
+                  onChange={(event) => setName(event.target.value)}
+                  value={name}
+                />
+              </label>
+              <button
+                className="mt-3 w-full rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground text-sm disabled:opacity-50"
+                disabled={creating || !name.trim() || busyProjectId !== null}
+                type="submit"
+              >
+                {creating ? 'Creating…' : 'Create and open'}
+              </button>
+              <p className="mt-3 text-muted-foreground text-xs leading-relaxed">
+                New projects are created in Home Assistant Store and open directly in Edit mode.
+              </p>
+            </form>
+          ) : (
+            <aside className="rounded-xl border border-border bg-background/60 p-4">
+              <div className="font-medium text-sm">Project management</div>
+              <p className="mt-3 text-muted-foreground text-xs leading-relaxed">
+                Your Home Assistant account can open and use existing projects. Creating, renaming
+                and deleting projects requires an administrator account.
+              </p>
+            </aside>
+          )}
         </div>
       </section>
     </main>
@@ -182,16 +369,20 @@ function SessionStatus({
       ? 'Conflict — reload required'
       : snapshot.status === 'error'
         ? 'Project error'
-        : saveStatus === 'saving' || snapshot.status === 'saving'
-          ? 'Saving…'
-          : saveStatus === 'pending'
-            ? 'Pending…'
-            : `Saved · rev ${snapshot.revision ?? '—'}`
+        : saveStatus === 'error'
+          ? 'Scene save error'
+          : saveStatus === 'saving' || snapshot.status === 'saving'
+            ? 'Saving…'
+            : saveStatus === 'pending'
+              ? 'Pending…'
+              : saveStatus === 'paused'
+                ? 'Save paused'
+                : `Saved · rev ${snapshot.revision ?? '—'}`
 
   return (
     <span
       className={
-        snapshot.status === 'conflict' || snapshot.status === 'error'
+        snapshot.status === 'conflict' || snapshot.status === 'error' || saveStatus === 'error'
           ? 'text-destructive'
           : 'text-muted-foreground'
       }
@@ -209,7 +400,7 @@ function NativeDashboard({
 }: Readonly<{
   projectName: string
   session: HomeAssistantProjectSession
-  onEdit: () => void
+  onEdit?: () => void
   onProjects: () => void
 }>) {
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
@@ -268,13 +459,15 @@ function NativeDashboard({
             >
               Projects
             </button>
-            <button
-              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
-              onClick={onEdit}
-              type="button"
-            >
-              Open editor
-            </button>
+            {onEdit ? (
+              <button
+                className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
+                onClick={onEdit}
+                type="button"
+              >
+                Open editor
+              </button>
+            ) : null}
           </div>
         </div>
       </main>
@@ -305,13 +498,15 @@ function NativeDashboard({
             >
               Projects
             </button>
-            <button
-              className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
-              onClick={onEdit}
-              type="button"
-            >
-              Build in editor
-            </button>
+            {onEdit ? (
+              <button
+                className="rounded-lg bg-primary px-3 py-2 text-primary-foreground text-sm"
+                onClick={onEdit}
+                type="button"
+              >
+                Build in editor
+              </button>
+            ) : null}
           </div>
         </div>
       </main>
@@ -347,13 +542,15 @@ function NativeDashboard({
           >
             Projects
           </button>
-          <button
-            className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
-            onClick={onEdit}
-            type="button"
-          >
-            Edit
-          </button>
+          {onEdit ? (
+            <button
+              className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
+              onClick={onEdit}
+              type="button"
+            >
+              Edit
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -372,28 +569,46 @@ function NativeProject({
   metadata,
   session,
   mode,
+  canManageProjects,
+  leavingProject,
+  navigationError,
+  onClearNavigationError,
   onModeChange,
   onProjects,
 }: Readonly<{
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
   mode: PanelMode
+  canManageProjects: boolean
+  leavingProject: boolean
+  navigationError: string | null
+  onClearNavigationError: () => void
   onModeChange: (mode: PanelMode) => void
-  onProjects: () => void
+  onProjects: () => Promise<void>
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
+  const sceneSaveBlocked =
+    saveStatus === 'pending' ||
+    saveStatus === 'saving' ||
+    saveStatus === 'error' ||
+    snapshot.status === 'saving' ||
+    snapshot.status === 'error' ||
+    snapshot.status === 'conflict'
 
   const reloadEditor = useCallback(() => {
+    onClearNavigationError()
     setEditorEpoch((value) => value + 1)
-  }, [])
+  }, [onClearNavigationError])
 
-  if (mode === 'dashboard') {
+  if (mode === 'dashboard' || !canManageProjects) {
     return (
       <NativeDashboard
-        onEdit={() => onModeChange('edit')}
-        onProjects={onProjects}
+        onEdit={canManageProjects ? () => onModeChange('edit') : undefined}
+        onProjects={() => {
+          void onProjects()
+        }}
         projectName={metadata.name}
         session={session}
       />
@@ -419,18 +634,34 @@ function NativeProject({
           <span className="text-border">|</span>
           <SessionStatus saveStatus={saveStatus} session={session} />
           <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent"
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={sceneSaveBlocked || leavingProject}
             onClick={() => onModeChange('dashboard')}
+            title={
+              saveStatus === 'error' || snapshot.status === 'error'
+                ? 'Resolve or retry the save error before leaving the editor'
+                : sceneSaveBlocked
+                  ? 'Wait for the current scene save to finish'
+                  : undefined
+            }
             type="button"
           >
             Dashboard
           </button>
           <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent"
-            onClick={onProjects}
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={sceneSaveBlocked || leavingProject}
+            onClick={() => void onProjects()}
+            title={
+              saveStatus === 'error' || snapshot.status === 'error'
+                ? 'Resolve or retry the save error before leaving the editor'
+                : sceneSaveBlocked
+                  ? 'Wait for the current scene save to finish'
+                  : undefined
+            }
             type="button"
           >
-            Projects
+            {leavingProject ? 'Saving…' : 'Projects'}
           </button>
         </div>
       </div>
@@ -446,7 +677,33 @@ function NativeProject({
             onClick={reloadEditor}
             type="button"
           >
-            Reload project
+            Reload server copy
+          </button>
+        </div>
+      ) : snapshot.status === 'error' || saveStatus === 'error' ? (
+        <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="font-semibold text-sm">The project has unsaved changes.</div>
+          <p className="mt-1 text-destructive text-xs">
+            {snapshot.errorMessage ?? 'The scene save was rejected before reaching Home Assistant.'}
+          </p>
+          <p className="mt-1 text-muted-foreground text-xs">
+            Navigation is blocked to avoid discarding local edits. Resolve the cause and press
+            Ctrl/Cmd+S to retry the save.
+          </p>
+        </div>
+      ) : navigationError ? (
+        <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
+          <div className="font-semibold text-sm">Could not safely leave the project.</div>
+          <p className="mt-1 text-destructive text-xs">{navigationError}</p>
+          <p className="mt-1 text-muted-foreground text-xs">
+            The project stays open so unsaved Home Assistant configuration is not discarded.
+          </p>
+          <button
+            className="mt-3 rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent"
+            onClick={onClearNavigationError}
+            type="button"
+          >
+            Dismiss
           </button>
         </div>
       ) : null}
@@ -472,8 +729,12 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   const [projects, setProjects] = useState<readonly Ha3dProjectMetadata[]>([])
   const [loadingProjects, setLoadingProjects] = useState(false)
   const [projectError, setProjectError] = useState<string | null>(null)
+  const [busyProjectId, setBusyProjectId] = useState<string | null>(null)
+  const [recentProjectId, setRecentProjectId] = useState<string | null>(() => readLastProjectId())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [mode, setMode] = useState<PanelMode>('dashboard')
+  const [leavingProject, setLeavingProject] = useState(false)
+  const [navigationError, setNavigationError] = useState<string | null>(null)
 
   const refreshProjects = useCallback(async () => {
     if (!hassRef.current) return
@@ -482,6 +743,14 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     try {
       const result = await listHomeAssistantProjects(api)
       setProjects(result)
+
+      const lastProjectId = readLastProjectId()
+      if (lastProjectId && !result.some((project) => project.id === lastProjectId)) {
+        clearLastProjectId(lastProjectId)
+        setRecentProjectId(null)
+      } else {
+        setRecentProjectId(lastProjectId)
+      }
     } catch (error) {
       setProjectError(projectErrorMessage(error))
     } finally {
@@ -508,10 +777,21 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     [session],
   )
 
-  const openProject = useCallback((projectId: string) => {
-    setMode('dashboard')
-    setSelectedProjectId(projectId)
+  const rememberProject = useCallback((projectId: string) => {
+    writeLastProjectId(projectId)
+    setRecentProjectId(projectId)
   }, [])
+
+  const openProject = useCallback(
+    (projectId: string) => {
+      setProjectError(null)
+      setNavigationError(null)
+      rememberProject(projectId)
+      setMode('dashboard')
+      setSelectedProjectId(projectId)
+    },
+    [rememberProject],
+  )
 
   const createProject = useCallback(
     async (name: string) => {
@@ -522,6 +802,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
           ...current.filter((candidate) => candidate.id !== project.id),
           project,
         ])
+        rememberProject(project.id)
         setMode('edit')
         setSelectedProjectId(project.id)
       } catch (error) {
@@ -529,15 +810,80 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
         throw error
       }
     },
-    [api],
+    [api, rememberProject],
   )
 
-  const returnToProjects = useCallback(() => {
-    void session?.flushConfiguration().catch(() => undefined)
+  const renameProject = useCallback(
+    async (project: Ha3dProjectMetadata, name: string) => {
+      setBusyProjectId(project.id)
+      setProjectError(null)
+      try {
+        const updated = await saveHomeAssistantProject(api, {
+          projectId: project.id,
+          expectedRevision: project.revision,
+          name,
+        })
+        setProjects((current) =>
+          current.map((candidate) => (candidate.id === updated.id ? updated : candidate)),
+        )
+      } catch (error) {
+        setProjectError(projectErrorMessage(error))
+        if (homeAssistantProjectApiErrorCode(error) === 'version_conflict') {
+          await refreshProjects()
+        }
+        throw error
+      } finally {
+        setBusyProjectId(null)
+      }
+    },
+    [api, refreshProjects],
+  )
+
+  const deleteProject = useCallback(
+    async (project: Ha3dProjectMetadata) => {
+      setBusyProjectId(project.id)
+      setProjectError(null)
+      try {
+        await deleteHomeAssistantProject(api, project.id, project.revision)
+        setProjects((current) => current.filter((candidate) => candidate.id !== project.id))
+        if (recentProjectId === project.id) {
+          clearLastProjectId(project.id)
+          setRecentProjectId(null)
+        }
+      } catch (error) {
+        setProjectError(projectErrorMessage(error))
+        if (
+          homeAssistantProjectApiErrorCode(error) === 'version_conflict' ||
+          homeAssistantProjectApiErrorCode(error) === 'not_found'
+        ) {
+          await refreshProjects()
+        }
+        throw error
+      } finally {
+        setBusyProjectId(null)
+      }
+    },
+    [api, recentProjectId, refreshProjects],
+  )
+
+  const returnToProjects = useCallback(async () => {
+    if (leavingProject) return
+    setLeavingProject(true)
+    setNavigationError(null)
+
+    try {
+      await session?.flushConfiguration()
+    } catch (error) {
+      setNavigationError(projectErrorMessage(error))
+      setLeavingProject(false)
+      return
+    }
+
     setSelectedProjectId(null)
     setMode('dashboard')
-    void refreshProjects()
-  }, [refreshProjects, session])
+    setLeavingProject(false)
+    await refreshProjects()
+  }, [leavingProject, refreshProjects, session])
 
   if (!hass) {
     return (
@@ -547,15 +893,22 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     )
   }
 
+  const canManageProjects = hass.user?.is_admin === true
+
   if (!(selectedProjectId && session)) {
     return (
       <ProjectPicker
+        busyProjectId={busyProjectId}
+        canManage={canManageProjects}
         error={projectError}
         loading={loadingProjects}
         onCreate={createProject}
+        onDelete={deleteProject}
         onOpen={openProject}
         onRefresh={refreshProjects}
+        onRename={renameProject}
         projects={projects}
+        recentProjectId={recentProjectId}
       />
     )
   }
@@ -571,8 +924,12 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   return (
     <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
       <NativeProject
+        canManageProjects={canManageProjects}
+        leavingProject={leavingProject}
         metadata={metadata}
         mode={mode}
+        navigationError={navigationError}
+        onClearNavigationError={() => setNavigationError(null)}
         onModeChange={setMode}
         onProjects={returnToProjects}
         session={session}

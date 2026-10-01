@@ -120,11 +120,21 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
   load = async (): Promise<SceneGraph | null> => {
     this.assertActive()
     this.clearConfigurationTimer()
-    await this.writeTail.catch(() => undefined)
+    const recoveringFromConflict = this.snapshot.status === 'conflict'
+
+    if (recoveringFromConflict) {
+      await this.writeTail.catch(() => undefined)
+    } else {
+      await this.writeTail
+      if (this.configurationDirty) await this.flushConfiguration()
+    }
+
+    this.assertActive()
     this.publish('loading')
 
     try {
       const project = await getHomeAssistantProject(this.api, this.projectId)
+      this.assertActive()
       this.suppressConfigurationWrites = true
       try {
         this.configuration.restore(project.haConfig)
@@ -155,12 +165,18 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
 
   flushConfiguration = (): Promise<void> => {
     this.clearConfigurationTimer()
-    if (!this.configurationDirty) return this.writeTail.catch(() => undefined)
+    this.assertActive()
 
-    return this.enqueueWrite(async () => {
+    const run = this.writeTail.then(async () => {
       if (!this.configurationDirty) return
-      await this.persistMutation({})
+      this.assertWritable()
+      while (this.configurationDirty) {
+        await this.persistMutation({})
+      }
+      this.clearConfigurationTimer()
     })
+    this.writeTail = run
+    return run
   }
 
   dispose = (): void => {
@@ -262,6 +278,7 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
     errorCode: string | null = null,
     message: string | null = null,
   ): void {
+    if (this.disposed && status !== 'disposed') return
     this.snapshot = {
       projectId: this.projectId,
       status,

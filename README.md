@@ -7,10 +7,11 @@ The target is an installable Home Assistant custom integration with a **3D Home*
 panel where the user can build/edit a house, bind Home Assistant entities directly
 to 3D objects, visualize live states and control the home from the model.
 
-> **Development status:** active. Home Assistant runtime/entity integration and
-> server-side project storage are implemented. The current checkpoint is the
-> native Home Assistant project session; the next checkpoint mounts the complete
-> project selector + Editor/Dashboard shell inside the HA panel.
+> **Development status:** active. The native Home Assistant project shell is
+> implemented: the custom panel can list/create projects, mount the real Pascal
+> Editor/Viewer, switch between Dashboard/Edit and persist projects through the
+> Home Assistant Store. The active checkpoint is project-management UX followed
+> by Home Assistant Floors/Areas/Devices/Entities integration.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
