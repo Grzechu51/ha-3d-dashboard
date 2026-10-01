@@ -47,8 +47,11 @@ jobs:
           python3 -m unittest discover -s custom_components/ha_3d_dashboard/tests -p 'test_*.py'
           bun run --cwd apps/editor build:ha-panel
 
-      - name: Verify manual HA package
-        run: python3 scripts/build-ha-package.py --skip-frontend-build --output /tmp/ha_3d_dashboard.zip
+      - name: Verify HA install packages
+        run: |
+          python3 -m json.tool hacs.json >/dev/null
+          python3 scripts/build-ha-package.py --skip-frontend-build --layout manual --output /tmp/ha_3d_dashboard-manual.zip
+          python3 scripts/build-ha-package.py --skip-frontend-build --layout hacs --output /tmp/ha_3d_dashboard-hacs.zip
 
       - name: Upload generated HA panel bundle
         if: always()
