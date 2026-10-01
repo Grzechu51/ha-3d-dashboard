@@ -111,10 +111,34 @@ ha_3d_dashboard.projects
 
 inside Home Assistant-managed storage.
 
+## HACS release package
+
+The repository also supports a second ZIP layout intended specifically for HACS:
+
+```bash
+bun run ha:package:hacs
+```
+
+That archive is written as:
+
+```text
+dist/ha_3d_dashboard.zip
+```
+
+Unlike the manual ZIP, its integration files are at the archive root because HACS
+extracts the release asset directly into the integration directory.
+
+Do not manually extract the HACS ZIP into `/config`; use the versioned manual ZIP
+for direct installation.
+
+See [HACS and GitHub Release](hacs-release.md) for release workflow and repository
+requirements.
+
 ## Current limitations
 
-- HACS installation is not implemented yet.
-- GitHub Releases for the HA integration are not implemented yet.
+- HACS cannot install this repository while the GitHub repository remains private.
+- A public HACS test also requires GitHub repository description/topics and a
+  published GitHub Release.
 - Automatic two-way creation/deletion of Home Assistant Floors/Areas and Pascal
   Levels/Zones is intentionally not implemented.
 - The first release path is the native **HA 3D** panel; a reusable Lovelace card
