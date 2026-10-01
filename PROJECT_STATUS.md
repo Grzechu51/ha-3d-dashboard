@@ -1,6 +1,6 @@
 # HA 3D Dashboard — Project Status
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 This repository is a Home Assistant 3D dashboard/editor project built on top of the open-source Pascal Editor codebase.
 
@@ -20,11 +20,12 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: project management + Home Assistant structure**
 
-Status: **PR #11 hardened; PR #12 active**
+Status: **PR #11 merged; PR #12 in final verification**
 
 PR #8 (Home Assistant project Store/WebSocket API), PR #9 (frontend project
-session/revision coordinator) and PR #10 (native HA project shell with the real
-Pascal Editor/Viewer) are merged to `main`.
+session/revision coordinator), PR #10 (native HA project shell with the real
+Pascal Editor/Viewer) and PR #11 (project management + safe switching) are
+merged to `main`.
 
 The active checkpoint is:
 
@@ -112,25 +113,11 @@ Implemented:
 
 ## In progress
 
-### PR #11 — project management and safe switching
-
-Implementation is complete and hardened for the identified data-loss/race edges:
-
-- admin-aware project management,
-- revision-checked rename/delete,
-- recent-project persistence,
-- final configuration flush before leaving a project,
-- navigation blocking while scene/config saves are pending or failed,
-- explicit revision-conflict recovery,
-- lossless config flushes when changes arrive during an in-flight write,
-- stale/disposed session protection,
-- non-admin users constrained to Dashboard mode.
-
-PR #11 remains a draft until GitHub Actions can execute a fresh gate. The latest
-rerun failed before either hosted runner started (runner_id=0, zero steps), so
-that failure is currently an Actions execution blocker rather than a test result.
-
 ### PR #12 — Home Assistant structure integration
+
+PR #11 is merged to `main` after a successful runner-backed quality and CLI
+smoke gate. The project-management checkpoint is complete.
+
 
 Active implementation:
 
@@ -157,13 +144,11 @@ Home Assistant project session.
 
 ### Checkpoint B — project UX
 
-- project creation dialog,
-- rename/delete,
-- recent/default project,
-- explicit reload on revision conflict,
-- unsaved/save status,
-- empty-project bootstrap,
-- safer project switching.
+**Completed in PR #11.**
+
+Implemented project creation, rename/delete, recent-project persistence,
+revision-conflict recovery, save/error status, empty-project bootstrap and safe
+project switching.
 
 ### Checkpoint C — Home Assistant structure integration
 
