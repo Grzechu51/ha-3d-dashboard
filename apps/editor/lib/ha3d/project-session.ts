@@ -163,17 +163,20 @@ class HomeAssistantProjectSessionImpl implements HomeAssistantProjectSession {
       }),
     )
 
-  flushConfiguration = async (): Promise<void> => {
+  flushConfiguration = (): Promise<void> => {
     this.clearConfigurationTimer()
-    await this.writeTail
-    if (!this.configurationDirty) return
+    this.assertActive()
 
-    await this.enqueueWrite(async () => {
+    const run = this.writeTail.then(async () => {
+      if (!this.configurationDirty) return
+      this.assertWritable()
       while (this.configurationDirty) {
         await this.persistMutation({})
       }
       this.clearConfigurationTimer()
     })
+    this.writeTail = run
+    return run
   }
 
   dispose = (): void => {
