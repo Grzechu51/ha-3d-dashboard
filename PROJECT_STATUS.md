@@ -18,18 +18,17 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: project management + Home Assistant structure**
+**Checkpoint: release readiness**
 
-Status: **PR #11 merged; PR #12 in final verification**
+Status: **PR #12 and PR #13 merged; manual-install packaging baseline in progress**
 
-PR #8 (Home Assistant project Store/WebSocket API), PR #9 (frontend project
-session/revision coordinator), PR #10 (native HA project shell with the real
-Pascal Editor/Viewer) and PR #11 (project management + safe switching) are
-merged to `main`.
+PR #8 through PR #13 are merged to `main`. The native project shell,
+project management, Home Assistant structure mapping and GitHub Actions cost
+controls are complete.
 
 The active checkpoint is:
 
-`HA Floors/Areas/Devices/Entities -> manual Pascal Level/Zone mapping -> release packaging`
+`manual install package -> HACS/GitHub Release -> production install/update validation`
 
 ## Completed
 
@@ -113,24 +112,20 @@ Implemented:
 
 ## In progress
 
-### PR #12 — Home Assistant structure integration
+### Manual-install packaging baseline
 
-PR #11 is merged to `main` after a successful runner-backed quality and CLI
-smoke gate. The project-management checkpoint is complete.
+The current release-readiness checkpoint establishes a repeatable package before
+HACS/release automation is added:
 
+- local HA panel rebuild,
+- version consistency check between `manifest.json` and `const.py`,
+- runtime-only ZIP rooted at `custom_components/ha_3d_dashboard/`,
+- exclusion of tests/cache files,
+- ZIP content and archived manifest verification,
+- manual installation/update documentation.
 
-Active implementation:
-
-- native HA WebSocket discovery for Floors, Areas, Devices and display Entities,
-- Home Assistant 2026.9 child-device support with parent-area inheritance,
-- normalized `Floor -> Area -> Device -> Entity` hierarchy,
-- explicit unassigned device/entity handling,
-- a native editor-side structure browser,
-- manual, non-destructive HA Floor -> Pascal Level mapping,
-- manual, non-destructive HA Area -> Pascal Zone mapping,
-- mapping persistence in the versioned HA project sidecar,
-- one-to-one mapping semantics and removal,
-- no automatic HA/Pascal create/delete synchronization.
+HACS metadata and GitHub Release automation remain deliberately out of scope for
+this checkpoint.
 
 ## Next checkpoints
 
@@ -152,23 +147,26 @@ project switching.
 
 ### Checkpoint C — Home Assistant structure integration
 
-Map HA registries into the editor:
+**Completed in PR #12.**
 
-- HA Floors <-> Pascal Levels,
-- HA Areas <-> Pascal Zones,
-- Devices/Entities browser grouped by floor/area/device,
-- drag/drop or picker binding onto selected 3D objects.
+Implemented HA Floor/Area/Device/Entity discovery, child-device area inheritance,
+the grouped structure browser, manual non-destructive Floor -> Level and
+Area -> Zone mappings, persisted mapping state, stale mapping detection and
+existing entity binding onto selected 3D objects.
 
-Initial synchronization should be manual/non-destructive. Automatic two-way structure synchronization comes later.
+Automatic two-way HA/Pascal structure creation/deletion remains a later feature.
 
 ### Checkpoint D — release packaging
 
-- HACS repository metadata,
-- release artifacts,
-- install/update path,
-- production bundle verification,
-- mobile/tablet performance profiles,
-- optional Lovelace 3D view card.
+**Active.**
+
+Current order:
+
+1. repeatable manual-install ZIP and documentation,
+2. HACS repository metadata and GitHub Release artifact,
+3. production install/update validation,
+4. mobile/tablet performance profiles,
+5. optional Lovelace 3D view card.
 
 ## Persistence architecture
 

@@ -7,11 +7,10 @@ The target is an installable Home Assistant custom integration with a **3D Home*
 panel where the user can build/edit a house, bind Home Assistant entities directly
 to 3D objects, visualize live states and control the home from the model.
 
-> **Development status:** active. The native Home Assistant project shell is
-> implemented: the custom panel can list/create projects, mount the real Pascal
-> Editor/Viewer, switch between Dashboard/Edit and persist projects through the
-> Home Assistant Store. The active checkpoint is project-management UX followed
-> by Home Assistant Floors/Areas/Devices/Entities integration.
+> **Development status:** active. The native Home Assistant project shell,
+> project management and Home Assistant Floors/Areas/Devices/Entities mapping
+> are implemented and merged. The active checkpoint is release readiness:
+> repeatable manual packaging first, then HACS/GitHub Release packaging.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
@@ -28,6 +27,25 @@ The HA-specific implementation lives primarily in:
 This repository retains Pascal's reusable editor/viewer architecture and upstream
 documentation below. HA-specific behavior is layered around it rather than moving
 Home Assistant concerns into Pascal core.
+
+## Manual Home Assistant installation
+
+A repeatable manual-install package is available as the release-readiness baseline.
+
+From the repository root:
+
+```bash
+bun install
+bun run ha:package
+```
+
+This rebuilds the HA panel and creates
+`dist/ha_3d_dashboard-v<version>.zip`. The archive can be extracted directly
+into the Home Assistant configuration directory because it contains
+`custom_components/ha_3d_dashboard/` at its root.
+
+See [Manual Home Assistant installation](docs/ha3d/manual-install.md) for
+installation, update and project-data details.
 
 ## Upstream foundation: Pascal Editor
 
