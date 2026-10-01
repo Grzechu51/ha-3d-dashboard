@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a manual-install ZIP for the HA 3D Dashboard custom integration."""
+"""Build install ZIPs for the HA 3D Dashboard custom integration."""
 
 from __future__ import annotations
 
@@ -22,13 +22,15 @@ DEFAULT_OUTPUT_DIR = REPO_ROOT / "dist"
 
 EXCLUDED_PARTS = {"tests", "__pycache__"}
 EXCLUDED_SUFFIXES = {".pyc", ".pyo"}
+LAYOUT_MANUAL = "manual"
+LAYOUT_HACS = "hacs"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Build a ZIP that can be extracted directly into the Home Assistant "
-            "configuration directory."
+            "Build a manual-install or HACS release ZIP for the HA 3D Dashboard "
+            "custom integration."
         )
     )
     parser.add_argument(
@@ -37,9 +39,23 @@ def parse_args() -> argparse.Namespace:
         help="Package the committed frontend bundle without rebuilding it first.",
     )
     parser.add_argument(
+        "--layout",
+        choices=(LAYOUT_MANUAL, LAYOUT_HACS),
+        default=LAYOUT_MANUAL,
+        help=(
+            "manual: archive root is custom_components/ha_3d_dashboard/ and can be "
+            "extracted into /config; hacs: integration files are at the archive root "
+            "because HACS extracts the release asset into the integration directory."
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
-        help="Optional output ZIP path. Defaults to dist/ha_3d_dashboard-v<version>.zip.",
+        help=(
+            "Optional output ZIP path. Defaults to "
+            "dist/ha_3d_dashboard-v<version>.zip for manual layout and "
+            "dist/ha_3d_dashboard.zip for HACS layout."
+        ),
     )
     return parser.parse_args()
 
@@ -92,6 +108,7 @@ def package_files() -> list[Path]:
 
     required = {
         COMPONENT_DIR / "__init__.py",
+        COMPONENT_DIR / "brand/icon.png",
         COMPONENT_DIR / "config_flow.py",
         COMPONENT_DIR / "const.py",
         COMPONENT_DIR / "manifest.json",
@@ -121,38 +138,61 @@ def package_files() -> list[Path]:
     return files
 
 
-def zip_info(archive_name: str) -> zipfile.ZipInfo:
-    info = zipfile.ZipInfo(archive_name, date_time=(1980, 1, 1, 0, 0, 0))
+def archive_name(path: Path, layout: str) -> str:
+    if layout == LAYOUT_HACS:
+        return path.relative_to(COMPONENT_DIR).as_posix()
+    return path.relative_to(REPO_ROOT).as_posix()
+
+
+def default_output(version: str, layout: str) -> Path:
+    if layout == LAYOUT_HACS:
+        return DEFAULT_OUTPUT_DIR / "ha_3d_dashboard.zip"
+    return DEFAULT_OUTPUT_DIR / f"ha_3d_dashboard-v{version}.zip"
+
+
+def zip_info(name: str) -> zipfile.ZipInfo:
+    info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
     info.compress_type = zipfile.ZIP_DEFLATED
     info.external_attr = 0o100644 << 16
     return info
 
 
-def write_archive(output: Path, files: list[Path]) -> None:
+def write_archive(output: Path, files: list[Path], layout: str) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.exists():
         output.unlink()
 
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in files:
-            archive_name = path.relative_to(REPO_ROOT).as_posix()
-            archive.writestr(zip_info(archive_name), path.read_bytes())
+            archive.writestr(zip_info(archive_name(path, layout)), path.read_bytes())
 
 
-def verify_archive(output: Path, files: list[Path], version: str) -> None:
-    expected_names = [path.relative_to(REPO_ROOT).as_posix() for path in files]
+def verify_archive(output: Path, files: list[Path], version: str, layout: str) -> None:
+    expected_names = [archive_name(path, layout) for path in files]
     with zipfile.ZipFile(output, "r") as archive:
         actual_names = archive.namelist()
         if actual_names != expected_names:
             raise RuntimeError("ZIP content does not match the selected integration runtime files")
 
-        manifest_name = f"{COMPONENT_RELATIVE.as_posix()}/manifest.json"
+        manifest_name = (
+            "manifest.json"
+            if layout == LAYOUT_HACS
+            else f"{COMPONENT_RELATIVE.as_posix()}/manifest.json"
+        )
         archived_manifest = json.loads(archive.read(manifest_name).decode("utf-8"))
         if archived_manifest.get("version") != version:
             raise RuntimeError("ZIP manifest version does not match the source integration version")
 
-        if any("/tests/" in name or "__pycache__" in name for name in actual_names):
+        if any("/tests/" in name or name.startswith("tests/") or "__pycache__" in name for name in actual_names):
             raise RuntimeError("ZIP unexpectedly contains development/test files")
+
+        if layout == LAYOUT_HACS:
+            if any(name.startswith("custom_components/") for name in actual_names):
+                raise RuntimeError(
+                    "HACS ZIP must contain integration files at the archive root"
+                )
+            if "brand/icon.png" not in actual_names:
+                raise RuntimeError("HACS ZIP is missing brand/icon.png")
 
 
 def sha256(path: Path) -> str:
@@ -175,19 +215,23 @@ def main() -> int:
         output = (
             args.output.resolve()
             if args.output is not None
-            else DEFAULT_OUTPUT_DIR / f"ha_3d_dashboard-v{version}.zip"
+            else default_output(version, args.layout)
         )
-        write_archive(output, files)
-        verify_archive(output, files, version)
+        write_archive(output, files, args.layout)
+        verify_archive(output, files, version, args.layout)
     except (OSError, RuntimeError, subprocess.CalledProcessError, json.JSONDecodeError) as error:
         print(f"HA package build failed: {error}", file=sys.stderr)
         return 1
 
     print(f"Built: {output.relative_to(REPO_ROOT) if output.is_relative_to(REPO_ROOT) else output}")
     print(f"Version: {version}")
+    print(f"Layout: {args.layout}")
     print(f"Runtime files: {len(files)}")
     print(f"SHA256: {sha256(output)}")
-    print("Archive root: custom_components/ha_3d_dashboard/")
+    if args.layout == LAYOUT_HACS:
+        print("Archive root: integration files (HACS release layout)")
+    else:
+        print("Archive root: custom_components/ha_3d_dashboard/")
     return 0
 
 

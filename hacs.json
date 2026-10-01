@@ -1,0 +1,8 @@
+{
+  "name": "HA 3D Dashboard",
+  "zip_release": true,
+  "filename": "ha_3d_dashboard.zip",
+  "hide_default_branch": true,
+  "homeassistant": "2026.9.0",
+  "hacs": "2.0.0"
+}

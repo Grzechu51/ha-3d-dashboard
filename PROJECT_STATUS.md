@@ -20,15 +20,15 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: release readiness**
 
-Status: **PR #12 and PR #13 merged; manual-install packaging baseline in progress**
+Status: **PR #14 merged; HACS/GitHub Release readiness in progress**
 
-PR #8 through PR #13 are merged to `main`. The native project shell,
-project management, Home Assistant structure mapping and GitHub Actions cost
-controls are complete.
+PR #8 through PR #14 are merged to `main`. The native project shell,
+project management, Home Assistant structure mapping, GitHub Actions cost
+controls and repeatable manual-install packaging are complete.
 
 The active checkpoint is:
 
-`manual install package -> HACS/GitHub Release -> production install/update validation`
+`HACS metadata + release workflow -> public-repository decision -> HACS validation -> first release`
 
 ## Completed
 
@@ -112,20 +112,25 @@ Implemented:
 
 ## In progress
 
-### Manual-install packaging baseline
+### HACS and GitHub Release readiness
 
-The current release-readiness checkpoint establishes a repeatable package before
-HACS/release automation is added:
+The manual-install baseline was completed in **PR #14**.
 
-- local HA panel rebuild,
-- version consistency check between `manifest.json` and `const.py`,
-- runtime-only ZIP rooted at `custom_components/ha_3d_dashboard/`,
-- exclusion of tests/cache files,
-- ZIP content and archived manifest verification,
-- manual installation/update documentation.
+The current checkpoint adds:
 
-HACS metadata and GitHub Release automation remain deliberately out of scope for
-this checkpoint.
+- root `hacs.json` configured for a release ZIP,
+- a HACS-specific ZIP layout with integration files at archive root,
+- local Home Assistant brand icons,
+- manual HACS repository validation workflow,
+- a separate manual **HA Release** workflow,
+- dry-run by default and source-version verification before release,
+- HACS/manual ZIP checksums and duplicate-release protection,
+- HACS/publication documentation.
+
+The repository is currently **private**, with no repository description or
+topics. Those are external GitHub/HACS prerequisites and are intentionally not
+changed automatically. HACS validation and the first public release should wait
+until the repository owner explicitly decides to make the repository public.
 
 ## Next checkpoints
 
@@ -160,13 +165,14 @@ Automatic two-way HA/Pascal structure creation/deletion remains a later feature.
 
 **Active.**
 
-Current order:
+Progress:
 
-1. repeatable manual-install ZIP and documentation,
-2. HACS repository metadata and GitHub Release artifact,
-3. production install/update validation,
-4. mobile/tablet performance profiles,
-5. optional Lovelace 3D view card.
+1. repeatable manual-install ZIP and documentation — **completed in PR #14**,
+2. HACS repository metadata and GitHub Release tooling — **current checkpoint**,
+3. public-repository/HACS validation and first release — pending owner approval,
+4. production install/update validation,
+5. mobile/tablet performance profiles,
+6. optional Lovelace 3D view card.
 
 ## Persistence architecture
 

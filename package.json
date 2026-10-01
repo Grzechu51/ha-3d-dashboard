@@ -19,6 +19,7 @@
     "clean:cache": "rm -rf apps/*/.next apps/*/.swc apps/*/.turbo packages/*/.turbo tooling/*/.turbo .turbo node_modules/.cache",
     "restart": "bun kill && bun clean:cache && bun dev",
     "ha:package": "python3 scripts/build-ha-package.py",
+    "ha:package:hacs": "python3 scripts/build-ha-package.py --layout hacs",
     "release": "gh workflow run release.yml -f bump=patch",
     "release:beta": "gh workflow run release.yml -f bump=beta",
     "release:minor": "gh workflow run release.yml -f bump=minor",
