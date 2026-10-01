@@ -63,6 +63,10 @@ treat CI runs as deliberate checkpoints, not as an edit-by-edit feedback loop.
   that marker or otherwise create a second full run for the generated-only commit.
 - Full CI intentionally runs on pull requests, not again after merge to `main`. Do not restore
   duplicate post-merge CI unless the user explicitly asks for that tradeoff.
+- `HA Release` and `HACS Validate` are manual workflows. Do not run them as routine
+  verification and never create a real HA GitHub Release unless the user explicitly approves it.
+- While this repository is private, HACS cannot consume it; do not spend Actions minutes retrying
+  HACS validation until repository visibility and required GitHub metadata are ready.
 - Prefer the smallest verification that proves the current change. A full workflow is the final
   gate before merge, not the default validation after every file edit.
 
