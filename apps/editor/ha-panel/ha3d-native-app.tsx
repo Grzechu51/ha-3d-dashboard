@@ -18,6 +18,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-controls'
+import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
 import {
   createHomeAssistantProject,
@@ -568,6 +569,7 @@ function NativeDashboard({
 function NativeProject({
   metadata,
   session,
+  host,
   mode,
   canManageProjects,
   leavingProject,
@@ -578,6 +580,7 @@ function NativeProject({
 }: Readonly<{
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
+  host: HomeAssistantProjectApiHost
   mode: PanelMode
   canManageProjects: boolean
   leavingProject: boolean
@@ -588,6 +591,8 @@ function NativeProject({
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
+  const [editorReady, setEditorReady] = useState(false)
+  const [structureOpen, setStructureOpen] = useState(false)
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
   const sceneSaveBlocked =
     saveStatus === 'pending' ||
@@ -599,13 +604,28 @@ function NativeProject({
 
   const reloadEditor = useCallback(() => {
     onClearNavigationError()
+    setStructureOpen(false)
+    setEditorReady(false)
     setEditorEpoch((value) => value + 1)
   }, [onClearNavigationError])
+
+  useEffect(() => {
+    if (snapshot.status === 'conflict' || snapshot.status === 'error') {
+      setStructureOpen(false)
+    }
+  }, [snapshot.status])
 
   if (mode === 'dashboard' || !canManageProjects) {
     return (
       <NativeDashboard
-        onEdit={canManageProjects ? () => onModeChange('edit') : undefined}
+        onEdit={
+          canManageProjects
+            ? () => {
+                setEditorReady(false)
+                onModeChange('edit')
+              }
+            : undefined
+        }
         onProjects={() => {
           void onProjects()
         }}
@@ -622,6 +642,7 @@ function NativeProject({
         layoutVersion="v1"
         manageDocumentDarkClass={false}
         onLoad={() => session.load()}
+        onLoaderChange={(visible) => setEditorReady(!visible)}
         onSave={(scene) => session.saveScene(scene)}
         onSaveStatusChange={setSaveStatus}
         presentationPersistenceMode="external"
@@ -635,8 +656,20 @@ function NativeProject({
           <SessionStatus saveStatus={saveStatus} session={session} />
           <button
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
+            disabled={!editorReady || sceneSaveBlocked || leavingProject}
+            onClick={() => setStructureOpen(true)}
+            title={editorReady ? undefined : 'Wait for the Pascal scene to finish loading'}
+            type="button"
+          >
+            HA structure
+          </button>
+          <button
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
             disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => onModeChange('dashboard')}
+            onClick={() => {
+              setStructureOpen(false)
+              onModeChange('dashboard')
+            }}
             title={
               saveStatus === 'error' || snapshot.status === 'error'
                 ? 'Resolve or retry the save error before leaving the editor'
@@ -651,7 +684,10 @@ function NativeProject({
           <button
             className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
             disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => void onProjects()}
+            onClick={() => {
+              setStructureOpen(false)
+              void onProjects()
+            }}
             title={
               saveStatus === 'error' || snapshot.status === 'error'
                 ? 'Resolve or retry the save error before leaving the editor'
@@ -665,6 +701,10 @@ function NativeProject({
           </button>
         </div>
       </div>
+
+      {structureOpen ? (
+        <Ha3dStructureManager host={host} onClose={() => setStructureOpen(false)} />
+      ) : null}
 
       {snapshot.status === 'conflict' ? (
         <div className="absolute inset-x-3 bottom-3 z-[95] mx-auto max-w-xl rounded-xl border border-destructive/50 bg-background/95 p-4 shadow-2xl backdrop-blur">
@@ -924,7 +964,9 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   return (
     <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
       <NativeProject
+        key={selectedProjectId}
         canManageProjects={canManageProjects}
+        host={api}
         leavingProject={leavingProject}
         metadata={metadata}
         mode={mode}

@@ -33,7 +33,9 @@ class ProjectCollectionTests(unittest.TestCase):
 
         self.assertEqual(created["name"], "Main house")
         self.assertEqual(created["revision"], 1)
-        self.assertEqual(created["ha_config"], {"version": 1, "bindings": []})
+        self.assertEqual(
+            created["ha_config"]["structureMappings"], {"floors": [], "areas": []}
+        )
         self.assertEqual(collection.list_metadata()[0]["id"], "main_house")
 
         loaded = collection.get("main_house")
@@ -152,6 +154,12 @@ class ProjectCollectionTests(unittest.TestCase):
             )
         with self.assertRaises(InvalidProjectError):
             collection.create(
+                project_id="bad_mapping",
+                name="Bad mapping",
+                ha_config={"version": 1, "bindings": [], "structureMappings": []},
+            )
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
                 project_id="good",
                 name="Good",
                 ha_config={
@@ -168,6 +176,78 @@ class ProjectCollectionTests(unittest.TestCase):
                             },
                         }
                     ],
+                },
+            )
+
+    def test_structure_mappings_persist(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        created = collection.create(
+            project_id="mapped",
+            name="Mapped",
+            ha_config={
+                "version": 1,
+                "bindings": [],
+                "structureMappings": {
+                    "floors": [{"floorId": "ground", "levelNodeId": "level_ground"}],
+                    "areas": [{"areaId": "living", "zoneNodeId": "zone_living"}],
+                },
+            },
+        )
+
+        self.assertEqual(
+            created["ha_config"]["structureMappings"]["areas"][0]["zoneNodeId"],
+            "zone_living",
+        )
+
+    def test_legacy_config_save_preserves_existing_structure_mappings(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        collection.create(
+            project_id="mapped",
+            name="Mapped",
+            ha_config={
+                "version": 1,
+                "bindings": [],
+                "structureMappings": {
+                    "floors": [{"floorId": "ground", "levelNodeId": "level_ground"}],
+                    "areas": [{"areaId": "living", "zoneNodeId": "zone_living"}],
+                },
+            },
+        )
+
+        updated = collection.save(
+            "mapped",
+            expected_revision=1,
+            ha_config={
+                "version": 1,
+                "bindings": [{"nodeId": "lamp", "entityId": "light.salon"}],
+            },
+        )
+
+        self.assertEqual(
+            updated["ha_config"]["structureMappings"],
+            {
+                "floors": [{"floorId": "ground", "levelNodeId": "level_ground"}],
+                "areas": [{"areaId": "living", "zoneNodeId": "zone_living"}],
+            },
+        )
+
+    def test_duplicate_structure_mapping_targets_are_rejected(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
+                project_id="duplicate_mapping",
+                name="Duplicate mapping",
+                ha_config={
+                    "version": 1,
+                    "bindings": [],
+                    "structureMappings": {
+                        "floors": [
+                            {"floorId": "ground", "levelNodeId": "level_shared"},
+                            {"floorId": "upper", "levelNodeId": "level_shared"},
+                        ],
+                        "areas": [],
+                    },
                 },
             )
 
