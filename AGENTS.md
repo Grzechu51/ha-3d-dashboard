@@ -43,6 +43,29 @@ Read the relevant page in `wiki/architecture/` **before** writing code. The page
 
 Invoke the `review-architecture` skill (`.agents/skills/review-architecture/SKILL.md`). It loads the required architecture pages, fetches the diff, classifies each new file by layer, and reports findings grouped by severity.
 
+## GitHub Actions budget
+
+GitHub Actions minutes are a constrained resource in this repository. Agents must
+treat CI runs as deliberate checkpoints, not as an edit-by-edit feedback loop.
+
+- Do the implementation work on a feature branch **before opening a PR** whenever possible.
+- Batch related edits and review them before the first PR push. Do not open a draft PR just to
+  expose intermediate work if local/source review can continue without it.
+- Once a PR is open, avoid additional pushes unless they fix a real review or CI finding; every
+  code push can start another workflow run.
+- Do not manually re-run an already successful workflow. If CI partially fails, retry only the
+  failed job(s) when the failure is transient; otherwise fix the cause first.
+- Documentation-only changes under the paths ignored by `.github/workflows/ci.yml` should not
+  be used to force a CI run.
+- Normal PR CI uses Linux for the portable CLI smoke test. The macOS smoke belongs to the
+  release workflow and should not be added back to every PR without an explicit reason.
+- The generated Home Assistant frontend may be committed by CI with `[skip ci]`; do not remove
+  that marker or otherwise create a second full run for the generated-only commit.
+- Full CI intentionally runs on pull requests, not again after merge to `main`. Do not restore
+  duplicate post-merge CI unless the user explicitly asks for that tradeoff.
+- Prefer the smallest verification that proves the current change. A full workflow is the final
+  gate before merge, not the default validation after every file edit.
+
 ## Operating rules
 
 - Read the full file before editing. Plan all changes, then make one complete edit.
