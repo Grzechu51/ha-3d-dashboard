@@ -20,15 +20,16 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: release readiness**
 
-Status: **PR #16 merged; offline release preflight in progress**
+Status: **PR #17 merged; public-beta safeguards in progress**
 
-PR #8 through PR #16 are merged to `main`. The native project shell,
+PR #8 through PR #17 are merged to `main`. The native project shell,
 project management, Home Assistant structure mapping, GitHub Actions cost
-controls, manual/HACS packaging, release tooling and brand hardening are complete.
+controls, manual/HACS packaging, release tooling, brand hardening and shared
+offline release preflight are complete.
 
 The active checkpoint is:
 
-`offline release preflight -> public-repository decision -> HACS validation -> first release`
+`public-beta safeguards -> public visibility -> HACS validation -> v0.3.0-beta.1 prerelease -> install/update testing`
 
 ## Completed
 
@@ -125,10 +126,16 @@ version agreement, repository shape, both package layouts, brand/runtime assets
 and SHA256 checksums. The manual **HA Release** workflow reuses the same preflight
 instead of maintaining separate validation logic.
 
-The repository is currently **private**, with no repository description or
-topics. Those are external GitHub/HACS prerequisites and are intentionally not
-changed automatically. HACS validation and the first public release should wait
-until the repository owner explicitly decides to make the repository public.
+The repository owner has approved a public test phase, but publication is
+gated behind explicit beta safeguards. The HA-specific code is separated from
+the upstream Pascal MIT license by a beta evaluation license, release packages
+carry both the beta terms and third-party notices, and `BETA_RELEASE_LOCK`
+prevents an accidental stable HA release.
+
+The repository remains **private** until these safeguards are merged and the
+single PR CI checkpoint is green. Public visibility is intended only for the
+custom-HACS beta test phase, not as a declaration that the whole repository is
+open source.
 
 ## Next checkpoints
 
@@ -168,11 +175,12 @@ Progress:
 1. repeatable manual-install ZIP and documentation — **completed in PR #14**,
 2. HACS repository metadata and GitHub Release tooling — **completed in PR #15**,
 3. brand/release hardening — **completed in PR #16**,
-4. offline release preflight shared by local tooling/CI/release — **current checkpoint**,
-5. public-repository/HACS validation and first release — pending owner approval,
-6. production install/update validation,
-7. mobile/tablet performance profiles,
-8. optional Lovelace 3D view card.
+4. offline release preflight shared by local tooling/CI/release — **completed in PR #17**,
+5. public-beta licensing and stable-release lock — **current checkpoint**,
+6. public visibility + HACS validation + `v0.3.0-beta.1` prerelease,
+7. production-like install/update validation on a test Home Assistant instance,
+8. mobile/tablet performance profiles,
+9. optional Lovelace 3D view card.
 
 ## Persistence architecture
 
