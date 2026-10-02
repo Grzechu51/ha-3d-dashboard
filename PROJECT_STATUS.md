@@ -29,7 +29,7 @@ offline release preflight and public-beta safeguards are complete.
 
 The active checkpoint is:
 
-`v0.3.0-beta.1 release dry-run -> prerelease -> install/update testing`
+`v0.3.0-beta.1 prerelease -> HACS install/update testing`
 
 ## Completed
 
@@ -140,11 +140,16 @@ repository is now **public** with the required GitHub description/topics.
 Public visibility is intended only for the custom-HACS beta test phase, not as
 a declaration that the whole repository is open source.
 
-No HA GitHub Release exists yet. The second manual **HACS Validate** run passed
-all eight enabled checks after intentionally skipping only the action-only
-license validator for the source-available beta. The next gate is the guarded
-`v0.3.0-beta.1` **HA Release** dry-run; it must use `prerelease=true` and
-`dry-run=true` so no tag or GitHub Release is created.
+The second manual **HACS Validate** run passed all eight enabled checks after
+intentionally skipping only the action-only license validator for the
+source-available beta. The guarded **HA Release** dry-run then passed from
+commit `909b197c`, and the same commit was published as GitHub prerelease
+`v0.3.0-beta.1`.
+
+The release contains the HACS package, manual-install package and SHA256
+checksums. The next gate is a real HACS custom-repository install on a
+non-production Home Assistant instance, followed by restart, config-flow setup,
+panel smoke testing, persistence verification and an update/rollback check.
 
 ## Next checkpoints
 
@@ -188,8 +193,8 @@ Progress:
 5. public-beta licensing and stable-release lock — **completed in PR #18**,
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
-8. `v0.3.0-beta.1` release dry-run + prerelease — **current checkpoint**,
-9. production-like install/update validation on a test Home Assistant instance,
+8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
+9. production-like install/update validation on a test Home Assistant instance — **current checkpoint**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
