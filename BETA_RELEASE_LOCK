@@ -1,0 +1,9 @@
+HA 3D Dashboard public beta release lock
+
+While this file exists:
+- the integration version must use a -beta.N prerelease suffix;
+- the HA Release workflow must publish as a GitHub prerelease;
+- a stable HA release is intentionally blocked.
+
+Remove this file only after explicit repository-owner approval following
+installation, update, persistence and rollback validation.
