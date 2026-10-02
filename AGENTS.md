@@ -1,6 +1,27 @@
-# Agent Instructions — `pascalorg/editor`
+# Agent Instructions — HA 3D Dashboard / Pascal Editor fork
 
-Public, open-source home of `@pascal-app/{core,viewer,editor,mcp}` and the standalone editor app. Consumed both as npm packages and (in `pascalorg/private-editor`) as a git submodule.
+This repository is a Home Assistant-focused development fork of the
+MIT-licensed Pascal Editor codebase. Upstream Pascal packages remain under their
+original license; HA 3D Dashboard-specific code has a separate beta evaluation
+license during the public test phase.
+
+## HA 3D publication policy
+
+- Read `PROJECT_STATUS.md`, `HA3D_EVALUATION_LICENSE.md` and
+  `docs/ha3d/hacs-release.md` before changing release/publication behavior.
+- While `BETA_RELEASE_LOCK` exists, do not prepare or publish a stable HA
+  integration version. The source version must be `-beta.N` and GitHub HA
+  releases must remain prereleases.
+- Do not remove or weaken the beta evaluation license, third-party notices or
+  `BETA_RELEASE_LOCK` without explicit repository-owner approval.
+- Keep Pascal/third-party license notices intact. Do not describe the whole fork
+  as MIT/open source when the HA-specific layer is under the beta evaluation
+  license.
+- Public visibility is for custom-HACS beta testing. Do not submit the project
+  to HACS defaults or publish a stable release unless explicitly requested.
+- Do not treat public visibility as copy protection: public GitHub contents are
+  viewable/forkable. The beta license is a legal usage restriction, not a
+  technical DRM mechanism.
 
 ## Repo Shape
 
