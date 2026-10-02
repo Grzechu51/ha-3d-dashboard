@@ -171,6 +171,18 @@ A deliberately manual workflow exists:
 
 It uses the official HACS validation action for an `integration` repository.
 
+For the current custom-repository beta, the workflow intentionally passes
+`ignore: license`. HACS added an action-only license validator that requires
+GitHub to identify an **OSI-approved** repository license. The HA-specific beta
+layer deliberately uses a source-available evaluation license instead, while
+the upstream Pascal code keeps its MIT terms. The HACS action's validation
+manager runs these validators only in action mode; this ignored check therefore
+does not alter the integration package or its runtime behavior.
+
+This means the beta workflow is suitable only for **custom repository testing**.
+It is not evidence that the project qualifies for the HACS default catalogue:
+HACS requires default submissions to pass the action without errors or ignores.
+
 Run it only after the repository is public and the GitHub description/topics
 have been configured. It is intentionally not scheduled and does not run on
 every PR because GitHub Actions minutes are treated as a constrained resource.
@@ -220,7 +232,8 @@ Before the first public HACS beta release:
 1. merge the public-beta safeguard PR and require green normal PR CI,
 2. verify `bun run ha:release:preflight` for `0.3.0-beta.1`,
 3. make the repository public and set its description/topics,
-4. run **HACS Validate** manually once,
+4. run **HACS Validate** manually once; for this custom beta the license check
+   is intentionally ignored and every other check must pass,
 5. run **HA Release** with `version=0.3.0-beta.1`, `prerelease=true`,
    `dry-run=true`,
 6. inspect the workflow result and package checksums,
