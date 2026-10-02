@@ -29,7 +29,7 @@ offline release preflight and public-beta safeguards are complete.
 
 The active checkpoint is:
 
-`v0.3.0-beta.1 prerelease -> HACS install/update testing`
+`v0.3.0-beta.2 panel-host fix -> HACS update -> panel smoke test`
 
 ## Completed
 
@@ -147,9 +147,17 @@ commit `909b197c`, and the same commit was published as GitHub prerelease
 `v0.3.0-beta.1`.
 
 The release contains the HACS package, manual-install package and SHA256
-checksums. The next gate is a real HACS custom-repository install on a
-non-production Home Assistant instance, followed by restart, config-flow setup,
-panel smoke testing, persistence verification and an update/rollback check.
+checksums. The first real HACS install of `v0.3.0-beta.1` succeeded: HACS
+installed the integration, Home Assistant loaded the config flow, the integration
+entry was created and the **HA 3D** sidebar panel registered. The panel content
+itself was blank.
+
+Inspection against the current Home Assistant frontend found a host-contract
+mismatch: the integration registered `handle_safe_area=True`, which tells
+Home Assistant not to apply its normal block/sizing wrapper for a non-iframe
+custom panel, while the HA 3D web component did not provide equivalent host
+sizing itself. The current fix removes that opt-out and gives the web component
+an explicit full-viewport block host. The fix target is `v0.3.0-beta.2`.
 
 ## Next checkpoints
 
@@ -194,7 +202,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **current checkpoint**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.1 backend install passed, panel-host fix pending**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
