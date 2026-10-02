@@ -20,6 +20,7 @@
     "restart": "bun kill && bun clean:cache && bun dev",
     "ha:package": "python3 scripts/build-ha-package.py",
     "ha:package:hacs": "python3 scripts/build-ha-package.py --layout hacs",
+    "ha:release:preflight": "python3 scripts/preflight-ha-release.py",
     "release": "gh workflow run release.yml -f bump=patch",
     "release:beta": "gh workflow run release.yml -f bump=beta",
     "release:minor": "gh workflow run release.yml -f bump=minor",

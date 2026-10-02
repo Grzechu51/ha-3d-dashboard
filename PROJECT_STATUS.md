@@ -20,15 +20,15 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: release readiness**
 
-Status: **PR #15 merged; public-repository/HACS validation pending**
+Status: **PR #16 merged; offline release preflight in progress**
 
-PR #8 through PR #15 are merged to `main`. The native project shell,
+PR #8 through PR #16 are merged to `main`. The native project shell,
 project management, Home Assistant structure mapping, GitHub Actions cost
-controls, manual-install packaging and HACS/GitHub Release tooling are complete.
+controls, manual/HACS packaging, release tooling and brand hardening are complete.
 
 The active checkpoint is:
 
-`brand/release hardening -> public-repository decision -> HACS validation -> first release`
+`offline release preflight -> public-repository decision -> HACS validation -> first release`
 
 ## Completed
 
@@ -117,9 +117,13 @@ Implemented:
 The manual-install baseline was completed in **PR #14** and HACS/GitHub
 Release tooling was completed in **PR #15**.
 
-Current hardening verifies the local Home Assistant brand assets use the required
-256×256 px normal icon size and 512×512 px hDPI size, and makes the package
-builder reject invalid brand dimensions before release packaging.
+Brand/release hardening was completed in **PR #16**.
+
+The current work moves release verification out of GitHub Actions where possible:
+one offline preflight validates the HACS-required repository metadata, source
+version agreement, repository shape, both package layouts, brand/runtime assets
+and SHA256 checksums. The manual **HA Release** workflow reuses the same preflight
+instead of maintaining separate validation logic.
 
 The repository is currently **private**, with no repository description or
 topics. Those are external GitHub/HACS prerequisites and are intentionally not
@@ -163,11 +167,12 @@ Progress:
 
 1. repeatable manual-install ZIP and documentation — **completed in PR #14**,
 2. HACS repository metadata and GitHub Release tooling — **completed in PR #15**,
-3. brand/release hardening — **current checkpoint**,
-4. public-repository/HACS validation and first release — pending owner approval,
-5. production install/update validation,
-6. mobile/tablet performance profiles,
-7. optional Lovelace 3D view card.
+3. brand/release hardening — **completed in PR #16**,
+4. offline release preflight shared by local tooling/CI/release — **current checkpoint**,
+5. public-repository/HACS validation and first release — pending owner approval,
+6. production install/update validation,
+7. mobile/tablet performance profiles,
+8. optional Lovelace 3D view card.
 
 ## Persistence architecture
 
