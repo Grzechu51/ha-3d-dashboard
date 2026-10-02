@@ -29,7 +29,7 @@ offline release preflight and public-beta safeguards are complete.
 
 The active checkpoint is:
 
-`public visibility -> HACS validation -> v0.3.0-beta.1 prerelease -> install/update testing`
+`HACS validation -> v0.3.0-beta.1 prerelease -> install/update testing`
 
 ## Completed
 
@@ -135,12 +135,13 @@ the upstream Pascal MIT license by a beta evaluation license, release packages
 carry both the beta terms and third-party notices, and `BETA_RELEASE_LOCK`
 prevents an accidental stable HA release.
 
-The safeguards are now merged and PR #18 passed both normal CI jobs. The
-repository is still **private** only because changing GitHub repository
-visibility requires an owner/admin repository-setting action outside the
-available GitHub connector. Public visibility is intended only for the
-custom-HACS beta test phase, not as a declaration that the whole repository is
-open source.
+The safeguards are merged, PR #18 passed both normal CI jobs, and the
+repository is now **public** with the required GitHub description/topics.
+Public visibility is intended only for the custom-HACS beta test phase, not as
+a declaration that the whole repository is open source.
+
+No HA GitHub Release exists yet. The next gate is one manual **HACS Validate**
+run, followed by the guarded `v0.3.0-beta.1` release dry-run.
 
 ## Next checkpoints
 
@@ -182,10 +183,11 @@ Progress:
 3. brand/release hardening — **completed in PR #16**,
 4. offline release preflight shared by local tooling/CI/release — **completed in PR #17**,
 5. public-beta licensing and stable-release lock — **completed in PR #18**,
-6. public visibility + HACS validation + `v0.3.0-beta.1` prerelease — **current checkpoint**,
-7. production-like install/update validation on a test Home Assistant instance,
-8. mobile/tablet performance profiles,
-9. optional Lovelace 3D view card.
+6. public visibility — **completed**,
+7. HACS validation + `v0.3.0-beta.1` prerelease — **current checkpoint**,
+8. production-like install/update validation on a test Home Assistant instance,
+9. mobile/tablet performance profiles,
+10. optional Lovelace 3D view card.
 
 ## Persistence architecture
 
