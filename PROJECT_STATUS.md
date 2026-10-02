@@ -1,6 +1,6 @@
 # HA 3D Dashboard — Project Status
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 This repository is a Home Assistant 3D dashboard/editor project built on top of the open-source Pascal Editor codebase.
 
@@ -20,15 +20,15 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: release readiness**
 
-Status: **PR #14 merged; HACS/GitHub Release readiness in progress**
+Status: **PR #15 merged; public-repository/HACS validation pending**
 
-PR #8 through PR #14 are merged to `main`. The native project shell,
+PR #8 through PR #15 are merged to `main`. The native project shell,
 project management, Home Assistant structure mapping, GitHub Actions cost
-controls and repeatable manual-install packaging are complete.
+controls, manual-install packaging and HACS/GitHub Release tooling are complete.
 
 The active checkpoint is:
 
-`HACS metadata + release workflow -> public-repository decision -> HACS validation -> first release`
+`brand/release hardening -> public-repository decision -> HACS validation -> first release`
 
 ## Completed
 
@@ -114,18 +114,12 @@ Implemented:
 
 ### HACS and GitHub Release readiness
 
-The manual-install baseline was completed in **PR #14**.
+The manual-install baseline was completed in **PR #14** and HACS/GitHub
+Release tooling was completed in **PR #15**.
 
-The current checkpoint adds:
-
-- root `hacs.json` configured for a release ZIP,
-- a HACS-specific ZIP layout with integration files at archive root,
-- local Home Assistant brand icons,
-- manual HACS repository validation workflow,
-- a separate manual **HA Release** workflow,
-- dry-run by default and source-version verification before release,
-- HACS/manual ZIP checksums and duplicate-release protection,
-- HACS/publication documentation.
+Current hardening verifies the local Home Assistant brand assets use the required
+256×256 px normal icon size and 512×512 px hDPI size, and makes the package
+builder reject invalid brand dimensions before release packaging.
 
 The repository is currently **private**, with no repository description or
 topics. Those are external GitHub/HACS prerequisites and are intentionally not
@@ -168,11 +162,12 @@ Automatic two-way HA/Pascal structure creation/deletion remains a later feature.
 Progress:
 
 1. repeatable manual-install ZIP and documentation — **completed in PR #14**,
-2. HACS repository metadata and GitHub Release tooling — **current checkpoint**,
-3. public-repository/HACS validation and first release — pending owner approval,
-4. production install/update validation,
-5. mobile/tablet performance profiles,
-6. optional Lovelace 3D view card.
+2. HACS repository metadata and GitHub Release tooling — **completed in PR #15**,
+3. brand/release hardening — **current checkpoint**,
+4. public-repository/HACS validation and first release — pending owner approval,
+5. production install/update validation,
+6. mobile/tablet performance profiles,
+7. optional Lovelace 3D view card.
 
 ## Persistence architecture
 
