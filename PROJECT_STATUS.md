@@ -29,7 +29,7 @@ offline release preflight and public-beta safeguards are complete.
 
 The active checkpoint is:
 
-`HACS validation -> v0.3.0-beta.1 prerelease -> install/update testing`
+`v0.3.0-beta.1 release dry-run -> prerelease -> install/update testing`
 
 ## Completed
 
@@ -140,12 +140,11 @@ repository is now **public** with the required GitHub description/topics.
 Public visibility is intended only for the custom-HACS beta test phase, not as
 a declaration that the whole repository is open source.
 
-No HA GitHub Release exists yet. The first manual **HACS Validate** run reached
-all repository checks and failed only the new HACS license validator because the
-mixed/source-available beta license is intentionally not an OSI-approved
-repository license. For custom-repository beta testing, the workflow now skips
-only that action-only license check; every other HACS check must pass before the
-guarded `v0.3.0-beta.1` release dry-run.
+No HA GitHub Release exists yet. The second manual **HACS Validate** run passed
+all eight enabled checks after intentionally skipping only the action-only
+license validator for the source-available beta. The next gate is the guarded
+`v0.3.0-beta.1` **HA Release** dry-run; it must use `prerelease=true` and
+`dry-run=true` so no tag or GitHub Release is created.
 
 ## Next checkpoints
 
@@ -188,10 +187,11 @@ Progress:
 4. offline release preflight shared by local tooling/CI/release — **completed in PR #17**,
 5. public-beta licensing and stable-release lock — **completed in PR #18**,
 6. public visibility — **completed**,
-7. HACS validation + `v0.3.0-beta.1` prerelease — **current checkpoint**,
-8. production-like install/update validation on a test Home Assistant instance,
-9. mobile/tablet performance profiles,
-10. optional Lovelace 3D view card.
+7. HACS validation — **completed**,
+8. `v0.3.0-beta.1` release dry-run + prerelease — **current checkpoint**,
+9. production-like install/update validation on a test Home Assistant instance,
+10. mobile/tablet performance profiles,
+11. optional Lovelace 3D view card.
 
 ## Persistence architecture
 
