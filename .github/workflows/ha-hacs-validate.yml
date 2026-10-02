@@ -14,3 +14,10 @@ jobs:
         uses: hacs/action@main
         with:
           category: integration
+          comment: false
+          # The public beta intentionally uses a source-available evaluation
+          # license for HA-specific code. HACS' action-only license validator
+          # accepts only OSI-approved repository licenses, so this single check
+          # is skipped for the custom-repository beta. Do not use this ignored
+          # result as evidence of eligibility for HACS defaults.
+          ignore: license
