@@ -11,6 +11,10 @@ const jsEntry = resolve(here, 'ha3d-panel.ts')
 const tsconfig = resolve(here, 'tsconfig.build.json')
 const cssSource = resolve(here, '../app/globals.css')
 const cssOutput = resolve(outputDir, 'ha3d-panel.css')
+const jsOutput = resolve(outputDir, 'ha3d-panel.js')
+const browserProcessPrelude = `;globalThis.process ??= { env: {} };
+globalThis.process.env ??= {};
+globalThis.process.env.NODE_ENV ??= 'production';`
 
 await rm(outputDir, { recursive: true, force: true })
 await mkdir(outputDir, { recursive: true })
@@ -44,6 +48,15 @@ const exitCode = await new Promise<number>((resolveExit, reject) => {
 })
 
 if (exitCode !== 0) process.exit(exitCode)
+
+const browserBundle = await readFile(jsOutput, 'utf8')
+const processEnvReferences = browserBundle.match(/\\bprocess\\.env\\b/g)?.length ?? 0
+if (processEnvReferences > 0) {
+  await writeFile(jsOutput, `${browserProcessPrelude}\n${browserBundle}`)
+  console.info(
+    `[ha3d-panel] injected browser process.env shim for ${processEnvReferences} reference(s)`,
+  )
+}
 
 const css = await readFile(cssSource, 'utf8')
 const tailwindPlugin = tailwindcss() as unknown as AcceptedPlugin
