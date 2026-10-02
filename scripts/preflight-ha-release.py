@@ -16,6 +16,7 @@ COMPONENT_DIR = REPO_ROOT / "custom_components/ha_3d_dashboard"
 MANIFEST_PATH = COMPONENT_DIR / "manifest.json"
 CONST_PATH = COMPONENT_DIR / "const.py"
 HACS_PATH = REPO_ROOT / "hacs.json"
+BETA_LOCK_PATH = REPO_ROOT / "BETA_RELEASE_LOCK"
 DIST_DIR = REPO_ROOT / "dist"
 
 REQUIRED_MANIFEST_KEYS = {
@@ -83,6 +84,14 @@ def source_version() -> str:
             f"Version mismatch: manifest.json={version!r}, const.py={match.group(1)!r}"
         )
     return version
+
+
+def validate_beta_policy(version: str) -> None:
+    if BETA_LOCK_PATH.exists() and "-beta." not in version:
+        fail(
+            "BETA_RELEASE_LOCK is present; HA releases must use a -beta.N "
+            "prerelease version"
+        )
 
 
 def validate_repository_layout() -> None:
@@ -176,6 +185,7 @@ def main() -> int:
                 f"Requested version {requested!r} does not match source version {actual!r}"
             )
 
+        validate_beta_policy(actual)
         validate_repository_layout()
         validate_hacs_manifest()
         hacs_zip, manual_zip = run_builder(actual, args.skip_frontend_build)
