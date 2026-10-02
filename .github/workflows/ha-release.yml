@@ -44,6 +44,25 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: python3 scripts/preflight-ha-release.py --version "${VERSION}"
 
+      - name: Enforce beta release lock
+        env:
+          VERSION: ${{ inputs.version }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          if test -f BETA_RELEASE_LOCK; then
+            case "${VERSION}" in
+              *-beta.*) ;;
+              *)
+                echo "BETA_RELEASE_LOCK requires a -beta.N integration version."
+                exit 1
+                ;;
+            esac
+            if [ "${PRERELEASE}" != "true" ]; then
+              echo "BETA_RELEASE_LOCK requires prerelease=true."
+              exit 1
+            fi
+          fi
+
       - name: Verify generated frontend is committed
         run: |
           git diff --exit-code -- custom_components/ha_3d_dashboard/frontend
