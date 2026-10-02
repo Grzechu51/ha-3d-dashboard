@@ -87,6 +87,39 @@ The normal manual package remains:
 bun run ha:package
 ```
 
+## Offline release preflight
+
+Before spending GitHub Actions minutes, run the same package/metadata preflight locally:
+
+```bash
+bun install
+bun run ha:release:preflight
+```
+
+The preflight validates:
+
+- the HACS-required manifest keys,
+- `manifest.json` / `const.py` version agreement,
+- the one-integration `custom_components/` repository shape,
+- the release-oriented `hacs.json` settings,
+- both manual and HACS ZIP layouts,
+- brand/runtime files through the package builder,
+- SHA256 checksums for both release assets.
+
+It writes:
+
+```text
+dist/ha_3d_dashboard.zip
+dist/ha_3d_dashboard-v<version>.zip
+dist/SHA256SUMS
+```
+
+To verify an explicit release version:
+
+```bash
+python3 scripts/preflight-ha-release.py --version 0.3.0
+```
+
 ## Brand assets
 
 The integration ships local Home Assistant brand assets in:
@@ -149,14 +182,11 @@ being silently rewritten by CI.
 The workflow then:
 
 1. installs locked repository dependencies,
-2. validates release/HACS metadata,
-3. rebuilds the HA panel,
-4. builds `ha_3d_dashboard.zip` in HACS layout,
-5. verifies the generated frontend matches the committed frontend,
-6. builds the versioned manual-install ZIP,
-7. writes SHA256 checksums,
-8. checks that the release/tag does not already exist,
-9. creates a GitHub Release only when `dry-run=false`.
+2. runs the same offline release preflight with the requested version,
+3. rebuilds the HA panel and produces both ZIP layouts plus SHA256 checksums,
+4. verifies the generated frontend matches the committed frontend,
+5. checks that the release/tag does not already exist,
+6. creates a GitHub Release only when `dry-run=false`.
 
 No package is published by a push to `main`.
 
@@ -165,12 +195,13 @@ No package is published by a push to `main`.
 Before the first public HACS release:
 
 1. merge all release-readiness changes,
-2. decide whether the repository should become public,
-3. if public, set the repository description and topics,
-4. run **HACS Validate** manually,
-5. run **HA Release** once with `dry-run=true`,
-6. inspect the workflow result and package checksums,
-7. only then run **HA Release** with `dry-run=false`.
+2. run `bun run ha:release:preflight` locally,
+3. decide whether the repository should become public,
+4. if public, set the repository description and topics,
+5. run **HACS Validate** manually,
+6. run **HA Release** once with `dry-run=true`,
+7. inspect the workflow result and package checksums,
+8. only then run **HA Release** with `dry-run=false`.
 
 Do not create the first release before those checks have passed.
 
