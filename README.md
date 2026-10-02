@@ -66,10 +66,9 @@ archive root for HACS release installation. The repository includes `hacs.json`,
 local Home Assistant brand icons, an on-demand HACS validation workflow and a
 separate **HA Release** workflow with dry-run enabled by default.
 
-HACS only works with public GitHub repositories. The beta safeguards are now
-merged and the repository is ready to be made public for custom-repository beta
-testing. While `BETA_RELEASE_LOCK` exists, only prerelease HA releases are
-permitted.
+The repository is now public for custom-repository HACS beta testing. No stable
+HA release is permitted while `BETA_RELEASE_LOCK` exists; the first intended
+GitHub release remains `v0.3.0-beta.1` as a prerelease.
 
 See [HACS and GitHub Release](docs/ha3d/hacs-release.md) for the publication
 checklist and release procedure.
