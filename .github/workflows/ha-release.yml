@@ -83,7 +83,14 @@ jobs:
             PRERELEASE_FLAG="--prerelease"
           fi
 
-          gh release create "${TAG}"             --target "${RELEASE_SHA}"             --title "HA 3D Dashboard v${VERSION}"             --generate-notes             ${PRERELEASE_FLAG}             dist/ha_3d_dashboard.zip             "dist/ha_3d_dashboard-v${VERSION}.zip"             dist/SHA256SUMS
+          gh release create "${TAG}" \
+            --target "${RELEASE_SHA}" \
+            --title "HA 3D Dashboard v${VERSION}" \
+            --generate-notes \
+            ${PRERELEASE_FLAG} \
+            dist/ha_3d_dashboard.zip \
+            "dist/ha_3d_dashboard-v${VERSION}.zip" \
+            dist/SHA256SUMS
 
       - name: Dry-run summary
         if: inputs.dry-run == true
