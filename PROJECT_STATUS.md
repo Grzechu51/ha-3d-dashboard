@@ -29,7 +29,7 @@ offline release preflight and public-beta safeguards are complete.
 
 The active checkpoint is:
 
-`v0.3.0-beta.2 published -> HACS update -> panel smoke test`
+`v0.3.0-beta.3 browser-runtime fix -> HACS update -> panel smoke test`
 
 ## Completed
 
@@ -159,9 +159,15 @@ custom panel, while the HA 3D web component did not provide equivalent host
 sizing itself. The fix removes that opt-out and gives the web component an explicit
 full-viewport block host. PR #19 passed CI, was merged to `main`, and
 `v0.3.0-beta.2` was published from commit `04fd7a6e` after a successful
-release dry-run. The next gate is updating the test Home Assistant instance
-through HACS to exactly `v0.3.0-beta.2`, restarting Home Assistant and
-retesting the **HA 3D** panel.
+release dry-run. Updating the test instance to beta.2 confirmed that the panel
+module itself loads with HTTP 200, but browser execution stops before custom
+element registration with `ReferenceError: process is not defined`.
+
+Inspection of the generated browser bundle found 33 `process.env` references
+from bundled Pascal/Next-compatible dependencies (including
+`NEXT_PUBLIC_ASSETS_CDN_URL` and `NEXT_PUBLIC_SUPABASE_URL`). The HA panel
+build now prepends a minimal browser `process.env` compatibility shim before
+the bundle executes. The fix target is `v0.3.0-beta.3`.
 
 ## Next checkpoints
 
@@ -206,7 +212,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.1 backend install passed, panel-host fix pending**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.1 backend install passed, beta.2 exposed browser process.env dependency, beta.3 fix pending**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
