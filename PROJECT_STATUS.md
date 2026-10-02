@@ -120,11 +120,14 @@ Release tooling was completed in **PR #15**.
 
 Brand/release hardening was completed in **PR #16**.
 
-The current work moves release verification out of GitHub Actions where possible:
-one offline preflight validates the HACS-required repository metadata, source
-version agreement, repository shape, both package layouts, brand/runtime assets
-and SHA256 checksums. The manual **HA Release** workflow reuses the same preflight
-instead of maintaining separate validation logic.
+The shared offline release preflight was completed in **PR #17**. It validates
+HACS-required repository metadata, source version agreement, repository shape,
+both package layouts, brand/runtime assets and SHA256 checksums, and is reused by
+the manual **HA Release** workflow.
+
+The current work hardens the public-beta boundary: mixed licensing, release
+notices, prerelease versioning and `BETA_RELEASE_LOCK` before the repository is
+made public for custom-HACS testing.
 
 The repository owner has approved a public test phase, but publication is
 gated behind explicit beta safeguards. The HA-specific code is separated from
