@@ -35,8 +35,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--version",
-        required=True,
-        help="Version expected in manifest.json and const.py.",
+        help="Expected version. Defaults to the version already declared in source.",
     )
     parser.add_argument(
         "--skip-frontend-build",
@@ -166,13 +165,12 @@ def write_checksums(paths: tuple[Path, ...]) -> Path:
 
 def main() -> int:
     args = parse_args()
-    requested = args.version.strip()
-
     try:
+        actual = source_version()
+        requested = args.version.strip() if args.version is not None else actual
         if not SEMVER_RE.fullmatch(requested):
             fail(f"Requested version is invalid: {requested!r}")
 
-        actual = source_version()
         if actual != requested:
             fail(
                 f"Requested version {requested!r} does not match source version {actual!r}"
