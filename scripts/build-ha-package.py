@@ -143,6 +143,8 @@ def package_files() -> list[Path]:
         COMPONENT_DIR / "config_flow.py",
         COMPONENT_DIR / "const.py",
         COMPONENT_DIR / "manifest.json",
+        COMPONENT_DIR / "LICENSE.txt",
+        COMPONENT_DIR / "THIRD_PARTY_NOTICES.txt",
         COMPONENT_DIR / "project_model.py",
         COMPONENT_DIR / "storage.py",
         COMPONENT_DIR / "strings.json",
@@ -225,6 +227,9 @@ def verify_archive(output: Path, files: list[Path], version: str, layout: str) -
                 )
             if "brand/icon.png" not in actual_names:
                 raise RuntimeError("HACS ZIP is missing brand/icon.png")
+            for notice in ("LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
+                if notice not in actual_names:
+                    raise RuntimeError(f"HACS ZIP is missing {notice}")
 
 
 def sha256(path: Path) -> str:

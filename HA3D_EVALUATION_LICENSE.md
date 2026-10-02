@@ -1,0 +1,54 @@
+# HA 3D Dashboard Beta Evaluation License 1.0
+
+Copyright (c) 2026 HA 3D Dashboard contributors. All rights reserved in the
+HA 3D Dashboard-specific material to the extent copyright applies.
+
+This license applies only to HA 3D Dashboard-specific code and assets identified
+by the repository licensing notice. It does not replace or restrict the rights
+granted by the licenses of Pascal Editor or any other third-party material.
+
+## Permission for beta evaluation
+
+Subject to these terms, you may download, install, execute and internally
+evaluate the HA 3D Dashboard-specific material solely for personal or internal,
+non-production beta testing. You may make copies strictly necessary for that
+evaluation and for backup, and you may make local modifications solely for the
+same evaluation purpose.
+
+## No redistribution or production grant
+
+Except with prior written permission from the applicable rights holder, this
+license does not grant permission to:
+
+- redistribute, publish, mirror, sublicense, sell, rent, lease or transfer the
+  HA 3D Dashboard-specific material or modified versions of it;
+- use the HA 3D Dashboard-specific material in a production deployment or as
+  part of a commercial product or paid service;
+- provide a hosted, managed or software-as-a-service offering based on it;
+- remove or obscure copyright, license or attribution notices; or
+- use project names, logos or marks to imply endorsement.
+
+Public availability on GitHub is not a technical copy-prevention mechanism.
+Rights that GitHub independently grants through its platform terms, including
+viewing and forking through GitHub functionality, are not revoked by this
+license. No additional redistribution, commercial-use or production-use rights
+are granted by this license.
+
+## Third-party software
+
+Pascal Editor-derived code remains available under the upstream MIT license in
+`LICENSES/PASCAL-MIT.txt`. Other third-party components remain governed by
+their own notices and licenses. Nothing in this license limits rights you already
+have under those third-party licenses.
+
+## No warranty
+
+THE HA 3D DASHBOARD BETA MATERIAL IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+A PARTICULAR PURPOSE AND NON-INFRINGEMENT. USE THE BETA ONLY ON TEST OR
+NON-CRITICAL SYSTEMS AND KEEP BACKUPS.
+
+## Termination
+
+The permissions granted by this license terminate automatically upon material
+breach. Rights under applicable third-party licenses are unaffected.

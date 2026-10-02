@@ -1,21 +1,32 @@
-MIT License
+HA 3D Dashboard repository licensing notice
 
-Copyright (c) 2026 Pascal Group Inc.
+This repository is a mixed-license project and is not licensed as a whole under
+the MIT License.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. Pascal Editor-derived code
+   Upstream Pascal Editor code and the reusable Pascal packages remain under the
+   MIT License. The preserved upstream license is in:
+   LICENSES/PASCAL-MIT.txt
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. HA 3D Dashboard-specific beta code
+   The following project-specific areas are made available under the
+   HA 3D Dashboard Beta Evaluation License 1.0:
+   - custom_components/ha_3d_dashboard/
+   - apps/editor/ha-panel/
+   - apps/editor/lib/ha3d/
+   - apps/editor/components/ha3d/
+   - docs/ha3d/
+   - HA-specific release/package tooling and metadata
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+   See:
+   HA3D_EVALUATION_LICENSE.md
+
+3. Mixed or third-party files
+   Files that retain an upstream or third-party license notice remain governed
+   by that notice. Small HA integration hooks made directly in upstream Pascal
+   files remain under the upstream file/repository license unless a more
+   specific notice says otherwise.
+
+The public beta license is intended to permit testing without granting general
+redistribution, production deployment, commercial exploitation or hosted-service
+rights for the HA 3D Dashboard-specific layer.

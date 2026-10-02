@@ -7,11 +7,16 @@ The target is an installable Home Assistant custom integration with a **3D Home*
 panel where the user can build/edit a house, bind Home Assistant entities directly
 to 3D objects, visualize live states and control the home from the model.
 
-> **Development status:** active. The native Home Assistant project shell,
-> project management, Home Assistant Floors/Areas/Devices/Entities mapping,
-> repeatable manual packaging and HACS/GitHub Release tooling are implemented and
-> merged. The remaining release blocker is external repository publication:
-> HACS cannot use this repository while it remains private.
+> **Public beta status:** the first intended test release is
+> `0.3.0-beta.1`. While `BETA_RELEASE_LOCK` exists, HA releases must use a
+> beta version and the GitHub Release must be marked as a prerelease. This is
+> not a stable or production release.
+>
+> **Licensing:** Pascal Editor-derived code remains under its upstream MIT
+> license. HA 3D Dashboard-specific code is source-available for evaluation and
+> testing under [HA3D_EVALUATION_LICENSE.md](HA3D_EVALUATION_LICENSE.md).
+> Redistribution, resale, production/commercial deployment and hosted-service
+> use are not granted by that license.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
@@ -61,9 +66,10 @@ archive root for HACS release installation. The repository includes `hacs.json`,
 local Home Assistant brand icons, an on-demand HACS validation workflow and a
 separate **HA Release** workflow with dry-run enabled by default.
 
-HACS only works with public GitHub repositories. This repository is currently
-private, so manual installation remains the usable distribution path until the
-repository owner explicitly decides to publish it.
+HACS only works with public GitHub repositories. This repository remains
+private until the beta safeguards are merged. After that it may be made public
+for custom-repository beta testing; while `BETA_RELEASE_LOCK` exists, only
+prerelease HA releases are permitted.
 
 See [HACS and GitHub Release](docs/ha3d/hacs-release.md) for the publication
 checklist and release procedure.
@@ -76,7 +82,8 @@ bun run ha:release:preflight
 ```
 
 This produces both install ZIP layouts and `dist/SHA256SUMS` using the same
-preflight consumed by the manual **HA Release** workflow.
+preflight consumed by the manual **HA Release** workflow. The preflight also
+enforces the beta release lock while `BETA_RELEASE_LOCK` is present.
 
 ## Upstream foundation: Pascal Editor
 
@@ -84,7 +91,8 @@ Pascal Editor is an open-source, local-first 3D building editor built with React
 Three Fiber and WebGPU. The original editor can run in the browser or from the CLI
 and supports MCP/agent workflows.
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![HA 3D beta license](https://img.shields.io/badge/HA%203D-beta%20evaluation-orange.svg)](HA3D_EVALUATION_LICENSE.md)
+[![Pascal foundation](https://img.shields.io/badge/Pascal%20foundation-MIT-blue.svg)](LICENSES/PASCAL-MIT.txt)
 [![npm @pascal-app/core](https://img.shields.io/npm/v/@pascal-app/core?label=%40pascal-app%2Fcore)](https://www.npmjs.com/package/@pascal-app/core)
 [![npm @pascal-app/viewer](https://img.shields.io/npm/v/@pascal-app/viewer?label=%40pascal-app%2Fviewer)](https://www.npmjs.com/package/@pascal-app/viewer)
 [![npm @pascal-app/cli](https://img.shields.io/npm/v/@pascal-app/cli?label=%40pascal-app%2Fcli)](https://www.npmjs.com/package/@pascal-app/cli)
