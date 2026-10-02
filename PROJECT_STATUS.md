@@ -29,7 +29,7 @@ offline release preflight and public-beta safeguards are complete.
 
 The active checkpoint is:
 
-`v0.3.0-beta.2 panel-host fix -> HACS update -> panel smoke test`
+`v0.3.0-beta.2 published -> HACS update -> panel smoke test`
 
 ## Completed
 
@@ -156,8 +156,12 @@ Inspection against the current Home Assistant frontend found a host-contract
 mismatch: the integration registered `handle_safe_area=True`, which tells
 Home Assistant not to apply its normal block/sizing wrapper for a non-iframe
 custom panel, while the HA 3D web component did not provide equivalent host
-sizing itself. The current fix removes that opt-out and gives the web component
-an explicit full-viewport block host. The fix target is `v0.3.0-beta.2`.
+sizing itself. The fix removes that opt-out and gives the web component an explicit
+full-viewport block host. PR #19 passed CI, was merged to `main`, and
+`v0.3.0-beta.2` was published from commit `04fd7a6e` after a successful
+release dry-run. The next gate is updating the test Home Assistant instance
+through HACS to exactly `v0.3.0-beta.2`, restarting Home Assistant and
+retesting the **HA 3D** panel.
 
 ## Next checkpoints
 
