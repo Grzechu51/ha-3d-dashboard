@@ -74,7 +74,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         },
         require_admin=False,
         config_panel_domain=DOMAIN,
-        handle_safe_area=True,
     )
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
