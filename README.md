@@ -68,6 +68,16 @@ repository owner explicitly decides to publish it.
 See [HACS and GitHub Release](docs/ha3d/hacs-release.md) for the publication
 checklist and release procedure.
 
+Before opening a release PR or spending Actions minutes, run the complete
+metadata/package preflight locally:
+
+```bash
+bun run ha:release:preflight
+```
+
+This produces both install ZIP layouts and `dist/SHA256SUMS` using the same
+preflight consumed by the manual **HA Release** workflow.
+
 ## Upstream foundation: Pascal Editor
 
 Pascal Editor is an open-source, local-first 3D building editor built with React
