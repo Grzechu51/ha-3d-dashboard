@@ -94,10 +94,17 @@ The integration ships local Home Assistant brand assets in:
 ```text
 custom_components/ha_3d_dashboard/brand/
 ├── icon.png
-└── dark_icon.png
+├── dark_icon.png
+├── icon@2x.png
+└── dark_icon@2x.png
 ```
 
-They are part of both package layouts.
+The normal icons are 256×256 px and the hDPI variants are 512×512 px. The
+package builder validates these dimensions before producing either ZIP layout.
+
+Home Assistant 2026.3+ supports local brand assets directly from the custom
+integration, so a separate brand-repository contribution is not required for the
+integration UI itself.
 
 ## HACS validation
 

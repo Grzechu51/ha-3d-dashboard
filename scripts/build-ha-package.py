@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import zipfile
@@ -24,6 +25,13 @@ EXCLUDED_PARTS = {"tests", "__pycache__"}
 EXCLUDED_SUFFIXES = {".pyc", ".pyo"}
 LAYOUT_MANUAL = "manual"
 LAYOUT_HACS = "hacs"
+
+BRAND_DIMENSIONS = {
+    "brand/icon.png": (256, 256),
+    "brand/dark_icon.png": (256, 256),
+    "brand/icon@2x.png": (512, 512),
+    "brand/dark_icon@2x.png": (512, 512),
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -92,6 +100,26 @@ def build_frontend() -> None:
     )
 
 
+def png_dimensions(path: Path) -> tuple[int, int]:
+    data = path.read_bytes()
+    if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+        raise RuntimeError(f"Brand asset is not a valid PNG: {path.relative_to(REPO_ROOT)}")
+    return struct.unpack(">II", data[16:24])
+
+
+def validate_brand_assets() -> None:
+    for relative, expected in BRAND_DIMENSIONS.items():
+        path = COMPONENT_DIR / relative
+        if not path.exists():
+            raise RuntimeError(f"Required brand asset is missing: {path.relative_to(REPO_ROOT)}")
+        actual = png_dimensions(path)
+        if actual != expected:
+            raise RuntimeError(
+                f"Brand asset {path.relative_to(REPO_ROOT)} must be "
+                f"{expected[0]}x{expected[1]} px, got {actual[0]}x{actual[1]}"
+            )
+
+
 def package_files() -> list[Path]:
     files: list[Path] = []
     for path in COMPONENT_DIR.rglob("*"):
@@ -109,6 +137,9 @@ def package_files() -> list[Path]:
     required = {
         COMPONENT_DIR / "__init__.py",
         COMPONENT_DIR / "brand/icon.png",
+        COMPONENT_DIR / "brand/dark_icon.png",
+        COMPONENT_DIR / "brand/icon@2x.png",
+        COMPONENT_DIR / "brand/dark_icon@2x.png",
         COMPONENT_DIR / "config_flow.py",
         COMPONENT_DIR / "const.py",
         COMPONENT_DIR / "manifest.json",
@@ -135,6 +166,7 @@ def package_files() -> list[Path]:
                 f"Generated frontend bundle looks invalid: {frontend_file.relative_to(REPO_ROOT)}"
             )
 
+    validate_brand_assets()
     return files
 
 
