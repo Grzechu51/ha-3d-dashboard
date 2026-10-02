@@ -8,10 +8,10 @@ panel where the user can build/edit a house, bind Home Assistant entities direct
 to 3D objects, visualize live states and control the home from the model.
 
 > **Development status:** active. The native Home Assistant project shell,
-> project management, Home Assistant Floors/Areas/Devices/Entities mapping and
-> repeatable manual packaging are implemented and merged. The active checkpoint
-> is HACS/GitHub Release readiness. HACS itself cannot use this repository while
-> it remains private.
+> project management, Home Assistant Floors/Areas/Devices/Entities mapping,
+> repeatable manual packaging and HACS/GitHub Release tooling are implemented and
+> merged. The remaining release blocker is external repository publication:
+> HACS cannot use this repository while it remains private.
 >
 > See **[PROJECT_STATUS.md](PROJECT_STATUS.md)** for the exact current state,
 > completed checkpoints, architecture and next implementation steps.
