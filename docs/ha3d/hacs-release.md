@@ -1,8 +1,10 @@
 # HACS and GitHub Release
 
-HA 3D Dashboard is prepared for HACS-style releases, but HACS can only access
-**public GitHub repositories**. Keep using the manual ZIP while this repository
-is private.
+HA 3D Dashboard is prepared for HACS-style releases. HACS can only access
+**public GitHub repositories**, so the repository must be public for the beta
+test. The first intended HACS test release is `v0.3.0-beta.1`, published as a
+GitHub **prerelease**. This is a custom-repository beta test, not a HACS default
+listing or a stable production release.
 
 ## Repository prerequisites
 
@@ -20,8 +22,28 @@ Recommended repository metadata:
 - description: `Native 3D Home Assistant dashboard and editor based on Pascal`
 - topics: `home-assistant`, `hacs`, `3d-dashboard`, `smart-home`
 
-Do not change repository visibility just to test the integration. Manual
-installation remains supported for private development.
+Changing a repository to public makes its contents visible and forkable on
+GitHub. The beta evaluation license limits the rights granted for HA 3D
+Dashboard-specific code, but it is not a technical anti-copy mechanism.
+Upstream Pascal/third-party MIT code remains usable under its original license.
+
+Manual installation remains supported for private development and recovery.
+
+## Public beta guardrails
+
+The repository contains `BETA_RELEASE_LOCK`. While that file exists:
+
+- the integration source version must contain a `-beta.` prerelease suffix,
+- the **HA Release** workflow refuses `prerelease=false`,
+- the release preflight fails if a stable HA version is prepared,
+- release ZIPs must include `LICENSE.txt` and `THIRD_PARTY_NOTICES.txt`.
+
+Removing the lock is a separate production-readiness decision and should happen
+only after install/update, persistence and rollback tests have passed.
+
+The HA-specific source is covered by
+[`HA3D_EVALUATION_LICENSE.md`](../../HA3D_EVALUATION_LICENSE.md). Pascal
+Editor-derived and other third-party code keeps its original license terms.
 
 ## HACS repository layout
 
@@ -117,7 +139,7 @@ dist/SHA256SUMS
 To verify an explicit release version:
 
 ```bash
-python3 scripts/preflight-ha-release.py --version 0.3.0
+python3 scripts/preflight-ha-release.py --version 0.3.0-beta.1
 ```
 
 ## Brand assets
@@ -183,27 +205,30 @@ The workflow then:
 
 1. installs locked repository dependencies,
 2. runs the same offline release preflight with the requested version,
-3. rebuilds the HA panel and produces both ZIP layouts plus SHA256 checksums,
-4. verifies the generated frontend matches the committed frontend,
-5. checks that the release/tag does not already exist,
-6. creates a GitHub Release only when `dry-run=false`.
+3. enforces `BETA_RELEASE_LOCK` when present,
+4. rebuilds the HA panel and produces both ZIP layouts plus SHA256 checksums,
+5. verifies the generated frontend matches the committed frontend,
+6. checks that the release/tag does not already exist,
+7. creates a GitHub Release only when `dry-run=false`.
 
 No package is published by a push to `main`.
 
 ## First release procedure
 
-Before the first public HACS release:
+Before the first public HACS beta release:
 
-1. merge all release-readiness changes,
-2. run `bun run ha:release:preflight` locally,
-3. decide whether the repository should become public,
-4. if public, set the repository description and topics,
-5. run **HACS Validate** manually,
-6. run **HA Release** once with `dry-run=true`,
-7. inspect the workflow result and package checksums,
-8. only then run **HA Release** with `dry-run=false`.
+1. merge the public-beta safeguard PR and require green normal PR CI,
+2. verify `bun run ha:release:preflight` for `0.3.0-beta.1`,
+3. make the repository public and set its description/topics,
+4. run **HACS Validate** manually once,
+5. run **HA Release** with `version=0.3.0-beta.1`, `prerelease=true`,
+   `dry-run=true`,
+6. inspect the workflow result and package checksums,
+7. run **HA Release** again with the same version and `dry-run=false`,
+8. in HACS, enable prerelease/beta versions for this custom repository if
+   required, then install and test on a non-production Home Assistant instance.
 
-Do not create the first release before those checks have passed.
+Do not create a stable release while `BETA_RELEASE_LOCK` exists.
 
 ## Adding as a custom HACS repository
 
