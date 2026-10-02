@@ -140,8 +140,12 @@ repository is now **public** with the required GitHub description/topics.
 Public visibility is intended only for the custom-HACS beta test phase, not as
 a declaration that the whole repository is open source.
 
-No HA GitHub Release exists yet. The next gate is one manual **HACS Validate**
-run, followed by the guarded `v0.3.0-beta.1` release dry-run.
+No HA GitHub Release exists yet. The first manual **HACS Validate** run reached
+all repository checks and failed only the new HACS license validator because the
+mixed/source-available beta license is intentionally not an OSI-approved
+repository license. For custom-repository beta testing, the workflow now skips
+only that action-only license check; every other HACS check must pass before the
+guarded `v0.3.0-beta.1` release dry-run.
 
 ## Next checkpoints
 
