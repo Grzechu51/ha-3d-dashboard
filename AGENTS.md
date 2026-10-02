@@ -19,6 +19,12 @@ license during the public test phase.
   license.
 - Public visibility is for custom-HACS beta testing. Do not submit the project
   to HACS defaults or publish a stable release unless explicitly requested.
+- The manual `HACS Validate` workflow intentionally ignores only the `license`
+  validator during this beta. HACS' action-only license rule accepts only
+  OSI-approved repository licenses, which conflicts with the temporary HA 3D
+  evaluation license. Do not remove the evaluation license merely to make that
+  check green. A HACS-default submission would require a separate licensing
+  decision and a clean validation run with no ignores.
 - Do not treat public visibility as copy protection: public GitHub contents are
   viewable/forkable. The beta license is a legal usage restriction, not a
   technical DRM mechanism.
@@ -86,8 +92,8 @@ treat CI runs as deliberate checkpoints, not as an edit-by-edit feedback loop.
   duplicate post-merge CI unless the user explicitly asks for that tradeoff.
 - `HA Release` and `HACS Validate` are manual workflows. Do not run them as routine
   verification and never create a real HA GitHub Release unless the user explicitly approves it.
-- While this repository is private, HACS cannot consume it; do not spend Actions minutes retrying
-  HACS validation until repository visibility and required GitHub metadata are ready.
+- The repository is public for the custom-HACS beta. Do not re-run HACS
+  validation unless the workflow or relevant repository metadata changed.
 - Prefer the smallest verification that proves the current change. A full workflow is the final
   gate before merge, not the default validation after every file edit.
 
