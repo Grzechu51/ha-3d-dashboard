@@ -2,9 +2,10 @@
 
 HA 3D Dashboard is prepared for HACS-style releases. HACS can only access
 **public GitHub repositories**, so the repository must be public for the beta
-test. The first intended HACS test release is `v0.3.0-beta.1`, published as a
-GitHub **prerelease**. This is a custom-repository beta test, not a HACS default
-listing or a stable production release.
+test. `v0.3.0-beta.1` was published as the first HACS test prerelease and verified
+the install/backend/config-flow path. It exposed a blank native-panel host on
+Home Assistant 2026.9, so the current fix target is `v0.3.0-beta.2`. These are
+custom-repository beta tests, not HACS-default or stable production releases.
 
 ## Repository prerequisites
 
@@ -139,7 +140,7 @@ dist/SHA256SUMS
 To verify an explicit release version:
 
 ```bash
-python3 scripts/preflight-ha-release.py --version 0.3.0-beta.1
+python3 scripts/preflight-ha-release.py --version 0.3.0-beta.2
 ```
 
 ## Brand assets
