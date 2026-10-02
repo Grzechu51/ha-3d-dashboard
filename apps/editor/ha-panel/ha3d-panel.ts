@@ -15,11 +15,31 @@ export class Ha3dDashboardPanel extends HTMLElement {
   private readonly root: ShadowRoot
   private readonly reactHost: HTMLDivElement
   private readonly stylesheet: HTMLLinkElement
+  private readonly hostStyles: HTMLStyleElement
   private reactRoot: Root | null = null
 
   constructor() {
     super()
     this.root = this.attachShadow({ mode: 'open' })
+
+    this.hostStyles = document.createElement('style')
+    this.hostStyles.textContent = `
+      :host {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        box-sizing: border-box;
+      }
+
+      #ha3d-root {
+        width: 100%;
+        min-width: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+    `
 
     this.stylesheet = document.createElement('link')
     this.stylesheet.rel = 'stylesheet'
@@ -28,7 +48,7 @@ export class Ha3dDashboardPanel extends HTMLElement {
     this.reactHost = document.createElement('div')
     this.reactHost.id = 'ha3d-root'
 
-    this.root.append(this.stylesheet, this.reactHost)
+    this.root.append(this.hostStyles, this.stylesheet, this.reactHost)
   }
 
   set hass(value: NativeHomeAssistant) {
