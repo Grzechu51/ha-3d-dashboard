@@ -687,6 +687,15 @@ function NativeProject({
     snapshot.status === 'error' ||
     snapshot.status === 'conflict'
 
+  // Keep Editor callback identities stable. Editor's scene-load effect depends on
+  // onLoad; session.load() publishes snapshot updates that re-render this parent.
+  // An inline onLoad callback would therefore retrigger the load effect forever.
+  const loadScene = useCallback(() => session.load(), [session])
+  const saveScene = useCallback((scene: SceneGraph) => session.saveScene(scene), [session])
+  const handleLoaderChange = useCallback((visible: boolean) => {
+    setEditorReady(!visible)
+  }, [])
+
   const reloadEditor = useCallback(() => {
     onClearNavigationError()
     setStructureOpen(false)
@@ -733,9 +742,9 @@ function NativeProject({
           key={editorEpoch}
           layoutVersion="v2"
           manageDocumentDarkClass={false}
-          onLoad={() => session.load()}
-          onLoaderChange={(visible) => setEditorReady(!visible)}
-          onSave={(scene) => session.saveScene(scene)}
+          onLoad={loadScene}
+          onLoaderChange={handleLoaderChange}
+          onSave={saveScene}
           onSaveStatusChange={setSaveStatus}
           presentationPersistenceMode="external"
           projectId={metadata.id}
