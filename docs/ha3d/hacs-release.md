@@ -2,9 +2,10 @@
 
 HA 3D Dashboard is prepared for HACS-style releases. HACS can only access
 **public GitHub repositories**, so the repository must be public for the beta
-test. `v0.3.0-beta.1` was published as the first HACS test prerelease and verified
-the install/backend/config-flow path. It exposed a blank native-panel host on
-Home Assistant 2026.9, so the current fix target is `v0.3.0-beta.2`. These are
+test. `v0.3.0-beta.1` verified the install/backend/config-flow path. `v0.3.0-beta.2`
+fixed the panel host sizing but exposed a browser-runtime `process is not
+defined` crash. PR #20 is merged with an always-on browser `process.env`
+compatibility prelude; the next release target is `v0.3.0-beta.3`. These are
 custom-repository beta tests, not HACS-default or stable production releases.
 
 ## Repository prerequisites
