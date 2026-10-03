@@ -31,7 +31,7 @@ panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.3 panel + project create/open + browser-refresh persistence passed -> editor launch diagnosis`
+`v0.3.0-beta.4 editor error-boundary diagnostic -> identify invalid React component`
 
 ## Completed
 
@@ -176,11 +176,16 @@ project shell correctly instead of a blank panel. The real test instance has now
 refresh and is listed again at revision 1, confirming browser-refresh persistence
 through Home Assistant Store. The empty-scene project shell renders correctly.
 
-The remaining current blocker is editor launch: pressing **Build in editor**
-briefly enters the editor loading path, then the HA 3D custom panel is recreated
-and returns to the project picker. The next diagnostic gate is the browser
-console during that transition so the editor-runtime exception/remount cause can
-be isolated before another beta release.
+The remaining current blocker is editor launch. Browser diagnostics on
+`v0.3.0-beta.3` now identify React production error **#130** during editor
+mount: an element type is a plain object instead of a valid React component.
+The same transition also exposes missing Pascal editor icon assets under
+`/icons/*.webp`; those 404s are secondary and do not explain the React crash.
+
+The next diagnostic release is `v0.3.0-beta.4`: the HA shell wraps only the
+Pascal `Editor` subtree in a dedicated error boundary that keeps the custom
+panel mounted and renders/logs React's component stack. This should identify the
+specific invalid component without another blind runtime change.
 
 ## Next checkpoints
 
@@ -225,7 +230,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel/project create/open and browser-refresh persistence passed, editor launch currently fails back to project picker**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel/project/persistence passed, editor launch fails with React #130, beta.4 component-stack diagnostic pending**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
