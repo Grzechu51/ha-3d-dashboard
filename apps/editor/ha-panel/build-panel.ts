@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/postcss'
@@ -12,8 +12,6 @@ const tsconfig = resolve(here, 'tsconfig.build.json')
 const cssSource = resolve(here, '../app/globals.css')
 const cssOutput = resolve(outputDir, 'ha3d-panel.css')
 const jsOutput = resolve(outputDir, 'ha3d-panel.js')
-const iconsSource = resolve(here, '../public/icons')
-const iconsOutput = resolve(outputDir, 'icons')
 const browserProcessPrelude = `;var process = (globalThis.process ??= { env: {} });
 process.env ??= {};
 process.env.NODE_ENV ??= 'production';`
@@ -63,8 +61,6 @@ console.info(
   `[ha3d-panel] rewrote ${iconReferences} /icons/ reference(s) to /ha3d_static/icons/`,
 )
 
-await cp(iconsSource, iconsOutput, { recursive: true })
-console.info('[ha3d-panel] copied Pascal icon assets into /ha3d_static/icons/')
 
 const css = await readFile(cssSource, 'utf8')
 const tailwindPlugin = tailwindcss() as unknown as AcceptedPlugin
