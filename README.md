@@ -11,9 +11,11 @@ to 3D objects, visualize live states and control the home from the model.
 > `v0.3.0-beta.2` fixed the panel host sizing but exposed a browser-runtime
 > `process is not defined` crash in bundled Pascal/Next-compatible code.
 > PR #20 is merged with the browser compatibility fix and `v0.3.0-beta.3`
-> now renders the native HA 3D project shell correctly in a real Home Assistant
-> HACS install. Project creation/persistence validation is the next beta gate.
-> While `BETA_RELEASE_LOCK` exists, HA releases
+> renders the native HA 3D project shell correctly in a real Home Assistant
+> HACS install. Project creation and browser-refresh persistence are verified.
+> The next beta target is `v0.3.0-beta.4`, moving the HA embed from the legacy
+> Pascal v1 editor shell to the current v2 shell after a React #130 crash was
+> reproduced during **Build in editor**. While `BETA_RELEASE_LOCK` exists, HA releases
 > must use a beta version and the GitHub Release must be marked as a prerelease.
 > This is not a stable or production release.
 >
