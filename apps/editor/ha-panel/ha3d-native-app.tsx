@@ -9,7 +9,10 @@ import {
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
 import { OrbitControls } from '@react-three/drei'
 import {
+  Component,
+  type ErrorInfo,
   type FormEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -50,6 +53,49 @@ export type NativeHomeAssistant = HomeAssistantHassLike &
   }>
 
 type PanelMode = 'dashboard' | 'edit'
+
+class Ha3dEditorErrorBoundary extends Component<
+  Readonly<{ children: ReactNode }>,
+  Readonly<{ error: Error | null; componentStack: string }>
+> {
+  public state = { error: null as Error | null, componentStack: '' }
+
+  public static getDerivedStateFromError(error: Error) {
+    return { error, componentStack: '' }
+  }
+
+  public componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[ha3d] editor render failed', error, info)
+    this.setState({ componentStack: info.componentStack ?? '' })
+  }
+
+  public render() {
+    if (!this.state.error) return this.props.children
+
+    return (
+      <main className="dark flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+        <section className="w-full max-w-4xl rounded-2xl border border-destructive/50 bg-card p-5 shadow-2xl">
+          <h2 className="font-semibold text-lg">HA 3D editor failed to render</h2>
+          <p className="mt-2 text-muted-foreground text-sm">
+            The project is still stored in Home Assistant. This diagnostic screen keeps the panel mounted and shows the React component stack.
+          </p>
+          <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+            <div className="font-medium text-destructive text-xs">Error</div>
+            <pre className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap break-words text-xs">
+              {this.state.error.message}
+            </pre>
+          </div>
+          <div className="mt-4 rounded-lg border border-border bg-background/70 p-3">
+            <div className="font-medium text-xs">React component stack</div>
+            <pre className="mt-2 max-h-[45vh] overflow-auto whitespace-pre-wrap break-words text-muted-foreground text-xs">
+              {this.state.componentStack || '(component stack not available)'}
+            </pre>
+          </div>
+        </section>
+      </main>
+    )
+  }
+}
 
 type Ha3dNativeAppProps = Readonly<{
   hass: NativeHomeAssistant | null
@@ -637,17 +683,18 @@ function NativeProject({
 
   return (
     <main className="dark relative h-screen w-screen overflow-hidden bg-background text-foreground">
-      <Editor
-        key={editorEpoch}
-        layoutVersion="v1"
-        manageDocumentDarkClass={false}
-        onLoad={() => session.load()}
-        onLoaderChange={(visible) => setEditorReady(!visible)}
-        onSave={(scene) => session.saveScene(scene)}
-        onSaveStatusChange={setSaveStatus}
-        presentationPersistenceMode="external"
-        projectId={metadata.id}
-      />
+      <Ha3dEditorErrorBoundary key={editorEpoch}>
+        <Editor
+          layoutVersion="v1"
+          manageDocumentDarkClass={false}
+          onLoad={() => session.load()}
+          onLoaderChange={(visible) => setEditorReady(!visible)}
+          onSave={(scene) => session.saveScene(scene)}
+          onSaveStatusChange={setSaveStatus}
+          presentationPersistenceMode="external"
+          projectId={metadata.id}
+        />
+      </Ha3dEditorErrorBoundary>
 
       <div className="pointer-events-none absolute top-3 right-3 z-[90] flex max-w-[calc(100%-1.5rem)] items-center gap-2">
         <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-border/70 bg-background/92 px-3 py-2 text-xs shadow-xl backdrop-blur">
