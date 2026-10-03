@@ -57,10 +57,7 @@ await writeFile(jsOutput, `${browserProcessPrelude}\n${browserBundleForHa}`)
 console.info(
   `[ha3d-panel] injected browser process.env shim; bundle contains ${processEnvReferences} process.env reference(s)`,
 )
-console.info(
-  `[ha3d-panel] rewrote ${iconReferences} /icons/ reference(s) to /ha3d_static/icons/`,
-)
-
+console.info(`[ha3d-panel] rewrote ${iconReferences} /icons/ reference(s) to /ha3d_static/icons/`)
 
 const css = await readFile(cssSource, 'utf8')
 const tailwindPlugin = tailwindcss() as unknown as AcceptedPlugin
