@@ -31,7 +31,7 @@ panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.4 v2 editor shell -> HACS update -> editor smoke test`
+`v0.3.0-beta.5 portable image/assets fix -> HACS editor retest`
 
 ## Completed
 
@@ -182,11 +182,23 @@ as a component) from the legacy Pascal `layoutVersion="v1"` shell. The same
 repository's current standalone editor uses `layoutVersion="v2"`, while the HA
 embed was still pinned to the older v1 path.
 
-The beta.4 fix moves the HA embed onto the current v2 editor shell with native
-Scene/Settings tabs. It also wraps the Pascal editor in an HA-local render error
-boundary so any remaining editor exception stays visible inside the HA panel
-with its React component stack instead of tearing down the custom panel and
-silently returning to the project picker.
+The beta.4 fix moved the HA embed onto the current v2 editor shell with native
+Scene/Settings tabs and kept an HA-local render error boundary. The real HA
+retest still failed with React production error #130. The captured component
+stack and direct inspection of the emitted bundle now isolate the first invalid
+element to `ControlModes` inside `ActionMenu`: the standalone HA bundle is
+trying to render the `next/image` module object as a React component.
+
+The same beta.4 retest exposed Pascal public assets such as
+`/icons/settings.webp`, `/icons/level.webp`, `/icons/site-flag.webp` and
+`/icons/building.webp` as 404 because the Next app public directory is not part
+of the HACS integration package.
+
+The beta.5 fix replaces the always-mounted ActionMenu `next/image` usages with
+browser-native `<img>`, rewrites emitted `/icons/` references to
+`/ha3d_static/icons/`, and adds Pascal icon assets to both HACS and manual
+release ZIPs without duplicating them in the committed integration source tree.
+The editor error boundary remains active for the next real HA smoke test.
 
 ## Next checkpoints
 
@@ -231,7 +243,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel/project persistence passed, beta.4 moves the HA embed to the current v2 editor shell and adds an in-panel crash boundary**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.4 isolated next/image + missing public assets, beta.5 fix pending**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
