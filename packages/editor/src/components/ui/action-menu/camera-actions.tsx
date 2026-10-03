@@ -1,7 +1,6 @@
 'use client'
 
 import { emitter } from '@pascal-app/core'
-import Image from 'next/image'
 import useEditor from '../../../store/use-editor'
 import { ActionButton } from './action-button'
 
@@ -34,7 +33,8 @@ export function CameraActions({ hideOrbit = false }: { hideOrbit?: boolean }) {
             size="icon"
             variant="ghost"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
               alt="Orbit Left"
               className="h-[28px] w-[28px] -scale-x-100 object-contain opacity-70 transition-opacity group-hover:opacity-100"
               height={28}
@@ -51,7 +51,8 @@ export function CameraActions({ hideOrbit = false }: { hideOrbit?: boolean }) {
             size="icon"
             variant="ghost"
           >
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               alt="Orbit Right"
               className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
               height={28}
@@ -71,7 +72,8 @@ export function CameraActions({ hideOrbit = false }: { hideOrbit?: boolean }) {
           size="icon"
           variant="ghost"
         >
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
             alt="Top View"
             className="h-[28px] w-[28px] object-contain opacity-70 transition-opacity group-hover:opacity-100"
             height={28}
