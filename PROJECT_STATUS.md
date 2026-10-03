@@ -31,7 +31,7 @@ panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.3 release -> HACS update -> panel smoke test`
+`v0.3.0-beta.3 panel smoke passed -> project create/open -> persistence test`
 
 ## Completed
 
@@ -169,7 +169,10 @@ Inspection of the generated browser bundle found 33 `process.env` references
 from bundled Pascal/Next-compatible dependencies (including
 `NEXT_PUBLIC_ASSETS_CDN_URL` and `NEXT_PUBLIC_SUPABASE_URL`). The HA panel
 build now prepends a minimal browser `process.env` compatibility shim before
-the bundle executes. The fix target is `v0.3.0-beta.3`.
+the bundle executes. `v0.3.0-beta.3` was published and installed through HACS;
+the real Home Assistant smoke test now renders the native **HA 3D Dashboard**
+project shell correctly instead of a blank panel. The next gate is project
+create/open plus persistence across refresh/restart.
 
 ## Next checkpoints
 
@@ -214,7 +217,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.1 backend install passed, beta.2 exposed browser process.env dependency, beta.3 fix pending**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel smoke passed, project/persistence validation next**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
