@@ -7,9 +7,11 @@ The target is an installable Home Assistant custom integration with a **3D Home*
 panel where the user can build/edit a house, bind Home Assistant entities directly
 to 3D objects, visualize live states and control the home from the model.
 
-> **Public beta status:** `v0.3.0-beta.1` proved the HACS/backend install path,
-> but exposed a blank native-panel host on Home Assistant 2026.9. The current
-> fix target is `0.3.0-beta.2`. While `BETA_RELEASE_LOCK` exists, HA releases
+> **Public beta status:** `v0.3.0-beta.1` proved the HACS/backend install path.
+> `v0.3.0-beta.2` fixed the panel host sizing but exposed a browser-runtime
+> `process is not defined` crash in bundled Pascal/Next-compatible code.
+> PR #20 is now merged with the browser compatibility fix and the next release
+> target is `0.3.0-beta.3`. While `BETA_RELEASE_LOCK` exists, HA releases
 > must use a beta version and the GitHub Release must be marked as a prerelease.
 > This is not a stable or production release.
 >
