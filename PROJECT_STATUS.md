@@ -31,7 +31,7 @@ panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.3 panel smoke passed -> project create/open -> persistence test`
+`v0.3.0-beta.3 panel + project create/open passed -> refresh/restart persistence -> editor smoke test`
 
 ## Completed
 
@@ -171,8 +171,12 @@ from bundled Pascal/Next-compatible dependencies (including
 build now prepends a minimal browser `process.env` compatibility shim before
 the bundle executes. `v0.3.0-beta.3` was published and installed through HACS;
 the real Home Assistant smoke test now renders the native **HA 3D Dashboard**
-project shell correctly instead of a blank panel. The next gate is project
-create/open plus persistence across refresh/restart.
+project shell correctly instead of a blank panel. The real test instance has now also created and opened the first project
+(`My home`) through the native HA project flow. The project shell renders the
+expected empty-scene state and offers **Build in editor**, confirming that the
+project create/open WebSocket path is working. The next gate is persistence
+across refresh/restart, followed by opening the editor and creating the first
+scene.
 
 ## Next checkpoints
 
@@ -217,7 +221,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel smoke passed, project/persistence validation next**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel and project create/open passed, refresh/restart persistence and editor smoke next**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
