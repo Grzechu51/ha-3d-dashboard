@@ -4,12 +4,17 @@ import {
   Editor,
   type SaveStatus,
   type SceneGraph,
+  type SidebarTab,
   useScene,
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
 import { OrbitControls } from '@react-three/drei'
 import {
+  Component,
+  type ComponentType,
+  type ErrorInfo,
   type FormEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -55,6 +60,86 @@ type Ha3dNativeAppProps = Readonly<{
   hass: NativeHomeAssistant | null
   narrow: boolean
 }>
+
+const EmptyEditorSidebarPanel = () => null
+
+const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
+  {
+    id: 'site',
+    label: 'Scene',
+    component: EmptyEditorSidebarPanel,
+    mobileDefaultSnap: 0.5,
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    component: EmptyEditorSidebarPanel,
+    mobileDefaultSnap: 0.5,
+  },
+]
+
+type EditorCrashBoundaryProps = Readonly<{
+  children: ReactNode
+  onProjects: () => void
+  onRetry: () => void
+}>
+
+type EditorCrashBoundaryState = Readonly<{
+  error: Error | null
+  componentStack: string
+}>
+
+class EditorCrashBoundary extends Component<EditorCrashBoundaryProps, EditorCrashBoundaryState> {
+  state: EditorCrashBoundaryState = {
+    error: null,
+    componentStack: '',
+  }
+
+  static getDerivedStateFromError(error: unknown): Partial<EditorCrashBoundaryState> {
+    return {
+      error: error instanceof Error ? error : new Error(String(error)),
+    }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.error('[ha3d] Pascal editor render failed', error, info.componentStack)
+    this.setState({ componentStack: info.componentStack ?? '' })
+  }
+
+  render() {
+    if (!this.state.error) return this.props.children
+
+    return (
+      <div className="absolute inset-0 z-[120] flex items-center justify-center bg-background p-6 text-foreground">
+        <div className="w-full max-w-2xl rounded-xl border border-destructive/50 bg-card p-5 shadow-2xl">
+          <h2 className="font-semibold text-lg">3D editor failed to render</h2>
+          <p className="mt-2 text-destructive text-sm">{this.state.error.message}</p>
+          {this.state.componentStack ? (
+            <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-background/70 p-3 text-[11px] text-muted-foreground">
+              {this.state.componentStack}
+            </pre>
+          ) : null}
+          <div className="mt-4 flex gap-2">
+            <button
+              className="rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground text-sm"
+              onClick={this.props.onRetry}
+              type="button"
+            >
+              Retry editor
+            </button>
+            <button
+              className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-accent"
+              onClick={this.props.onProjects}
+              type="button"
+            >
+              Projects
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+}
 
 function projectErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message
@@ -637,17 +722,26 @@ function NativeProject({
 
   return (
     <main className="dark relative h-screen w-screen overflow-hidden bg-background text-foreground">
-      <Editor
-        key={editorEpoch}
-        layoutVersion="v1"
-        manageDocumentDarkClass={false}
-        onLoad={() => session.load()}
-        onLoaderChange={(visible) => setEditorReady(!visible)}
-        onSave={(scene) => session.saveScene(scene)}
-        onSaveStatusChange={setSaveStatus}
-        presentationPersistenceMode="external"
-        projectId={metadata.id}
-      />
+      <EditorCrashBoundary
+        key={`editor-boundary:${editorEpoch}`}
+        onProjects={() => {
+          void onProjects()
+        }}
+        onRetry={reloadEditor}
+      >
+        <Editor
+          key={editorEpoch}
+          layoutVersion="v2"
+          manageDocumentDarkClass={false}
+          onLoad={() => session.load()}
+          onLoaderChange={(visible) => setEditorReady(!visible)}
+          onSave={(scene) => session.saveScene(scene)}
+          onSaveStatusChange={setSaveStatus}
+          presentationPersistenceMode="external"
+          projectId={metadata.id}
+          sidebarTabs={HA_EDITOR_SIDEBAR_TABS}
+        />
+      </EditorCrashBoundary>
 
       <div className="pointer-events-none absolute top-3 right-3 z-[90] flex max-w-[calc(100%-1.5rem)] items-center gap-2">
         <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-border/70 bg-background/92 px-3 py-2 text-xs shadow-xl backdrop-blur">
