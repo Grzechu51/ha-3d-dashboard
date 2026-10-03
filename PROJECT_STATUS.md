@@ -31,7 +31,7 @@ panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.3 panel + project create/open + browser-refresh persistence passed -> editor launch diagnosis`
+`v0.3.0-beta.4 v2 editor shell -> HACS update -> editor smoke test`
 
 ## Completed
 
@@ -176,11 +176,17 @@ project shell correctly instead of a blank panel. The real test instance has now
 refresh and is listed again at revision 1, confirming browser-refresh persistence
 through Home Assistant Store. The empty-scene project shell renders correctly.
 
-The remaining current blocker is editor launch: pressing **Build in editor**
-briefly enters the editor loading path, then the HA 3D custom panel is recreated
-and returns to the project picker. The next diagnostic gate is the browser
-console during that transition so the editor-runtime exception/remount cause can
-be isolated before another beta release.
+The beta.3 editor-launch diagnostic is now isolated: pressing **Build in editor**
+throws React production error #130 (invalid element type: an object was rendered
+as a component) from the legacy Pascal `layoutVersion="v1"` shell. The same
+repository's current standalone editor uses `layoutVersion="v2"`, while the HA
+embed was still pinned to the older v1 path.
+
+The beta.4 fix moves the HA embed onto the current v2 editor shell with native
+Scene/Settings tabs. It also wraps the Pascal editor in an HA-local render error
+boundary so any remaining editor exception stays visible inside the HA panel
+with its React component stack instead of tearing down the custom panel and
+silently returning to the project picker.
 
 ## Next checkpoints
 
@@ -225,7 +231,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel/project create/open and browser-refresh persistence passed, editor launch currently fails back to project picker**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel/project persistence passed, beta.4 moves the HA embed to the current v2 editor shell and adds an in-panel crash boundary**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
