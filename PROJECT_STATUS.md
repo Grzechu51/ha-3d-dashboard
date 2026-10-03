@@ -20,16 +20,18 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: release readiness**
 
-Status: **PR #18 merged; public-beta safeguards complete**
+Status: **PR #20 merged; browser-runtime fix ready for beta.3 release**
 
-PR #8 through PR #18 are merged to `main`. The native project shell,
+PR #8 through PR #20 are merged to `main`. The native project shell,
 project management, Home Assistant structure mapping, GitHub Actions cost
 controls, manual/HACS packaging, release tooling, brand hardening, shared
-offline release preflight and public-beta safeguards are complete.
+offline release preflight and public-beta safeguards are complete. The latest
+runtime fix prepends a browser-safe `process.env` shim to the generated HA
+panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.3 browser-runtime fix -> HACS update -> panel smoke test`
+`v0.3.0-beta.3 release -> HACS update -> panel smoke test`
 
 ## Completed
 
