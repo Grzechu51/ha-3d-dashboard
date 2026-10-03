@@ -31,7 +31,7 @@ panel bundle before bundled dependencies execute.
 
 The active checkpoint is:
 
-`v0.3.0-beta.3 panel + project create/open passed -> refresh/restart persistence -> editor smoke test`
+`v0.3.0-beta.3 panel + project create/open + browser-refresh persistence passed -> editor launch diagnosis`
 
 ## Completed
 
@@ -172,11 +172,15 @@ build now prepends a minimal browser `process.env` compatibility shim before
 the bundle executes. `v0.3.0-beta.3` was published and installed through HACS;
 the real Home Assistant smoke test now renders the native **HA 3D Dashboard**
 project shell correctly instead of a blank panel. The real test instance has now also created and opened the first project
-(`My home`) through the native HA project flow. The project shell renders the
-expected empty-scene state and offers **Build in editor**, confirming that the
-project create/open WebSocket path is working. The next gate is persistence
-across refresh/restart, followed by opening the editor and creating the first
-scene.
+(`My home`) through the native HA project flow. The project survives a browser
+refresh and is listed again at revision 1, confirming browser-refresh persistence
+through Home Assistant Store. The empty-scene project shell renders correctly.
+
+The remaining current blocker is editor launch: pressing **Build in editor**
+briefly enters the editor loading path, then the HA 3D custom panel is recreated
+and returns to the project picker. The next diagnostic gate is the browser
+console during that transition so the editor-runtime exception/remount cause can
+be isolated before another beta release.
 
 ## Next checkpoints
 
@@ -221,7 +225,7 @@ Progress:
 6. public visibility — **completed**,
 7. HACS validation — **completed**,
 8. `v0.3.0-beta.1` release dry-run + prerelease — **completed**,
-9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel and project create/open passed, refresh/restart persistence and editor smoke next**,
+9. production-like install/update validation on a test Home Assistant instance — **in progress; beta.3 panel/project create/open and browser-refresh persistence passed, editor launch currently fails back to project picker**,
 10. mobile/tablet performance profiles,
 11. optional Lovelace 3D view card.
 
