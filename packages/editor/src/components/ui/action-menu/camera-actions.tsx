@@ -34,7 +34,7 @@ export function CameraActions({ hideOrbit = false }: { hideOrbit?: boolean }) {
             variant="ghost"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <img
               alt="Orbit Left"
               className="h-[28px] w-[28px] -scale-x-100 object-contain opacity-70 transition-opacity group-hover:opacity-100"
               height={28}
