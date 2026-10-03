@@ -2,7 +2,6 @@
 
 import { Icon } from '@iconify/react'
 import { type LucideIcon, Trash2 } from 'lucide-react'
-import Image from 'next/image'
 import { Fragment } from 'react'
 import { cn } from './../../../lib/utils'
 import useEditor from './../../../store/use-editor'
@@ -128,7 +127,11 @@ export function ControlModes() {
               variant="ghost"
             >
               {c.imageSrc ? (
-                <Image
+                // The HA custom panel is a standalone browser bundle, not a Next runtime.
+                // next/image compiles to a module object there and React rejects it as an
+                // element type. A plain image is the correct portable primitive here.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   alt={c.label}
                   className={cn(
                     'h-[28px] w-[28px] object-contain transition-[opacity,filter] duration-200',
