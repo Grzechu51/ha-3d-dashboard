@@ -128,9 +128,7 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
     }
 
     helper.visible = true
-    material.opacity = selected
-      ? 1
-      : 0.58 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.34
+    material.opacity = selected ? 1 : 0.58 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.34
   })
 
   return <primitive object={helper} />
