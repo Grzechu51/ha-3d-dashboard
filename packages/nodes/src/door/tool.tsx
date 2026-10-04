@@ -118,7 +118,7 @@ const DoorTool: React.FC = () => {
 
     const ownedPreviewIds = new Set<string>()
     const fallbackPreview = DoorNode.parse({
-        ...placementDefaults,
+      ...placementDefaults,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       side: 'front',
@@ -329,7 +329,7 @@ const DoorTool: React.FC = () => {
 
       if (!draftRef.current) {
         const node = DoorNode.parse({
-        ...placementDefaults,
+          ...placementDefaults,
           position: [0, height / 2, 0],
           rotation: [0, itemRotation, 0],
           side,
@@ -623,7 +623,7 @@ const DoorTool: React.FC = () => {
         })
       } else {
         const node = DoorNode.parse({
-        ...placementDefaults,
+          ...placementDefaults,
           position,
           rotation: [0, 0, 0],
           side: 'front',
