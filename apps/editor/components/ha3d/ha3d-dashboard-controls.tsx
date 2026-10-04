@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import type { Ha3dEnvironmentMode } from './ha3d-sun-environment'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   entityFriendlyName,
@@ -14,39 +13,41 @@ import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
 } from '../../lib/ha3d/project-config'
+import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
+import type { Ha3dEnvironmentMode } from './ha3d-sun-environment'
 
 function actionErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Home Assistant service call failed'
 }
 
-function rgbAttribute(entity: { attributes: Readonly<Record<string, unknown>> } | undefined) {
-  const raw = entity?.attributes.rgb_color
-  if (
-    !Array.isArray(raw) ||
-    raw.length < 3 ||
-    raw.slice(0, 3).some((value) => typeof value !== 'number' || !Number.isFinite(value))
-  ) {
-    return null
-  }
-  return raw.slice(0, 3).map((value) => Math.max(0, Math.min(255, Math.round(value)))) as [
-    number,
-    number,
-    number,
-  ]
+function lightColorModes(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): readonly string[] {
+  const raw = entity?.attributes.supported_color_modes
+  return Array.isArray(raw) ? raw.filter((mode): mode is string => typeof mode === 'string') : []
+}
+
+function lightSupportsBrightness(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): boolean {
+  return lightColorModes(entity).some((mode) => mode !== 'onoff')
+}
+
+function lightSupportsColor(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): boolean {
+  const modes = lightColorModes(entity)
+  return ['hs', 'xy', 'rgb', 'rgbw', 'rgbww'].some((mode) => modes.includes(mode))
 }
 
 function lightColorTemperature(
   entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
 ): { value: number; min: number; max: number } | null {
-  if (!entity) return null
-  const modes = Array.isArray(entity.attributes.supported_color_modes)
-    ? entity.attributes.supported_color_modes.filter((mode): mode is string => typeof mode === 'string')
-    : []
-  if (!modes.includes('color_temp')) return null
+  if (!entity || !lightColorModes(entity).includes('color_temp')) return null
 
   const numberAttr = (key: string) => {
     const value = entity.attributes[key]
@@ -60,10 +61,6 @@ function lightColorTemperature(
     min: Math.min(min, max),
     max: Math.max(min, max),
   }
-}
-
-function rgbToHex(rgb: [number, number, number]): string {
-  return `#${rgb.map((value) => value.toString(16).padStart(2, '0')).join('')}`
 }
 
 function hexToRgb(value: string): [number, number, number] | null {
@@ -246,9 +243,14 @@ export function Ha3dDashboardControls({
           const detail = entity ? formatHomeAssistantEntityDetail(entity) : null
           const expanded = binding.nodeId === expandedNodeId
           const brightness = numericEntityAttribute(entity, 'brightness')
-          const brightnessPct =
-            brightness == null ? null : Math.max(0, Math.min(100, Math.round((brightness / 255) * 100)))
-          const rgb = rgbAttribute(entity)
+          const brightnessPct = lightSupportsBrightness(entity)
+            ? brightness == null
+              ? 100
+              : Math.max(0, Math.min(100, Math.round((brightness / 255) * 100)))
+            : null
+          const lightColor = lightSupportsColor(entity)
+            ? resolveHomeAssistantLightVisualState(entity).color
+            : null
           const colorTemperature = lightColorTemperature(entity)
 
           return (
@@ -327,7 +329,7 @@ export function Ha3dDashboardControls({
                     </label>
                   ) : null}
 
-                  {rgb ? (
+                  {lightColor ? (
                     <label className="flex items-center justify-between gap-3 text-muted-foreground text-[10px]">
                       Color
                       <input
@@ -339,7 +341,7 @@ export function Ha3dDashboardControls({
                           void callService('light', 'turn_on', binding.entityId, { rgb_color: next })
                         }}
                         type="color"
-                        value={rgbToHex(rgb)}
+                        value={lightColor}
                       />
                     </label>
                   ) : null}
