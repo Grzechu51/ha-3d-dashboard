@@ -3,7 +3,7 @@
 import { emitter, type NodeEvent, sceneRegistry } from '@pascal-app/core'
 import { OVERLAY_LAYER, useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Box3, Box3Helper, type Group } from 'three'
 import {
@@ -222,6 +222,16 @@ export function Ha3dDashboardInteractions({
   onExpandedNodeIdChange?: (nodeId: string | null) => void
   onShowMoreInfo?: (entityId: string) => void
 }) {
+  const camera = useThree((state) => state.camera)
+
+  useEffect(() => {
+    const previousMask = camera.layers.mask
+    camera.layers.enable(OVERLAY_LAYER)
+    return () => {
+      camera.layers.mask = previousMask
+    }
+  }, [camera])
+
   const project = useSyncExternalStore(
     subscribeHa3dProjectConfig,
     getHa3dProjectConfigSnapshot,
