@@ -198,52 +198,54 @@ release workflow:
 .github/workflows/ha-release.yml
 ```
 
-It is **workflow_dispatch only**.
-
-Inputs:
-
-- `version` — version being released,
-- `prerelease` — whether the GitHub Release is marked prerelease,
-- `dry-run` — defaults to `true`; when true no tag or release is created.
-
-The workflow refuses to release if the requested version does not already match
-both:
+Normal beta publication is automatic. The workflow watches `main` for changes
+to the HA integration source version in:
 
 - `custom_components/ha_3d_dashboard/manifest.json`,
 - `custom_components/ha_3d_dashboard/const.py`.
 
-That means release versions are reviewed in source before publication instead of
-being silently rewritten by CI.
+After a reviewed PR with green normal CI is merged, a real source-version change
+starts **HA Release** automatically. The workflow reads the version from source,
+derives prerelease status from the version suffix, runs the full release
+preflight, checks the beta lock and existing tags, and publishes the GitHub
+Release when every gate passes.
 
-The workflow then:
+A manual `workflow_dispatch` entry remains as a recovery path. Its optional
+`version` must still match source. `dry-run` defaults to `false`; use a manual
+dry run only when debugging release infrastructure, not as a routine second pass
+after every green PR.
 
-1. installs locked repository dependencies,
-2. runs the same offline release preflight with the requested version,
-3. enforces `BETA_RELEASE_LOCK` when present,
-4. rebuilds the HA panel and produces both ZIP layouts plus SHA256 checksums,
-5. verifies the generated frontend matches the committed frontend,
-6. checks that the release/tag does not already exist,
-7. creates a GitHub Release only when `dry-run=false`.
+The workflow refuses to release if `manifest.json` and `const.py` disagree.
+While `BETA_RELEASE_LOCK` exists, only `-beta.N` versions can pass preflight and
+they are published as GitHub prereleases.
 
-No package is published by a push to `main`.
+The workflow:
 
-## First release procedure
+1. resolves the source version and skips push events where the version did not
+   actually change,
+2. installs locked repository dependencies,
+3. runs the offline release preflight for the resolved version,
+4. enforces `BETA_RELEASE_LOCK` when present,
+5. rebuilds the HA panel and produces both ZIP layouts plus SHA256 checksums,
+6. verifies the generated frontend matches the committed frontend,
+7. checks that the release/tag does not already exist,
+8. creates the GitHub Release automatically for a valid version-changing push
+   to `main`.
 
-Before the first public HACS beta release:
+## Beta release procedure
 
-1. merge the public-beta safeguard PR and require green normal PR CI,
-2. verify `bun run ha:release:preflight` for `0.3.0-beta.1`,
-3. make the repository public and set its description/topics,
-4. run **HACS Validate** manually once; for this custom beta the license check
-   is intentionally ignored and every other check must pass,
-5. run **HA Release** with `version=0.3.0-beta.1`, `prerelease=true`,
-   `dry-run=true`,
-6. inspect the workflow result and package checksums,
-7. run **HA Release** again with the same version and `dry-run=false`,
-8. in HACS, enable prerelease/beta versions for this custom repository if
-   required, then install and test on a non-production Home Assistant instance.
+For normal beta development:
 
-Do not create a stable release while `BETA_RELEASE_LOCK` exists.
+1. implement the change and bump both source version declarations in the same
+   feature PR,
+2. require green normal PR CI,
+3. merge the PR to `main`,
+4. let **HA Release** run automatically,
+5. verify the automatic run and GitHub Release,
+6. update through HACS and perform the real Home Assistant smoke test.
+
+Do not manually run a duplicate release after a successful automatic run. Do not
+create a stable release while `BETA_RELEASE_LOCK` exists.
 
 ## Adding as a custom HACS repository
 
