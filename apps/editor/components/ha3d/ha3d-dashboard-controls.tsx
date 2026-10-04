@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   entityFriendlyName,
@@ -22,7 +22,11 @@ function actionErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Home Assistant service call failed'
 }
 
-export function Ha3dDashboardControls() {
+export function Ha3dDashboardControls({
+  selectedNodeId = null,
+}: {
+  selectedNodeId?: string | null
+} = {}) {
   const [collapsed, setCollapsed] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const runtime = useSyncExternalStore(
@@ -36,6 +40,10 @@ export function Ha3dDashboardControls() {
     getHa3dProjectConfigSnapshot,
   )
 
+  useEffect(() => {
+    if (selectedNodeId) setCollapsed(false)
+  }, [selectedNodeId])
+
   const bindings = project.bindings
     .filter((binding) => binding.enabled)
     .map((binding) => ({
@@ -43,6 +51,9 @@ export function Ha3dDashboardControls() {
       entity: runtime.adapter?.getEntity(binding.entityId),
     }))
     .sort((left, right) => {
+      const leftSelected = left.binding.nodeId === selectedNodeId
+      const rightSelected = right.binding.nodeId === selectedNodeId
+      if (leftSelected !== rightSelected) return leftSelected ? -1 : 1
       const leftName = left.entity ? entityFriendlyName(left.entity) : left.binding.entityId
       const rightName = right.entity ? entityFriendlyName(right.entity) : right.binding.entityId
       return leftName.localeCompare(rightName)
@@ -121,7 +132,11 @@ export function Ha3dDashboardControls() {
 
           return (
             <section
-              className="rounded-xl border border-border/70 bg-card/70 p-3"
+              className={
+                binding.nodeId === selectedNodeId
+                  ? 'rounded-xl border border-sky-400/70 bg-sky-400/10 p-3 ring-1 ring-sky-400/30'
+                  : 'rounded-xl border border-border/70 bg-card/70 p-3'
+              }
               key={`${binding.nodeId}:${binding.domain}`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -132,6 +147,9 @@ export function Ha3dDashboardControls() {
                   <div className="truncate text-muted-foreground text-[10px]">
                     {binding.entityId}
                   </div>
+                  {binding.nodeId === selectedNodeId ? (
+                    <div className="mt-1 font-medium text-[10px] text-sky-300">Selected in 3D</div>
+                  ) : null}
                 </div>
                 <div className="shrink-0 text-right">
                   <div className="font-medium text-xs">
