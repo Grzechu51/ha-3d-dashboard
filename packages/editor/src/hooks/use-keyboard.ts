@@ -28,6 +28,7 @@ import { resolveDirectManipulationNode } from '../lib/direct-manipulation'
 import { toggleDoorOpenState } from '../lib/door-interaction'
 import { guideEmitter } from '../lib/guide-events'
 import { isHistoryShortcut, runRedo, runUndo, shouldCancelDraftOnHistoryJump } from '../lib/history'
+import { editableKeyboardEventTarget, isEditableKeyboardEvent } from '../lib/keyboard-pan'
 import { isActive } from '../lib/interaction/scope'
 import { copySelectedNodesToEditorClipboard } from '../lib/scene-clipboard'
 import { sfxEmitter } from '../lib/sfx-bus'
@@ -298,8 +299,7 @@ export const useKeyboard = ({
       if (
         shouldCancelDraftOnHistoryJump() &&
         isHistoryShortcut(e) &&
-        e.target instanceof HTMLInputElement &&
-        e.target.hasAttribute('data-run-length-input')
+        editableKeyboardEventTarget(e)?.hasAttribute('data-run-length-input') === true
       ) {
         if (isVersionPreviewMode || useDeleteConfirmation.getState().request) return
         e.preventDefault()
@@ -308,11 +308,7 @@ export const useKeyboard = ({
       }
 
       // Don't handle shortcuts if user is typing in an input
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) {
+      if (isEditableKeyboardEvent(e)) {
         return
       }
 
@@ -765,9 +761,7 @@ export const useKeyboard = ({
         const wasClean = shiftTapClean
         shiftTapClean = false
         if (!wasClean) return
-        if (blocksSnappingShortcut(e.target instanceof HTMLElement ? e.target : null)) {
-          return
-        }
+        if (isEditableKeyboardEvent(e)) return
         if (!canCycleSnappingModeShortcut()) return
         e.preventDefault()
         useEditor.getState().cycleSnappingMode()
@@ -778,9 +772,7 @@ export const useKeyboard = ({
         const wasClean = ctrlTapClean
         ctrlTapClean = false
         if (!wasClean) return
-        if (blocksSnappingShortcut(e.target instanceof HTMLElement ? e.target : null)) {
-          return
-        }
+        if (isEditableKeyboardEvent(e)) return
         if (!canCycleSnappingModeShortcut()) return
         // Cycle the grid / measurement step (0.5 → 0.25 → 0.1 → 0.05).
         useEditor.getState().cycleGridSnapStep()
@@ -797,11 +789,7 @@ export const useKeyboard = ({
     const handleSessionGroupKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Shift') shiftTapClean = false
       if (e.key !== 'Control' && e.key !== 'Meta') ctrlTapClean = false
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
-      ) {
+      if (isEditableKeyboardEvent(e)) {
         return
       }
       if (useDeleteConfirmation.getState().request) return
