@@ -133,7 +133,9 @@ export function ItemLightSystem() {
       for (const [key, reg] of registrations) {
         scored.push({
           key,
-          score: scoreRegistration(reg, nodes, selectedLevelId, levelMode),
+          score: suppressedKeys.has(key)
+            ? Number.POSITIVE_INFINITY
+            : scoreRegistration(reg, nodes, selectedLevelId, levelMode),
         })
       }
       scored.sort((a, b) => a.score - b.score)
@@ -263,7 +265,10 @@ export function ItemLightSystem() {
       }
 
       if (reg.getWorldPosition(_itemPos)) light.position.copy(_itemPos)
-      const targetIntensity = reg.isEligible() && isRendered(reg.nodeId) ? reg.getIntensity() : 0
+      const targetIntensity =
+        !suppressedKeys.has(slot.key) && reg.isEligible() && isRendered(reg.nodeId)
+          ? reg.getIntensity()
+          : 0
 
       light.intensity = MathUtils.lerp(light.intensity, targetIntensity, dt * 12)
       if (targetIntensity <= 0 && light.intensity < 0.01) {
