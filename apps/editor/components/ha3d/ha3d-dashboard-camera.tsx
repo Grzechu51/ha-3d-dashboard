@@ -27,7 +27,7 @@ function resolveDashboardBounds(levelId: string | null, solo: boolean): Box3 | n
     if (levelObject) dashboardBounds.setFromObject(levelObject)
   } else {
     for (const [nodeId, object] of sceneRegistry.nodes) {
-      if (sceneRegistry.byType.site.has(nodeId)) continue
+      if (sceneRegistry.byType.site?.has(nodeId)) continue
       dashboardBounds.expandByObject(object)
     }
   }

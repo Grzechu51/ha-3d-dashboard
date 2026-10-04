@@ -7,6 +7,15 @@ import { Camera, Layers } from 'lucide-react'
 import { useMemo } from 'react'
 import type { Ha3dDashboardCameraPreset } from '../../lib/ha3d/dashboard-camera'
 
+function isLevelNode(node: unknown): node is LevelNode {
+  return (
+    typeof node === 'object' &&
+    node !== null &&
+    'type' in node &&
+    (node as { type?: unknown }).type === 'level'
+  )
+}
+
 const CAMERA_PRESETS: readonly { id: Ha3dDashboardCameraPreset; label: string }[] = [
   { id: 'fit', label: 'Fit' },
   { id: 'iso', label: 'Iso' },
@@ -27,7 +36,7 @@ export function Ha3dDashboardNavigation({
   const levels = useMemo(
     () =>
       Object.values(scene.nodes)
-        .filter((node): node is LevelNode => node.type === 'level')
+        .filter(isLevelNode)
         .sort((left, right) => right.level - left.level),
     [scene.nodes],
   )
