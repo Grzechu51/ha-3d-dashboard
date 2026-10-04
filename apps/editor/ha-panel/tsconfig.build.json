@@ -66,6 +66,9 @@
       "@pascal-app/viewer/capture/preview": [
         "packages/viewer/src/capture/preview.ts"
       ],
+      "@/*": [
+        "apps/editor/*"
+      ],
       "next/image": [
         "apps/editor/ha-panel/next-image-shim.tsx"
       ]
