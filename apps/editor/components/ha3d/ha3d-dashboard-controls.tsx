@@ -22,14 +22,45 @@ function actionErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Home Assistant service call failed'
 }
 
+function rgbAttribute(entity: { attributes: Readonly<Record<string, unknown>> } | undefined) {
+  const raw = entity?.attributes.rgb_color
+  if (
+    !Array.isArray(raw) ||
+    raw.length < 3 ||
+    raw.slice(0, 3).some((value) => typeof value !== 'number' || !Number.isFinite(value))
+  ) {
+    return null
+  }
+  return raw.slice(0, 3).map((value) => Math.max(0, Math.min(255, Math.round(value)))) as [
+    number,
+    number,
+    number,
+  ]
+}
+
+function rgbToHex(rgb: [number, number, number]): string {
+  return `#${rgb.map((value) => value.toString(16).padStart(2, '0')).join('')}`
+}
+
+function hexToRgb(value: string): [number, number, number] | null {
+  const match = /^#([0-9a-f]{6})$/i.exec(value)
+  if (!match) return null
+  const packed = Number.parseInt(match[1]!, 16)
+  return [(packed >> 16) & 0xff, (packed >> 8) & 0xff, packed & 0xff]
+}
+
 export function Ha3dDashboardControls({
   selectedNodeId = null,
+  expandedNodeId = null,
   highlightsEnabled = true,
   onHighlightsEnabledChange,
+  onExpandedNodeIdChange,
 }: {
   selectedNodeId?: string | null
+  expandedNodeId?: string | null
   highlightsEnabled?: boolean
   onHighlightsEnabledChange?: (enabled: boolean) => void
+  onExpandedNodeIdChange?: (nodeId: string | null) => void
 } = {}) {
   const [collapsed, setCollapsed] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -45,8 +76,8 @@ export function Ha3dDashboardControls({
   )
 
   useEffect(() => {
-    if (selectedNodeId) setCollapsed(false)
-  }, [selectedNodeId])
+    if (selectedNodeId || expandedNodeId) setCollapsed(false)
+  }, [expandedNodeId, selectedNodeId])
 
   const bindings = project.bindings
     .filter((binding) => binding.enabled)
@@ -115,7 +146,7 @@ export function Ha3dDashboardControls({
               onClick={() => onHighlightsEnabledChange(!highlightsEnabled)}
               type="button"
             >
-              Highlights {highlightsEnabled ? 'on' : 'off'}
+              Markers {highlightsEnabled ? 'on' : 'off'}
             </button>
           ) : null}
           <button
@@ -146,6 +177,11 @@ export function Ha3dDashboardControls({
           const climateTarget = numericEntityAttribute(entity, 'temperature')
           const climateModes = stringListEntityAttribute(entity, 'hvac_modes')
           const detail = entity ? formatHomeAssistantEntityDetail(entity) : null
+          const expanded = binding.nodeId === expandedNodeId
+          const brightness = numericEntityAttribute(entity, 'brightness')
+          const brightnessPct =
+            brightness == null ? null : Math.max(0, Math.min(100, Math.round((brightness / 255) * 100)))
+          const rgb = rgbAttribute(entity)
 
           return (
             <section
@@ -165,6 +201,11 @@ export function Ha3dDashboardControls({
                     {binding.nodeId === selectedNodeId ? (
                       <span className="shrink-0 rounded bg-sky-400/15 px-1.5 py-0.5 text-[9px] text-sky-300">
                         selected
+                      </span>
+                    ) : null}
+                    {expanded ? (
+                      <span className="shrink-0 rounded bg-violet-400/15 px-1.5 py-0.5 text-[9px] text-violet-300">
+                        more info
                       </span>
                     ) : null}
                   </div>
@@ -196,6 +237,55 @@ export function Ha3dDashboardControls({
                 >
                   {entity.state === 'on' ? 'Turn off' : 'Turn on'}
                 </button>
+              ) : null}
+
+              {entity && binding.domain === 'light' && expanded ? (
+                <div className="mt-3 space-y-3 border-border/70 border-t pt-3">
+                  {brightnessPct !== null ? (
+                    <label className="block text-muted-foreground text-[10px]">
+                      Brightness · {brightnessPct}%
+                      <input
+                        className="mt-1 block w-full"
+                        max="100"
+                        min="1"
+                        onChange={(event) =>
+                          void callService('light', 'turn_on', binding.entityId, {
+                            brightness_pct: Number(event.target.value),
+                          })
+                        }
+                        type="range"
+                        value={Math.max(1, brightnessPct)}
+                      />
+                    </label>
+                  ) : null}
+
+                  {rgb ? (
+                    <label className="flex items-center justify-between gap-3 text-muted-foreground text-[10px]">
+                      Color
+                      <input
+                        aria-label="Light color"
+                        className="h-8 w-14 cursor-pointer rounded border border-border bg-transparent"
+                        onChange={(event) => {
+                          const next = hexToRgb(event.target.value)
+                          if (!next) return
+                          void callService('light', 'turn_on', binding.entityId, { rgb_color: next })
+                        }}
+                        type="color"
+                        value={rgbToHex(rgb)}
+                      />
+                    </label>
+                  ) : null}
+
+                  {onExpandedNodeIdChange ? (
+                    <button
+                      className="w-full rounded-md border border-border px-3 py-2 text-xs hover:bg-accent"
+                      onClick={() => onExpandedNodeIdChange(null)}
+                      type="button"
+                    >
+                      Close more info
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
 
               {entity && binding.domain === 'cover' ? (
