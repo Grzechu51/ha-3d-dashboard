@@ -48,6 +48,7 @@ import {
   publishPlacementSurface,
 } from '../../../lib/active-placement-surface'
 import { EDITOR_LAYER } from '../../../lib/constants'
+import { isEditableKeyboardEvent } from '../../../lib/keyboard-target'
 import { formatLinearMeasurement } from '../../../lib/measurements'
 import { isFreshPlacementMetadata } from '../../../lib/placement-metadata'
 import { createMovementSfxTick } from '../../../lib/sfx/movement-tick'
@@ -2378,14 +2379,11 @@ export function usePlacementCoordinator(config: PlacementCoordinatorConfig): Rea
     // ---- Keyboard rotation ----
 
     const onKeyDown = (event: KeyboardEvent) => {
+      if (isEditableKeyboardEvent(event)) return
+
       if (event.key === 'Alt') {
         altFreeRef.current = true
         revalidate()
-        return
-      }
-
-      // Don't intercept keys when focus is inside a text input
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return
       }
 

@@ -13,6 +13,10 @@ import { useLayoutEffect, useState } from 'react'
 import { restoreHa3dDashboardProjectConfig } from '../../lib/ha3d/dashboard-persistence'
 import { resetHa3dProjectConfig } from '../../lib/ha3d/project-config'
 import { Ha3dDashboardControls } from './ha3d-dashboard-controls'
+import {
+  HA3D_INTERACTIVE_HOVER_STYLES,
+  Ha3dDashboardInteractions,
+} from './ha3d-dashboard-interactions'
 
 export interface Ha3dDashboardSceneMeta {
   id: string
@@ -31,6 +35,8 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   const [sceneHydrated, setSceneHydrated] = useState(false)
   const [presentationsReady, setPresentationsReady] = useState(false)
   const [viewerReady, setViewerReady] = useState(false)
+  const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
+  const [interactiveHighlights, setInteractiveHighlights] = useState(true)
 
   useLayoutEffect(() => {
     restoreHa3dDashboardProjectConfig(projectId)
@@ -50,10 +56,12 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
     useViewer.getState().resetSelection()
     setSceneHydrated(true)
     setViewerReady(false)
+    setSelectedInteractiveNodeId(null)
 
     return () => {
       setSceneHydrated(false)
       setViewerReady(false)
+      setSelectedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
       useViewer.getState().setProjectId(null)
@@ -66,6 +74,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
       {sceneHydrated ? (
         <Viewer
           defaultRender={{ shading: 'solid' }}
+          hoverStyles={HA3D_INTERACTIVE_HOVER_STYLES}
           onSceneReadyChange={setViewerReady}
           renderContext="viewer"
           sceneReadyKey={`${meta.id}:${meta.version}`}
@@ -74,6 +83,11 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
           <SceneEnvironment />
           <OrbitControls enableDamping makeDefault />
           {presentationsReady ? <ViewerPresentations /> : null}
+          <Ha3dDashboardInteractions
+            highlightsEnabled={interactiveHighlights}
+            onSelectedNodeIdChange={setSelectedInteractiveNodeId}
+            selectedNodeId={selectedInteractiveNodeId}
+          />
         </Viewer>
       ) : null}
 
@@ -90,7 +104,11 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
         </Link>
       </div>
 
-      <Ha3dDashboardControls />
+      <Ha3dDashboardControls
+        highlightsEnabled={interactiveHighlights}
+        onHighlightsEnabledChange={setInteractiveHighlights}
+        selectedNodeId={selectedInteractiveNodeId}
+      />
 
       {!(sceneHydrated && viewerReady && presentationsReady) ? (
         <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm">

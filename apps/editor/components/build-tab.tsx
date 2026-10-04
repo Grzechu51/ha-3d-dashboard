@@ -39,6 +39,37 @@ import { cn } from '@/lib/utils'
 
 const subscribeToClientMount = () => () => {}
 
+const WINDOW_PLACEMENT_PRESETS = [
+  { label: 'Fixed', value: 'fixed' },
+  { label: 'Sliding', value: 'sliding' },
+  { label: 'Casement', value: 'casement' },
+  { label: 'Awning', value: 'awning' },
+  { label: 'Single Hung', value: 'single-hung' },
+  { label: 'Double Hung', value: 'double-hung' },
+  { label: 'Bay', value: 'bay' },
+  { label: 'Bow', value: 'bow' },
+  { label: 'Louvered', value: 'louvered' },
+] as const
+
+const DOOR_PLACEMENT_PRESETS = [
+  { label: 'Hinged', value: 'hinged', width: 0.9, height: 2.1, leafCount: 1 },
+  { label: 'Double', value: 'double', width: 1.5, height: 2.1, leafCount: 2 },
+  { label: 'French', value: 'french', width: 1.5, height: 2.1, leafCount: 2 },
+  { label: 'Folding', value: 'folding', width: 1.8, height: 2.1, leafCount: 4 },
+  { label: 'Pocket', value: 'pocket', width: 0.9, height: 2.1, leafCount: 1 },
+  { label: 'Barn', value: 'barn', width: 1, height: 2.1, leafCount: 1 },
+  { label: 'Sliding', value: 'sliding', width: 1.5, height: 2.1, leafCount: 2 },
+  {
+    label: 'Garage sectional',
+    value: 'garage-sectional',
+    width: 2.7,
+    height: 2.4,
+    leafCount: 1,
+  },
+  { label: 'Garage roll-up', value: 'garage-rollup', width: 2.7, height: 2.4, leafCount: 1 },
+  { label: 'Garage tilt-up', value: 'garage-tiltup', width: 2.7, height: 2.4, leafCount: 1 },
+] as const
+
 /**
  * Build tab for the open-source standalone editor — a preset-less replica of
  * the community Build sidebar. Clicking a type activates its raw tool, drawn
@@ -50,6 +81,8 @@ export function BuildTab() {
   const activeTool = useEditor((s) => s.tool)
   const mode = useEditor((s) => s.mode)
   const roofDefaults = useEditor((s) => s.toolDefaults.roof)
+  const windowDefaults = useEditor((s) => s.toolDefaults.window)
+  const doorDefaults = useEditor((s) => s.toolDefaults.door)
   const floorplanMode = useFloorplanMode((s) => s.mode)
   const follow = useLiquidLineToolOptions((s) => s.follow)
   const toggleFollow = useLiquidLineToolOptions((s) => s.toggleFollow)
@@ -184,6 +217,89 @@ export function BuildTab() {
       ) : mode === 'terrain-sculpt' ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <TerrainSculptPanel />
+        </div>
+      ) : mode === 'build' && activeTool === 'window' ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Window type</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {WINDOW_PLACEMENT_PRESETS.map((preset) => {
+              const selected = (windowDefaults?.windowType ?? 'fixed') === preset.value
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={cn(
+                    'rounded-lg px-2.5 py-2 text-left font-medium text-xs transition-colors',
+                    selected
+                      ? 'bg-primary/10 text-primary ring-1 ring-primary/50'
+                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                  key={preset.value}
+                  onClick={() => {
+                    triggerSFX('sfx:menu-click')
+                    const current = useEditor.getState().toolDefaults.window ?? {}
+                    useEditor.getState().setToolDefaults('window', {
+                      ...current,
+                      windowType: preset.value,
+                      operationState: 0,
+                      ...(preset.value === 'awning' ? { awningDirection: 'up' } : {}),
+                      ...(preset.value === 'casement'
+                        ? { casementStyle: 'single', hingesSide: 'left' }
+                        : {}),
+                    })
+                  }}
+                  type="button"
+                >
+                  {preset.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="px-0.5 text-[11px] text-muted-foreground leading-relaxed">
+            Choose the construction first, then click a wall to place it. Detailed dimensions, shape
+            and operation remain editable after placement.
+          </p>
+        </div>
+      ) : mode === 'build' && activeTool === 'door' ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Door type</div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {DOOR_PLACEMENT_PRESETS.map((preset) => {
+              const selected = (doorDefaults?.doorType ?? 'hinged') === preset.value
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={cn(
+                    'rounded-lg px-2.5 py-2 text-left font-medium text-xs transition-colors',
+                    selected
+                      ? 'bg-primary/10 text-primary ring-1 ring-primary/50'
+                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                  key={preset.value}
+                  onClick={() => {
+                    triggerSFX('sfx:menu-click')
+                    const current = useEditor.getState().toolDefaults.door ?? {}
+                    const garage = preset.value.startsWith('garage-')
+                    useEditor.getState().setToolDefaults('door', {
+                      ...current,
+                      doorType: preset.value,
+                      doorCategory: garage ? 'garage' : 'interior',
+                      width: preset.width,
+                      height: preset.height,
+                      leafCount: preset.leafCount,
+                      operationState: 0,
+                    })
+                  }}
+                  type="button"
+                >
+                  {preset.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="px-0.5 text-[11px] text-muted-foreground leading-relaxed">
+            Choose a door construction, then place it on a wall. Detailed hardware and opening
+            behaviour remain editable after placement.
+          </p>
         </div>
       ) : mode === 'build' && (activeTool === 'roof' || isRoofFeatureActive) ? (
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">

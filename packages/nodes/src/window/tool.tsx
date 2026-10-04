@@ -26,6 +26,7 @@ import {
   clearPlacementSurface,
   EDITOR_LAYER,
   getSideFromNormal,
+  isEditableKeyboardEvent,
   isMagneticSnapActive,
   isValidWallSideFace,
   publishPlacementSurface,
@@ -110,6 +111,7 @@ type HostKind = 'wall' | 'roof' | 'dormer' | null
  */
 const WindowTool: React.FC = () => {
   const { activeLevelId, isCameraDragging, selectNode } = useRegistryToolContext()
+  const placementDefaults = useEditor((state) => state.toolDefaults.window) as Partial<WindowNode>
   const draftRef = useRef<WindowNode | null>(null)
   const cursorGroupRef = useRef<Group>(null!)
   const edgesRef = useRef<LineSegments>(null!)
@@ -129,11 +131,12 @@ const WindowTool: React.FC = () => {
   const ghostStub = useMemo(
     () =>
       WindowNode.parse({
+        ...placementDefaults,
         position: [0, 0, 0],
         rotation: [0, 0, 0],
         side: fallbackPose?.side ?? 'front',
       }),
-    [fallbackPose?.side],
+    [fallbackPose?.side, placementDefaults],
   )
   // The frame depth is a fixed parse default (the `side` flip doesn't change
   // it); a ref lets the facing-pose publish inside the setup effect read it
@@ -145,6 +148,7 @@ const WindowTool: React.FC = () => {
 
     const ownedPreviewIds = new Set<string>()
     const fallbackPreview = WindowNode.parse({
+      ...placementDefaults,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       side: 'front',
@@ -283,6 +287,7 @@ const WindowTool: React.FC = () => {
         thickness: 0.1,
       })
       const ghost = WindowNode.parse({
+        ...placementDefaults,
         ...fallbackPreview,
         metadata: { isTransient: true },
         parentId: wall.id,
@@ -329,6 +334,7 @@ const WindowTool: React.FC = () => {
       if (draftRef.current && draftRef.current.parentId !== event.node.id) destroyDraft()
       if (!draftRef.current) {
         const node = WindowNode.parse({
+          ...placementDefaults,
           position: target.position,
           rotation: [0, itemRotation, 0],
           side,
@@ -458,6 +464,7 @@ const WindowTool: React.FC = () => {
 
       if (!draftRef.current) {
         const node = WindowNode.parse({
+          ...placementDefaults,
           position: [0, DEFAULT_SILL_CENTER_Y, 0],
           rotation: [0, itemRotation, 0],
           side,
@@ -558,6 +565,7 @@ const WindowTool: React.FC = () => {
       }).length
 
       const node = WindowNode.parse({
+        ...placementDefaults,
         name: `Window ${windowCount + 1}`,
         position: [clampedX, clampedY, 0],
         rotation: [0, itemRotation, 0],
@@ -611,6 +619,7 @@ const WindowTool: React.FC = () => {
       const windowCount = Object.values(state.nodes).filter((node) => node.type === 'window').length
       const side = sideFlip ? 'back' : 'front'
       const node = WindowNode.parse({
+        ...placementDefaults,
         name: `Window ${windowCount + 1}`,
         position: target.position,
         rotation: [0, sideFlip ? Math.PI : 0, 0],
@@ -920,6 +929,7 @@ const WindowTool: React.FC = () => {
         })
       } else {
         const node = WindowNode.parse({
+          ...placementDefaults,
           position,
           rotation: [0, 0, 0],
           side: 'front',
@@ -961,6 +971,7 @@ const WindowTool: React.FC = () => {
       ).length
 
       const node = WindowNode.parse({
+        ...placementDefaults,
         name: `Window ${windowCount + 1}`,
         position,
         rotation: [0, 0, 0],
@@ -1021,8 +1032,7 @@ const WindowTool: React.FC = () => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'r' && e.key !== 'R') return
       if (e.repeat) return
-      const t = e.target as HTMLElement | null
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+      if (isEditableKeyboardEvent(e)) return
       e.preventDefault()
       sideFlip = !sideFlip
       triggerSFX('sfx:item-rotate')
@@ -1093,7 +1103,7 @@ const WindowTool: React.FC = () => {
       emitter.off('tool:cancel', onCancel)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [activeLevelId, isCameraDragging, selectNode])
+  }, [activeLevelId, isCameraDragging, placementDefaults, selectNode])
 
   // Cursor geometry: window outline rectangle. Static dims, so build it once and
   // dispose on unmount rather than reallocating (and orphaning) an EdgesGeometry
