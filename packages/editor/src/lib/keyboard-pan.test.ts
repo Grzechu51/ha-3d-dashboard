@@ -16,7 +16,14 @@ const idle = (): KeyboardPanState => ({
   left: false,
   right: false,
 })
-const key = (init: Partial<KeyboardEvent>) => ({ target: null, ...init }) as KeyboardEvent
+const key = (
+  init: Partial<KeyboardEvent> & { path?: EventTarget[] } = {},
+) =>
+  ({
+    target: null,
+    composedPath: () => init.path ?? [],
+    ...init,
+  }) as KeyboardEvent
 
 // No DOM in this runner: stand in for the element classes the editable check reads.
 const DOM_CLASSES = ['HTMLElement', 'HTMLInputElement', 'HTMLTextAreaElement', 'HTMLSelectElement']
@@ -53,6 +60,9 @@ test('modifier chords stay shortcuts, and typing in a field never pans', () => {
   const Input = (globalThis as unknown as { HTMLInputElement: new () => EventTarget })
     .HTMLInputElement
   expect(acceptsKeyboardPan(key({ target: new Input() }))).toBe(false)
+
+  const host = {} as EventTarget
+  expect(acceptsKeyboardPan(key({ target: host, path: [new Input(), host] }))).toBe(false)
 })
 
 test('speed scales with the visible width within fixed bounds', () => {
