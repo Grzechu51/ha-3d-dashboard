@@ -121,9 +121,7 @@ export function BuildTab() {
       openingKind: 'window',
       windowType,
       ...(windowType === 'awning' ? { awningDirection: 'up' } : {}),
-      ...(windowType === 'casement'
-        ? { casementStyle: 'single', hingesSide: 'left' }
-        : {}),
+      ...(windowType === 'casement' ? { casementStyle: 'single', hingesSide: 'left' } : {}),
     })
   }, [])
 
