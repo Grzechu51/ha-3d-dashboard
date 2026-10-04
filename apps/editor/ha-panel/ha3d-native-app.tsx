@@ -884,6 +884,48 @@ function NativeProject({
           key={editorEpoch}
           layoutVersion="v2"
           manageDocumentDarkClass={false}
+          navbarSlot={
+            <div className="flex min-h-11 items-center justify-between gap-3 border-white/10 border-b bg-slate-950/82 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-xl">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="max-w-56 truncate font-semibold">{metadata.name}</span>
+                <span className="text-white/15">/</span>
+                <SessionStatus saveStatus={saveStatus} session={session} />
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!editorReady || sceneSaveBlocked || leavingProject}
+                  onClick={() => setStructureOpen(true)}
+                  title={editorReady ? undefined : 'Wait for the scene to finish loading'}
+                  type="button"
+                >
+                  HA structure
+                </button>
+                <button
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={sceneSaveBlocked || leavingProject}
+                  onClick={() => {
+                    setStructureOpen(false)
+                    onModeChange('dashboard')
+                  }}
+                  type="button"
+                >
+                  Dashboard
+                </button>
+                <button
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={sceneSaveBlocked || leavingProject}
+                  onClick={() => {
+                    setStructureOpen(false)
+                    void onProjects()
+                  }}
+                  type="button"
+                >
+                  {leavingProject ? 'Saving…' : 'Projects'}
+                </button>
+              </div>
+            </div>
+          }
           onLoad={loadScene}
           onLoaderChange={handleLoaderChange}
           onSave={saveScene}
@@ -900,59 +942,6 @@ function NativeProject({
           }
         />
       </EditorCrashBoundary>
-
-      <div className="pointer-events-none absolute top-3 right-3 z-[90] flex max-w-[calc(100%-1.5rem)] flex-wrap items-center justify-end gap-2">
-        <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-end gap-2 rounded-xl border border-border/70 bg-background/92 px-3 py-2 text-xs shadow-xl backdrop-blur">
-          <span className="max-w-40 truncate font-medium">{metadata.name}</span>
-          <span className="text-border">|</span>
-          <SessionStatus saveStatus={saveStatus} session={session} />
-          <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!editorReady || sceneSaveBlocked || leavingProject}
-            onClick={() => setStructureOpen(true)}
-            title={editorReady ? undefined : 'Wait for the Pascal scene to finish loading'}
-            type="button"
-          >
-            HA structure
-          </button>
-          <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => {
-              setStructureOpen(false)
-              onModeChange('dashboard')
-            }}
-            title={
-              saveStatus === 'error' || snapshot.status === 'error'
-                ? 'Resolve or retry the save error before leaving the editor'
-                : sceneSaveBlocked
-                  ? 'Wait for the current scene save to finish'
-                  : undefined
-            }
-            type="button"
-          >
-            Dashboard
-          </button>
-          <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => {
-              setStructureOpen(false)
-              void onProjects()
-            }}
-            title={
-              saveStatus === 'error' || snapshot.status === 'error'
-                ? 'Resolve or retry the save error before leaving the editor'
-                : sceneSaveBlocked
-                  ? 'Wait for the current scene save to finish'
-                  : undefined
-            }
-            type="button"
-          >
-            {leavingProject ? 'Saving…' : 'Projects'}
-          </button>
-        </div>
-      </div>
 
       {structureOpen ? (
         <Ha3dStructureManager host={host} onClose={() => setStructureOpen(false)} />
