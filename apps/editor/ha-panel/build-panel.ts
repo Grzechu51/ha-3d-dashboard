@@ -50,6 +50,14 @@ const exitCode = await new Promise<number>((resolveExit, reject) => {
 if (exitCode !== 0) process.exit(exitCode)
 
 const browserBundle = await readFile(jsOutput, 'utf8')
+const nextImageRuntimeMarkers = ['/_next/image', 'Image with src']
+const leakedNextImageMarkers = nextImageRuntimeMarkers.filter((marker) => browserBundle.includes(marker))
+if (leakedNextImageMarkers.length > 0) {
+  throw new Error(
+    `[ha3d-panel] standalone bundle still contains next/image runtime marker(s): ${leakedNextImageMarkers.join(', ')}`,
+  )
+}
+
 const processEnvReferences = browserBundle.split('process.env').length - 1
 const iconReferences = browserBundle.split('/icons/').length - 1
 const browserBundleForHa = browserBundle.replaceAll('/icons/', '/ha3d_static/icons/')
