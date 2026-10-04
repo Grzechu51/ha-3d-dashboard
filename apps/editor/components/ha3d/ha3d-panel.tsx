@@ -2,7 +2,7 @@
 
 import { type AnyNodeId, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   createEntityBinding,
@@ -30,6 +30,8 @@ import {
 
 export default function Ha3dPanel() {
   const [query, setQuery] = useState('')
+  const [refreshingEntities, setRefreshingEntities] = useState(false)
+  const [refreshEntitiesError, setRefreshEntitiesError] = useState<string | null>(null)
   const selectedIds = useViewer((state) => state.selection.selectedIds)
   const selectedNodeId = selectedIds.length === 1 ? (selectedIds[0] as AnyNodeId) : null
   const selectedNode = useScene((state) =>
@@ -46,8 +48,9 @@ export default function Ha3dPanel() {
     getHa3dProjectConfigSnapshot,
   )
 
+  const allEntities = runtime.adapter?.listEntities() ?? []
   const needle = query.trim().toLocaleLowerCase()
-  const entities = (runtime.adapter?.listEntities() ?? [])
+  const entities = allEntities
     .filter((entity) => {
       const domain = entity.entityId.split('.')[0] ?? ''
       return isSupportedHomeAssistantDomain(domain)
@@ -64,6 +67,29 @@ export default function Ha3dPanel() {
   const selectedBindings = selectedNodeId
     ? project.bindings.filter((binding) => binding.nodeId === selectedNodeId)
     : []
+
+  const refreshEntities = async () => {
+    const refresh = runtime.adapter?.refreshEntities
+    if (!refresh || refreshingEntities) return
+
+    setRefreshingEntities(true)
+    setRefreshEntitiesError(null)
+    try {
+      await refresh.call(runtime.adapter)
+    } catch (error) {
+      setRefreshEntitiesError(error instanceof Error ? error.message : 'Entity refresh failed')
+    } finally {
+      setRefreshingEntities(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!runtime.adapter?.refreshEntities) return
+    void refreshEntities()
+    // Refresh once whenever the native HA adapter is attached. Later state
+    // updates still arrive through the normal Home Assistant hass lifecycle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runtime.adapter])
 
   const togglePowerEntity = async (
     domain: 'light' | 'switch' | 'input_boolean',
@@ -138,11 +164,26 @@ export default function Ha3dPanel() {
 
       <div className="rounded-lg border border-border bg-card p-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="font-medium text-sm">Bridge</span>
-          <span className="text-muted-foreground text-xs">
-            {runtime.connected ? runtime.adapter?.id : 'not connected'}
-          </span>
+          <div>
+            <div className="font-medium text-sm">Home Assistant entities</div>
+            <div className="mt-0.5 text-muted-foreground text-xs">
+              {runtime.connected
+                ? `${entities.length} bindable · ${allEntities.length} total`
+                : 'Bridge not connected'}
+            </div>
+          </div>
+          <button
+            className="rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!runtime.adapter?.refreshEntities || refreshingEntities}
+            onClick={() => void refreshEntities()}
+            type="button"
+          >
+            {refreshingEntities ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
+        {refreshEntitiesError ? (
+          <div className="mt-2 text-destructive text-xs">{refreshEntitiesError}</div>
+        ) : null}
       </div>
 
       <div className="rounded-lg border border-border bg-card p-3">
