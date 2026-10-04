@@ -28,11 +28,9 @@ export function isEditableKeyboardTarget(target: EventTarget | null) {
 export function editableKeyboardEventTarget(event: KeyboardEvent): HTMLElement | null {
   const path = typeof event.composedPath === 'function' ? event.composedPath() : []
   for (const entry of path) {
-    if (entry instanceof HTMLElement && isEditableKeyboardTarget(entry)) return entry
+    if (isEditableKeyboardTarget(entry)) return entry as HTMLElement
   }
-  return event.target instanceof HTMLElement && isEditableKeyboardTarget(event.target)
-    ? event.target
-    : null
+  return isEditableKeyboardTarget(event.target) ? (event.target as HTMLElement) : null
 }
 
 export function isEditableKeyboardEvent(event: KeyboardEvent): boolean {
