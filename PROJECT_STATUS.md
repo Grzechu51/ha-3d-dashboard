@@ -18,44 +18,34 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: Home Assistant operator UX and live entity inventory**
+**Checkpoint: Home Assistant operator UX + release automation recovery**
 
-Status: **beta.14 source is on `main`; beta.15 is being prepared on `feat/ha-dashboard-operator-nav`**
+Status: **PR #34 is merged; beta.15 source is on `main`; beta.16 is the recovery release**
 
-PR #33 is merged to `main` and its PR CI/MCP CI passed. It contains the
-material-runtime packaging fix, Garage Panel asset correction, HA-bound lamp
-ownership fix, stronger interactive highlights and polished 3D labels. At the
-latest check there is still no automatic `v0.3.0-beta.14` GitHub Release, so
-beta.14 must not be reused as the next source version.
+The operator-UX work is now merged to `main`: live entity inventory refresh,
+common HA helper bindings, HA-focused Settings, compact dashboard controls,
+HA-style More info, camera presets and authored-floor switching all passed the
+normal PR CI gate.
 
-The active branch now implements the next operator-facing checkpoint:
+The missing beta.14 and beta.15 GitHub Releases were traced to the generated
+frontend commit subject. CI used `[skip ci]`; GitHub's squash merge copied that
+subject into the final `main` commit message, so GitHub suppressed the
+push-triggered **HA Release** workflow even though the source version changed.
 
-- smooth dashboard camera with **Fit / Iso / Top / Front / Right** presets;
-- **All + authored floor** switching, with a selected floor shown in solo mode;
-- the same navigation is wired into the real native Home Assistant dashboard,
-  not only the standalone dashboard route;
-- compact right-side HA controls instead of the large developer-style entity cards;
-- a focused HA-style **More info** modal for light, switch/helper, cover, climate,
-  number/select/text controls and read-only entity state;
-- live entity inventory refresh through Home Assistant `get_states`, including an
-  automatic refresh when the binding panel attaches and an explicit **Refresh**
-  action for helpers/integrations created while the editor is already open;
-- binding support expanded to common helper/entity domains:
-  `input_boolean`, `input_number`, `input_select`, `input_text`,
-  `input_datetime`, `number`, `select` and `text`;
-- normal Home Assistant `hass.states` lifecycle additions are covered by tests,
-  so newly added entities also appear without manual refresh when HA pushes them;
-- the embedded editor's generic Pascal Settings panel is replaced by a focused
-  HA 3D settings panel with HA connection/entity refresh plus only useful display
-  controls (shadows, materials and camera projection).
+The recovery changes remove recognized skip-CI directives from the generated
+frontend commit, document the rule for future agents, and advance the integration
+to **`0.3.0-beta.16`** so the corrected automatic release path gets a fresh,
+non-reused prerelease version.
 
-Source review found no new core/viewer layer coupling: HA-specific UI remains in
-`apps/editor` and is injected into `Viewer` through public presentation seams.
+After beta.16 is published, perform the real HA smoke test for:
 
-The next release version for this branch is **`0.3.0-beta.15`**. After one normal
-PR CI checkpoint and merge, perform the real HA smoke test for entity refresh,
-helper binding, Settings cleanup, popup controls, floor/camera navigation and the
-beta.14 material/light/highlight fixes.
+- newly created helpers appearing automatically or after **Refresh**;
+- `input_boolean`, `input_number` and `input_select` bindings;
+- the reduced HA-specific Settings panel;
+- More info controls for lights, covers, climate and helpers;
+- Fit / Iso / Top / Front / Right camera presets and floor switching;
+- the material thumbnails, Garage Panel, HA-owned lamp off-state, Highlights and Labels fixes
+  accumulated since beta.13.
 
 ## Completed
 
