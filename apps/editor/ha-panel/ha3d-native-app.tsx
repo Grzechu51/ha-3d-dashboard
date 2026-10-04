@@ -10,7 +10,6 @@ import {
   useScene,
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
-import { OrbitControls } from '@react-three/drei'
 import { Hammer, Layers, Package, Settings } from 'lucide-react'
 import {
   Component,
@@ -26,7 +25,12 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { BuildTab } from '../components/build-tab'
+import {
+  Ha3dDashboardCameraControls,
+  type Ha3dDashboardCameraRequest,
+} from '../components/ha3d/ha3d-dashboard-camera'
 import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-controls'
+import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
 import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import {
   HA3D_INTERACTIVE_HOVER_STYLES,
@@ -573,6 +577,14 @@ function NativeDashboard({
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
   const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
+  const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
+
+  const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
+    setCameraRequest((current) => ({
+      id: (current?.id ?? 0) + 1,
+      preset,
+    }))
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -597,10 +609,12 @@ function NativeDashboard({
     if (scene === undefined) return
 
     const releaseReadOnly = acquireSceneReadOnlyLease()
+    const previousLevelMode = useViewer.getState().levelMode
     useViewer.getState().setProjectId(session.getSnapshot().projectId)
     useScene.getState().unloadScene()
     applySceneGraphToEditor(scene)
     useViewer.getState().resetSelection()
+    useViewer.getState().setLevelMode('stacked')
     setViewerReady(false)
     setSelectedInteractiveNodeId(null)
     setExpandedInteractiveNodeId(null)
@@ -611,10 +625,16 @@ function NativeDashboard({
       setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
+      useViewer.getState().setLevelMode(previousLevelMode)
       useViewer.getState().setProjectId(null)
       releaseReadOnly()
     }
   }, [scene, session])
+
+  useEffect(() => {
+    if (!viewerReady) return
+    requestCameraPreset('fit')
+  }, [requestCameraPreset, viewerReady])
 
   if (error) {
     return (
@@ -695,7 +715,7 @@ function NativeDashboard({
         selectionManager="custom"
       >
         <SceneEnvironment />
-        <OrbitControls enableDamping makeDefault />
+        <Ha3dDashboardCameraControls request={cameraRequest} />
         <ViewerPresentations />
         <Ha3dSunEnvironment mode={environmentMode} />
         <Ha3dDashboardInteractions
@@ -734,6 +754,8 @@ function NativeDashboard({
           ) : null}
         </div>
       </div>
+
+      <Ha3dDashboardNavigation onCameraPreset={requestCameraPreset} scene={scene} />
 
       <Ha3dDashboardControls
         environmentMode={environmentMode}
