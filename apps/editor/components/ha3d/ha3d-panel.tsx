@@ -6,6 +6,7 @@ import { useState, useSyncExternalStore } from 'react'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   createEntityBinding,
+  type DashboardInteractionAction,
   DEFAULT_COVER_MOTION,
   type EntityBinding,
   isSupportedHomeAssistantDomain,
@@ -179,6 +180,45 @@ export default function Ha3dPanel() {
                       {entity.entityId}
                     </div>
                   ) : null}
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-border/70 border-t pt-3">
+                    <label className="text-muted-foreground text-xs">
+                      Tap action
+                      <select
+                        className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                        onChange={(event) =>
+                          upsertEntityBinding({
+                            ...binding,
+                            tapAction: event.target.value as DashboardInteractionAction,
+                          })
+                        }
+                        value={binding.tapAction}
+                      >
+                        <option value="default">Default</option>
+                        <option value="toggle">Toggle</option>
+                        <option value="more-info">More info</option>
+                        <option value="none">None</option>
+                      </select>
+                    </label>
+                    <label className="text-muted-foreground text-xs">
+                      Hold action
+                      <select
+                        className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground"
+                        onChange={(event) =>
+                          upsertEntityBinding({
+                            ...binding,
+                            holdAction: event.target.value as DashboardInteractionAction,
+                          })
+                        }
+                        value={binding.holdAction}
+                      >
+                        <option value="default">Default</option>
+                        <option value="toggle">Toggle</option>
+                        <option value="more-info">More info</option>
+                        <option value="none">None</option>
+                      </select>
+                    </label>
+                  </div>
+
                   <div className="mt-1 flex items-center justify-between gap-2">
                     <span className="text-muted-foreground text-xs">
                       {binding.domain} ·{' '}
