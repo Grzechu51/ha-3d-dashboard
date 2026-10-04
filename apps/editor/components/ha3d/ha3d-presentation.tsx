@@ -1,6 +1,6 @@
 'use client'
 
-import { type AnyNodeId, sceneRegistry } from '@pascal-app/core'
+import { type AnyNodeId, sceneRegistry, useInteractive, useScene } from '@pascal-app/core'
 import { type LightSource, useItemLightPool } from '@pascal-app/viewer'
 import { useFrame } from '@react-three/fiber'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
@@ -21,6 +21,22 @@ const MAX_LIGHT_INTENSITY = 2
 const LIGHT_DISTANCE = 8
 const EXTERNAL_POSITION_EPSILON_SQ = 0.00000001
 
+function nativeCatalogLightBinding(nodeId: AnyNodeId) {
+  const node = useScene.getState().nodes[nodeId]
+  if (node?.type !== 'item') return null
+
+  const interactive = node.asset.interactive
+  if (!interactive) return null
+
+  const lightCount = interactive.effects.filter((effect) => effect.kind === 'light').length
+  if (lightCount === 0) return null
+
+  return {
+    keys: Array.from({ length: lightCount }, (_, index) => `${nodeId}:${index}`),
+    toggleIndex: interactive.controls.findIndex((control) => control.kind === 'toggle'),
+  }
+}
+
 function HaLightBinding({
   binding,
   runtime,
@@ -31,6 +47,36 @@ function HaLightBinding({
   const adapter = runtime.adapter
   const visual = resolveHomeAssistantLightVisualState(adapter?.getEntity(binding.entityId))
   const sourceKey = `ha3d:${binding.nodeId}:${binding.entityId}:${visual.color}`
+
+  useEffect(() => {
+    if (!binding.enabled) return
+
+    const native = nativeCatalogLightBinding(binding.nodeId as AnyNodeId)
+    if (!native) return
+
+    for (const key of native.keys) useItemLightPool.getState().suppress(key)
+    return () => {
+      for (const key of native.keys) useItemLightPool.getState().unsuppress(key)
+    }
+  }, [binding.enabled, binding.nodeId])
+
+  useEffect(() => {
+    if (!binding.enabled) return
+
+    const nodeId = binding.nodeId as AnyNodeId
+    const native = nativeCatalogLightBinding(nodeId)
+    if (!native || native.toggleIndex < 0) return
+
+    const syncNativeToggle = () => {
+      const item = useInteractive.getState().items[nodeId]
+      if (!item) return
+      if (Boolean(item.controlValues[native.toggleIndex]) === visual.on) return
+      useInteractive.getState().setControlValue(nodeId, native.toggleIndex, visual.on)
+    }
+
+    syncNativeToggle()
+    return useInteractive.subscribe(syncNativeToggle)
+  }, [binding.enabled, binding.nodeId, visual.on])
 
   useEffect(() => {
     if (!adapter || !binding.enabled) return
