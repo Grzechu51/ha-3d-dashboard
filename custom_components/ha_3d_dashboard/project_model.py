@@ -21,6 +21,14 @@ _SUPPORTED_HA_DOMAINS = {
     "sensor",
     "binary_sensor",
     "climate",
+    "input_boolean",
+    "input_number",
+    "input_select",
+    "input_text",
+    "input_datetime",
+    "number",
+    "select",
+    "text",
 }
 _COVER_MOTION_AXES = {"x", "y", "z"}
 MISSING = object()
