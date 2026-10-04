@@ -8,7 +8,7 @@ import {
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
 import Link from 'next/link'
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { restoreHa3dDashboardProjectConfig } from '../../lib/ha3d/dashboard-persistence'
 import { resetHa3dProjectConfig } from '../../lib/ha3d/project-config'
 import {
@@ -47,12 +47,12 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
   const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
 
-  const requestCameraPreset = (preset: Ha3dDashboardCameraRequest['preset']) => {
+  const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
     setCameraRequest((current) => ({
       id: (current?.id ?? 0) + 1,
       preset,
     }))
-  }
+  }, [])
 
   useLayoutEffect(() => {
     restoreHa3dDashboardProjectConfig(projectId)
@@ -91,7 +91,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   useEffect(() => {
     if (!viewerReady) return
     requestCameraPreset('fit')
-  }, [viewerReady])
+  }, [requestCameraPreset, viewerReady])
 
   return (
     <main className="dark relative h-screen w-screen overflow-hidden bg-background text-foreground">
