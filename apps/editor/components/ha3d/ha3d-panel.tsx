@@ -65,7 +65,10 @@ export default function Ha3dPanel() {
     ? project.bindings.filter((binding) => binding.nodeId === selectedNodeId)
     : []
 
-  const togglePowerEntity = async (domain: 'light' | 'switch', entityId: string) => {
+  const togglePowerEntity = async (
+    domain: 'light' | 'switch' | 'input_boolean',
+    entityId: string,
+  ) => {
     const adapter = runtime.adapter
     const entity = adapter?.getEntity(entityId)
     if (!(adapter && entity)) return
@@ -196,7 +199,8 @@ export default function Ha3dPanel() {
                         <option value="default">Default</option>
                         {binding.domain === 'light' ||
                         binding.domain === 'switch' ||
-                        binding.domain === 'cover' ? (
+                        binding.domain === 'cover' ||
+                        binding.domain === 'input_boolean' ? (
                           <option value="toggle">Toggle</option>
                         ) : null}
                         <option value="more-info">More info</option>
@@ -246,6 +250,15 @@ export default function Ha3dPanel() {
                         <button
                           className="rounded border border-border px-2 py-1 text-xs hover:bg-accent"
                           onClick={() => void togglePowerEntity('switch', binding.entityId)}
+                          type="button"
+                        >
+                          {entity.state === 'on' ? 'Turn off' : 'Turn on'}
+                        </button>
+                      ) : null}
+                      {binding.domain === 'input_boolean' && entity ? (
+                        <button
+                          className="rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                          onClick={() => void togglePowerEntity('input_boolean', binding.entityId)}
                           type="button"
                         >
                           {entity.state === 'on' ? 'Turn off' : 'Turn on'}
