@@ -147,12 +147,14 @@ export function Ha3dDashboardInteractions({
   selectedNodeId,
   expandedNodeId,
   highlightsEnabled,
+  markersEnabled,
   onSelectedNodeIdChange,
   onExpandedNodeIdChange,
 }: {
   selectedNodeId: string | null
   expandedNodeId: string | null
   highlightsEnabled: boolean
+  markersEnabled: boolean
   onSelectedNodeIdChange: (nodeId: string | null) => void
   onExpandedNodeIdChange: (nodeId: string | null) => void
 }) {
@@ -329,7 +331,7 @@ export function Ha3dDashboardInteractions({
 
   return (
     <>
-      {highlightsEnabled
+      {markersEnabled
         ? markerBindings.map((binding) => (
             <InteractiveEntityMarker
               binding={binding}
