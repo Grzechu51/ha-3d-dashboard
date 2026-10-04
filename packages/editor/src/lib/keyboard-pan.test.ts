@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, test } from 'bun:test'
+import { expect, test } from 'bun:test'
 import {
   acceptsKeyboardPan,
   clearKeyboardPanKeys,
@@ -18,20 +18,6 @@ const idle = (): KeyboardPanState => ({
 })
 const key = (init: Partial<KeyboardEvent>) => ({ target: null, ...init }) as KeyboardEvent
 
-// No DOM in this runner: stand in for the element classes the editable check reads.
-const DOM_CLASSES = ['HTMLElement', 'HTMLInputElement', 'HTMLTextAreaElement', 'HTMLSelectElement']
-const stubbed: string[] = []
-beforeAll(() => {
-  const scope = globalThis as Record<string, unknown>
-  for (const name of DOM_CLASSES) {
-    if (scope[name]) continue
-    scope[name] = class {}
-    stubbed.push(name)
-  }
-})
-afterAll(() => {
-  for (const name of stubbed) delete (globalThis as Record<string, unknown>)[name]
-})
 
 test('physical WASD keys drive a screen-space direction; letters on other layouts do not', () => {
   const state = idle()
@@ -50,9 +36,20 @@ test('modifier chords stay shortcuts, and typing in a field never pans', () => {
   expect(acceptsKeyboardPan(key({}))).toBe(true)
   for (const modifier of ['metaKey', 'ctrlKey', 'altKey'] as const)
     expect(acceptsKeyboardPan(key({ [modifier]: true }))).toBe(false)
-  const Input = (globalThis as unknown as { HTMLInputElement: new () => EventTarget })
-    .HTMLInputElement
-  expect(acceptsKeyboardPan(key({ target: new Input() }))).toBe(false)
+  const input = { tagName: 'INPUT', getAttribute: () => null } as unknown as EventTarget
+  expect(acceptsKeyboardPan(key({ target: input }))).toBe(false)
+
+  // Home Assistant retargets a shadow-root keyboard event to <ha3d-panel>.
+  // The real input remains visible through composedPath().
+  const host = { tagName: 'HA3D-PANEL', getAttribute: () => null } as unknown as EventTarget
+  const shadowEvent = {
+    target: host,
+    composedPath: () => [input, host],
+    metaKey: false,
+    ctrlKey: false,
+    altKey: false,
+  } as unknown as KeyboardEvent
+  expect(acceptsKeyboardPan(shadowEvent)).toBe(false)
 })
 
 test('speed scales with the visible width within fixed bounds', () => {
