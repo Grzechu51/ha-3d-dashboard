@@ -49,13 +49,12 @@ export default function Ha3dPanel() {
   )
 
   const allEntities = runtime.adapter?.listEntities() ?? []
+  const bindableEntities = allEntities.filter((entity) => {
+    const domain = entity.entityId.split('.')[0] ?? ''
+    return isSupportedHomeAssistantDomain(domain)
+  })
   const needle = query.trim().toLocaleLowerCase()
-  const entities = allEntities
-    .filter((entity) => {
-      const domain = entity.entityId.split('.')[0] ?? ''
-      return isSupportedHomeAssistantDomain(domain)
-    })
-    .filter((entity) => {
+  const entities = bindableEntities.filter((entity) => {
       if (!needle) return true
       return (
         entity.entityId.toLocaleLowerCase().includes(needle) ||
@@ -175,7 +174,7 @@ export default function Ha3dPanel() {
             <div className="font-medium text-sm">Home Assistant entities</div>
             <div className="mt-0.5 text-muted-foreground text-xs">
               {runtime.connected
-                ? `${entities.length} bindable · ${allEntities.length} total`
+                ? `${bindableEntities.length} bindable · ${allEntities.length} total`
                 : 'Bridge not connected'}
             </div>
           </div>
