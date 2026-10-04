@@ -90,10 +90,14 @@ treat CI runs as deliberate checkpoints, not as an edit-by-edit feedback loop.
   that marker or otherwise create a second full run for the generated-only commit.
 - Full CI intentionally runs on pull requests, not again after merge to `main`. Do not restore
   duplicate post-merge CI unless the user explicitly asks for that tradeoff.
-- `HA Release` and `HACS Validate` are manual workflows. Do not run them as routine
-  verification and never create a real HA GitHub Release unless the user explicitly approves it.
-- The repository is public for the custom-HACS beta. Do not re-run HACS
-  validation unless the workflow or relevant repository metadata changed.
+- `HACS Validate` remains manual. Do not run it as routine verification and do not re-run
+  it unless the workflow or relevant repository metadata changed.
+- `HA Release` auto-runs only when `main` receives a source-version change in the HA
+  integration. A green PR CI is the review gate; after merge, do not start a duplicate manual
+  release run unless the automatic release failed for an understood reason.
+- While `BETA_RELEASE_LOCK` exists, an automatic HA release must still be a `-beta.N`
+  prerelease. Do not bypass the lock or reuse an existing tag/version.
+- The repository is public for the custom-HACS beta.
 - Prefer the smallest verification that proves the current change. A full workflow is the final
   gate before merge, not the default validation after every file edit.
 
