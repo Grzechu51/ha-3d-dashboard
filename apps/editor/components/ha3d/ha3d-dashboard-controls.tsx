@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   entityFriendlyName,
@@ -22,7 +22,15 @@ function actionErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Home Assistant service call failed'
 }
 
-export function Ha3dDashboardControls() {
+export function Ha3dDashboardControls({
+  selectedNodeId = null,
+  highlightsEnabled = true,
+  onHighlightsEnabledChange,
+}: {
+  selectedNodeId?: string | null
+  highlightsEnabled?: boolean
+  onHighlightsEnabledChange?: (enabled: boolean) => void
+} = {}) {
   const [collapsed, setCollapsed] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const runtime = useSyncExternalStore(
@@ -36,6 +44,10 @@ export function Ha3dDashboardControls() {
     getHa3dProjectConfigSnapshot,
   )
 
+  useEffect(() => {
+    if (selectedNodeId) setCollapsed(false)
+  }, [selectedNodeId])
+
   const bindings = project.bindings
     .filter((binding) => binding.enabled)
     .map((binding) => ({
@@ -43,6 +55,10 @@ export function Ha3dDashboardControls() {
       entity: runtime.adapter?.getEntity(binding.entityId),
     }))
     .sort((left, right) => {
+      const leftSelected = left.binding.nodeId === selectedNodeId
+      const rightSelected = right.binding.nodeId === selectedNodeId
+      if (leftSelected !== rightSelected) return leftSelected ? -1 : 1
+
       const leftName = left.entity ? entityFriendlyName(left.entity) : left.binding.entityId
       const rightName = right.entity ? entityFriendlyName(right.entity) : right.binding.entityId
       return leftName.localeCompare(rightName)
@@ -91,13 +107,25 @@ export function Ha3dDashboardControls() {
             {runtime.connected ? runtime.adapter?.id : 'not connected'}
           </div>
         </div>
-        <button
-          className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
-          onClick={() => setCollapsed(true)}
-          type="button"
-        >
-          Hide
-        </button>
+        <div className="flex items-center gap-1.5">
+          {onHighlightsEnabledChange ? (
+            <button
+              aria-pressed={highlightsEnabled}
+              className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+              onClick={() => onHighlightsEnabledChange(!highlightsEnabled)}
+              type="button"
+            >
+              Highlights {highlightsEnabled ? 'on' : 'off'}
+            </button>
+          ) : null}
+          <button
+            className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+            onClick={() => setCollapsed(true)}
+            type="button"
+          >
+            Hide
+          </button>
+        </div>
       </div>
 
       <div className="max-h-[calc(46vh-3.4rem)] space-y-2 overflow-y-auto p-3 md:max-h-[calc(100vh-6rem)]">
@@ -121,13 +149,24 @@ export function Ha3dDashboardControls() {
 
           return (
             <section
-              className="rounded-xl border border-border/70 bg-card/70 p-3"
+              className={`rounded-xl border bg-card/70 p-3 ${
+                binding.nodeId === selectedNodeId
+                  ? 'border-sky-400/70 ring-1 ring-sky-400/30'
+                  : 'border-border/70'
+              }`}
               key={`${binding.nodeId}:${binding.domain}`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="truncate font-medium text-sm">
-                    {entity ? entityFriendlyName(entity) : binding.entityId}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="truncate font-medium text-sm">
+                      {entity ? entityFriendlyName(entity) : binding.entityId}
+                    </div>
+                    {binding.nodeId === selectedNodeId ? (
+                      <span className="shrink-0 rounded bg-sky-400/15 px-1.5 py-0.5 text-[9px] text-sky-300">
+                        selected
+                      </span>
+                    ) : null}
                   </div>
                   <div className="truncate text-muted-foreground text-[10px]">
                     {binding.entityId}
