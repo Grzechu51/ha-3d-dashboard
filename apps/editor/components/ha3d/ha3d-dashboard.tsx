@@ -17,6 +17,10 @@ import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from './ha3d-dashboard-interactions'
+import {
+  type Ha3dEnvironmentMode,
+  Ha3dSunEnvironment,
+} from './ha3d-sun-environment'
 
 export interface Ha3dDashboardSceneMeta {
   id: string
@@ -38,6 +42,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
   const [expandedInteractiveNodeId, setExpandedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
+  const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
 
   useLayoutEffect(() => {
     restoreHa3dDashboardProjectConfig(projectId)
@@ -86,6 +91,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
           <SceneEnvironment />
           <OrbitControls enableDamping makeDefault />
           {presentationsReady ? <ViewerPresentations /> : null}
+          <Ha3dSunEnvironment mode={environmentMode} />
           <Ha3dDashboardInteractions
             expandedNodeId={expandedInteractiveNodeId}
             highlightsEnabled={interactiveHighlights}
@@ -110,8 +116,10 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
       </div>
 
       <Ha3dDashboardControls
+        environmentMode={environmentMode}
         expandedNodeId={expandedInteractiveNodeId}
         highlightsEnabled={interactiveHighlights}
+        onEnvironmentModeChange={setEnvironmentMode}
         onExpandedNodeIdChange={setExpandedInteractiveNodeId}
         onHighlightsEnabledChange={setInteractiveHighlights}
         selectedNodeId={selectedInteractiveNodeId}
