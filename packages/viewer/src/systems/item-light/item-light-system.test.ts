@@ -17,7 +17,11 @@ beforeEach(() => {
 
 afterEach(() => {
   sceneRegistry.clear()
-  useItemLightPool.setState({ registrations: new Map(), bakedCanvases: new Set() })
+  useItemLightPool.setState({
+    registrations: new Map(),
+    suppressedKeys: new Set(),
+    bakedCanvases: new Set(),
+  })
   useScene.setState({ nodes: {} as Record<AnyNodeId, AnyNode> })
   useViewer.setState({
     levelMode: previousViewerState.levelMode,
@@ -66,6 +70,13 @@ test('batched ceiling lamps stay eligible; all twelve light objects remain visib
     expect(lights).toHaveLength(12)
     expect(lights.every((light) => light.visible)).toBe(true)
     await renderer.advanceFrames(5, 1 / 30)
+    expect(lights.some((light) => light.intensity > 0)).toBe(true)
+
+    pool.suppress('lamp')
+    await renderer.advanceFrames(30, 1 / 30)
+    expect(lights.every((light) => light.intensity === 0)).toBe(true)
+    pool.unsuppress('lamp')
+    await renderer.advanceFrames(10, 1 / 30)
     expect(lights.some((light) => light.intensity > 0)).toBe(true)
 
     on = false
