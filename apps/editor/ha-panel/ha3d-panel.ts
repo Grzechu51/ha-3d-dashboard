@@ -17,6 +17,12 @@ export class Ha3dDashboardPanel extends HTMLElement {
   private readonly stylesheet: HTMLLinkElement
   private readonly hostStyles: HTMLStyleElement
   private reactRoot: Root | null = null
+  private resizeObserver: ResizeObserver | null = null
+  private resizeFrame: number | null = null
+
+  private readonly handleViewportResize = () => {
+    this.scheduleBoundsSync()
+  }
 
   constructor() {
     super()
@@ -27,17 +33,24 @@ export class Ha3dDashboardPanel extends HTMLElement {
       :host {
         display: block;
         width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
         min-width: 0;
-        min-height: 100vh;
-        min-height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
         box-sizing: border-box;
+        contain: inline-size layout paint;
       }
 
       #ha3d-root {
         width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
         min-width: 0;
-        min-height: 100vh;
-        min-height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
       }
     `
 
@@ -85,12 +98,47 @@ export class Ha3dDashboardPanel extends HTMLElement {
     this.reactRoot ??= createRoot(this.reactHost)
     this.refreshStylesheet()
     this.renderReact()
+
+    this.resizeObserver = new ResizeObserver(() => this.scheduleBoundsSync())
+    if (this.parentElement) this.resizeObserver.observe(this.parentElement)
+    window.addEventListener('resize', this.handleViewportResize)
+    this.scheduleBoundsSync()
   }
 
   disconnectedCallback(): void {
     this.controller.disconnect()
+    this.resizeObserver?.disconnect()
+    this.resizeObserver = null
+    window.removeEventListener('resize', this.handleViewportResize)
+    if (this.resizeFrame !== null) {
+      cancelAnimationFrame(this.resizeFrame)
+      this.resizeFrame = null
+    }
     this.reactRoot?.unmount()
     this.reactRoot = null
+  }
+
+  private scheduleBoundsSync(): void {
+    if (this.resizeFrame !== null) return
+    this.resizeFrame = requestAnimationFrame(() => {
+      this.resizeFrame = null
+      this.syncBoundsToViewport()
+    })
+  }
+
+  private syncBoundsToViewport(): void {
+    if (!this.isConnected) return
+
+    const rect = this.getBoundingClientRect()
+    const documentLeft = rect.left + window.scrollX
+    const documentTop = rect.top + window.scrollY
+    const availableWidth = Math.max(1, window.innerWidth - Math.max(0, documentLeft))
+    const availableHeight = Math.max(1, window.innerHeight - Math.max(0, documentTop))
+
+    this.style.width = `${Math.floor(availableWidth)}px`
+    this.style.maxWidth = `${Math.floor(availableWidth)}px`
+    this.style.height = `${Math.floor(availableHeight)}px`
+    this.style.maxHeight = `${Math.floor(availableHeight)}px`
   }
 
   private refreshStylesheet(): void {
