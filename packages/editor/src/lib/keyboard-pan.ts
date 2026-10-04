@@ -1,3 +1,5 @@
+import { isEditableKeyboardEvent, isEditableKeyboardTarget } from './keyboard-target'
+
 // WASD navigation shared by the 3D camera and the 2D floor plan, so both views
 // move the same way. Keys match by physical position (`event.code`): the
 // cluster stays under the left hand on any layout (Z/Q/S/D on AZERTY).
@@ -13,14 +15,7 @@ const KEYBOARD_PAN_VIEW_WIDTH_PER_SECOND = 0.65
 const KEYBOARD_PAN_MIN_SPEED = 2
 const KEYBOARD_PAN_MAX_SPEED = 55
 
-export function isEditableKeyboardTarget(target: EventTarget | null) {
-  return (
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    (target instanceof HTMLElement && target.isContentEditable)
-  )
-}
+export { isEditableKeyboardTarget } from './keyboard-target'
 
 export function setKeyboardPanKey(
   state: KeyboardPanState,
@@ -67,9 +62,7 @@ export function clearKeyboardPanKeys(state: KeyboardPanState) {
 
 /** Pan keys are ignored with a modifier held (shortcuts) or while typing. */
 export function acceptsKeyboardPan(event: KeyboardEvent) {
-  return (
-    !(event.metaKey || event.ctrlKey || event.altKey) && !isEditableKeyboardTarget(event.target)
-  )
+  return !(event.metaKey || event.ctrlKey || event.altKey) && !isEditableKeyboardEvent(event)
 }
 
 /** Screen-space direction: `horizontal` +1 is right, `vertical` +1 is forward (up). */
