@@ -66,6 +66,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
 
   useLayoutEffect(() => {
     const releaseReadOnly = acquireSceneReadOnlyLease()
+    const previousLevelMode = useViewer.getState().levelMode
     useViewer.getState().setProjectId(projectId)
     useScene.getState().unloadScene()
     applySceneGraphToEditor(scene)
@@ -83,6 +84,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
       setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
+      useViewer.getState().setLevelMode(previousLevelMode)
       useViewer.getState().setProjectId(null)
       releaseReadOnly()
     }
