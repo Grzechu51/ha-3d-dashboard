@@ -1,6 +1,6 @@
 # HA 3D Dashboard — Project Status
 
-_Last updated: 2026-10-02_
+_Last updated: 2026-10-04_
 
 This repository is a Home Assistant 3D dashboard/editor project built on top of the open-source Pascal Editor codebase.
 
@@ -18,20 +18,39 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: release readiness**
+**Checkpoint: real Home Assistant dashboard polish**
 
-Status: **PR #20 merged; browser-runtime fix ready for beta.3 release**
+Status: **v0.3.0-beta.13 published; beta.14 fixes prepared from the real HA smoke test**
 
-PR #8 through PR #20 are merged to `main`. The native project shell,
-project management, Home Assistant structure mapping, GitHub Actions cost
-controls, manual/HACS packaging, release tooling, brand hardening, shared
-offline release preflight and public-beta safeguards are complete. The latest
-runtime fix prepends a browser-safe `process.env` shim to the generated HA
-panel bundle before bundled dependencies execute.
+PR #32 is merged to `main` and `v0.3.0-beta.13` is published. The native HA
+panel now has interactive 3D labels, configurable tap/hold actions, light
+more-info controls, Auto Sun, visual opening/stair presets and native Pascal JSON
+import.
 
-The active checkpoint is:
+The beta.13 smoke test confirmed those paths work, and exposed the next concrete
+issues:
 
-`v0.3.0-beta.5 portable image/assets fix -> HACS editor retest`
+- Home Assistant packages did not include Pascal material runtime assets, so
+  texture-backed thumbnails such as Copper / Polished Metal / Brushed Steel
+  were broken in the embedded editor;
+- the Garage Panel catalog entry referenced generated files that do not exist in
+  the repository;
+- HA-bound catalog lamps could still keep their Pascal-native light source in
+  addition to the HA-driven source, which could leave visible illumination when
+  Home Assistant reported the light off;
+- interactive Highlights were technically present but too weak to read clearly
+  in the real dark dashboard;
+- entity Labels need a stronger, cleaner dashboard treatment.
+
+The active beta.14 branch fixes those five findings by routing and packaging the
+full local material runtime, repairing Garage Panel paths, suppressing the native
+catalog light while an HA light binding owns the object, synchronizing the
+catalog toggle with HA state, strengthening the cyan outline and polishing the
+3D label badge.
+
+After beta.14 is smoke-tested, the next UI checkpoint is the dashboard operator
+experience: cleaner right-side controls, native/HA-style more-info popup, camera
+view presets and explicit floor switching.
 
 ## Completed
 
