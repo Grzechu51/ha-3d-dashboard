@@ -1,9 +1,4 @@
-import {
-  forwardRef,
-  type CSSProperties,
-  type ImgHTMLAttributes,
-  type SyntheticEvent,
-} from 'react'
+import { forwardRef, type CSSProperties, type ImgHTMLAttributes, type SyntheticEvent } from 'react'
 
 type StaticImageDataLike = Readonly<{
   src: string
@@ -39,6 +34,7 @@ function resolveImageSource(src: PortableImageSource): string {
 export default forwardRef<HTMLImageElement, PortableImageProps>(function PortableNextImage(
   {
     src,
+    alt = '',
     fill = false,
     priority = false,
     quality: _quality,
@@ -72,6 +68,7 @@ export default forwardRef<HTMLImageElement, PortableImageProps>(function Portabl
   return (
     <img
       {...imgProps}
+      alt={alt}
       loading={priority ? 'eager' : loading}
       onLoad={handleLoad}
       ref={ref}
