@@ -59,14 +59,18 @@ export function catalogLightSource(
 
 type ItemLightPoolStore = {
   registrations: Map<string, LightSource>
+  suppressedKeys: Set<string>
   bakedCanvases: Set<Object3D>
   setBakedCanvas: (scene: Object3D, active: boolean) => void
   register: (source: LightSource) => void
   unregister: (key: string) => void
+  suppress: (key: string) => void
+  unsuppress: (key: string) => void
 }
 
 export const useItemLightPool = create<ItemLightPoolStore>((set) => ({
   registrations: new Map(),
+  suppressedKeys: new Set(),
   bakedCanvases: new Set(),
   setBakedCanvas: (scene, active) =>
     set((state) => {
@@ -82,5 +86,19 @@ export const useItemLightPool = create<ItemLightPoolStore>((set) => ({
       const registrations = new Map(state.registrations)
       registrations.delete(key)
       return { registrations }
+    }),
+  suppress: (key) =>
+    set((state) => {
+      if (state.suppressedKeys.has(key)) return state
+      const suppressedKeys = new Set(state.suppressedKeys)
+      suppressedKeys.add(key)
+      return { suppressedKeys }
+    }),
+  unsuppress: (key) =>
+    set((state) => {
+      if (!state.suppressedKeys.has(key)) return state
+      const suppressedKeys = new Set(state.suppressedKeys)
+      suppressedKeys.delete(key)
+      return { suppressedKeys }
     }),
 }))
