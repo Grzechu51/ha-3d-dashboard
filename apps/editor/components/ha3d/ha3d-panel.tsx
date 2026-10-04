@@ -2,7 +2,7 @@
 
 import { type AnyNodeId, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   createEntityBinding,
@@ -68,28 +68,26 @@ export default function Ha3dPanel() {
     ? project.bindings.filter((binding) => binding.nodeId === selectedNodeId)
     : []
 
-  const refreshEntities = async () => {
-    const refresh = runtime.adapter?.refreshEntities
+  const refreshEntities = useCallback(async () => {
+    const adapter = runtime.adapter
+    const refresh = adapter?.refreshEntities
     if (!refresh || refreshingEntities) return
 
     setRefreshingEntities(true)
     setRefreshEntitiesError(null)
     try {
-      await refresh.call(runtime.adapter)
+      await refresh.call(adapter)
     } catch (error) {
       setRefreshEntitiesError(error instanceof Error ? error.message : 'Entity refresh failed')
     } finally {
       setRefreshingEntities(false)
     }
-  }
+  }, [refreshingEntities, runtime.adapter])
 
   useEffect(() => {
     if (!runtime.adapter?.refreshEntities) return
     void refreshEntities()
-    // Refresh once whenever the native HA adapter is attached. Later state
-    // updates still arrive through the normal Home Assistant hass lifecycle.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runtime.adapter])
+  }, [refreshEntities, runtime.adapter])
 
   const togglePowerEntity = async (
     domain: 'light' | 'switch' | 'input_boolean',
