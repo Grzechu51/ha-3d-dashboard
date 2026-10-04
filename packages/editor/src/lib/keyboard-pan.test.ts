@@ -18,7 +18,6 @@ const idle = (): KeyboardPanState => ({
 })
 const key = (init: Partial<KeyboardEvent>) => ({ target: null, ...init }) as KeyboardEvent
 
-
 test('physical WASD keys drive a screen-space direction; letters on other layouts do not', () => {
   const state = idle()
   expect(isKeyboardPanKey('KeyZ')).toBe(false)
