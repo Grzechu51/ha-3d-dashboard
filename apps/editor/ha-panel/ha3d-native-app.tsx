@@ -2,6 +2,7 @@ import {
   acquireSceneReadOnlyLease,
   applySceneGraphToEditor,
   Editor,
+  ItemsPanel,
   type SaveStatus,
   type SceneGraph,
   type SidebarTab,
@@ -9,6 +10,7 @@ import {
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
 import { OrbitControls } from '@react-three/drei'
+import { Hammer, Layers, Package, Settings } from 'lucide-react'
 import {
   Component,
   type ComponentType,
@@ -22,6 +24,7 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react'
+import { BuildTab } from '../components/build-tab'
 import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-controls'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
@@ -63,18 +66,42 @@ type Ha3dNativeAppProps = Readonly<{
 
 const EmptyEditorSidebarPanel = () => null
 
+function HaEditorItemsPanel() {
+  return <ItemsPanel showSourceFilter={false} showTagFilters={false} />
+}
+
 const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
   {
     id: 'site',
     label: 'Scene',
     component: EmptyEditorSidebarPanel,
     mobileDefaultSnap: 0.5,
+    mobileIcon: <Layers className="h-5 w-5" />,
+    icon: <Layers className="h-5 w-5" />,
+  },
+  {
+    id: 'build',
+    label: 'Build',
+    component: BuildTab,
+    mobileDefaultSnap: 0.5,
+    mobileIcon: <Hammer className="h-5 w-5" />,
+    icon: <Hammer className="h-5 w-5" />,
+  },
+  {
+    id: 'items',
+    label: 'Items',
+    component: HaEditorItemsPanel,
+    mobileDefaultSnap: 0.5,
+    mobileIcon: <Package className="h-5 w-5" />,
+    icon: <Package className="h-5 w-5" />,
   },
   {
     id: 'settings',
     label: 'Settings',
     component: EmptyEditorSidebarPanel,
     mobileDefaultSnap: 0.5,
+    mobileIcon: <Settings className="h-5 w-5" />,
+    icon: <Settings className="h-5 w-5" />,
   },
 ]
 
@@ -228,7 +255,7 @@ function ProjectPicker({
   }
 
   return (
-    <main className="dark flex min-h-screen items-center justify-center bg-background p-4 text-foreground md:p-8">
+    <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-4 text-foreground md:p-8">
       <section className="w-full max-w-5xl rounded-2xl border border-border bg-card shadow-2xl">
         <header className="flex flex-wrap items-center justify-between gap-3 border-border border-b px-5 py-4">
           <div>
@@ -533,7 +560,7 @@ function NativeDashboard({
 
   if (error) {
     return (
-      <main className="dark flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-6 text-foreground">
         <div className="max-w-lg rounded-xl border border-destructive/40 bg-card p-5">
           <h2 className="font-semibold">Project could not be loaded</h2>
           <p className="mt-2 text-destructive text-sm">{error}</p>
@@ -562,7 +589,7 @@ function NativeDashboard({
 
   if (scene === undefined) {
     return (
-      <main className="dark flex min-h-screen items-center justify-center bg-background text-muted-foreground">
+      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background text-muted-foreground">
         Loading project…
       </main>
     )
@@ -570,7 +597,7 @@ function NativeDashboard({
 
   if (!scene || scene.rootNodeIds.length === 0 || Object.keys(scene.nodes).length === 0) {
     return (
-      <main className="dark flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-6 text-foreground">
         <div className="max-w-lg rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
           <h2 className="font-semibold text-lg">{projectName}</h2>
           <p className="mt-2 text-muted-foreground text-sm">
@@ -600,7 +627,7 @@ function NativeDashboard({
   }
 
   return (
-    <main className="dark relative h-screen w-screen overflow-hidden bg-background text-foreground">
+    <main className="dark relative h-screen w-full min-w-0 overflow-hidden bg-background text-foreground">
       <Viewer
         defaultRender={{ shading: 'solid' }}
         onSceneReadyChange={setViewerReady}
@@ -730,7 +757,7 @@ function NativeProject({
   }
 
   return (
-    <main className="dark relative h-screen w-screen overflow-hidden bg-background text-foreground">
+    <main className="dark relative h-screen w-full min-w-0 overflow-hidden bg-background text-foreground">
       <EditorCrashBoundary
         key={`editor-boundary:${editorEpoch}`}
         onProjects={() => {
@@ -1030,7 +1057,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
 
   if (!hass) {
     return (
-      <main className="dark flex min-h-screen items-center justify-center bg-background text-muted-foreground">
+      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background text-muted-foreground">
         Waiting for Home Assistant…
       </main>
     )
@@ -1065,7 +1092,10 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
   }
 
   return (
-    <div data-ha3d-layout={narrow ? 'narrow' : 'wide'}>
+    <div
+      className="h-full w-full min-w-0 overflow-hidden"
+      data-ha3d-layout={narrow ? 'narrow' : 'wide'}
+    >
       <NativeProject
         key={selectedProjectId}
         canManageProjects={canManageProjects}
