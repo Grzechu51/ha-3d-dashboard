@@ -18,39 +18,42 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: real Home Assistant dashboard polish**
+**Checkpoint: dashboard operator navigation**
 
-Status: **v0.3.0-beta.13 published; beta.14 fixes prepared from the real HA smoke test**
+Status: **beta.14 source merged to `main`; operator-navigation stage implemented on `feat/ha-dashboard-operator-nav`**
 
-PR #32 is merged to `main` and `v0.3.0-beta.13` is published. The native HA
-panel now has interactive 3D labels, configurable tap/hold actions, light
-more-info controls, Auto Sun, visual opening/stair presets and native Pascal JSON
-import.
+PR #33 is merged to `main`. Its PR CI and MCP CI both passed. The merge contains
+the beta.14 material-runtime packaging fix, Garage Panel asset correction,
+HA-bound lamp ownership fix, stronger interactive highlights and the polished
+anchored entity labels.
 
-The beta.13 smoke test confirmed those paths work, and exposed the next concrete
-issues:
+At the latest check, no new **HA Release** run or `v0.3.0-beta.14` GitHub Release
+had appeared for the merge commit yet. Do not create a duplicate release if an
+automatic run appears later; if it remains absent, the release needs one manual
+workflow dispatch from `main`.
 
-- Home Assistant packages did not include Pascal material runtime assets, so
-  texture-backed thumbnails such as Copper / Polished Metal / Brushed Steel
-  were broken in the embedded editor;
-- the Garage Panel catalog entry referenced generated files that do not exist in
-  the repository;
-- HA-bound catalog lamps could still keep their Pascal-native light source in
-  addition to the HA-driven source, which could leave visible illumination when
-  Home Assistant reported the light off;
-- interactive Highlights were technically present but too weak to read clearly
-  in the real dark dashboard;
-- entity Labels need a stronger, cleaner dashboard treatment.
+The active development branch is:
 
-The active beta.14 branch fixes those five findings by routing and packaging the
-full local material runtime, repairing Garage Panel paths, suppressing the native
-catalog light while an HA light binding owns the object, synchronizing the
-catalog toggle with HA state, strengthening the cyan outline and polishing the
-3D label badge.
+`feat/ha-dashboard-operator-nav`
 
-After beta.14 is smoke-tested, the next UI checkpoint is the dashboard operator
-experience: cleaner right-side controls, native/HA-style more-info popup, camera
-view presets and explicit floor switching.
+Implemented in this checkpoint:
+
+- a dashboard-specific smooth camera controller instead of the basic OrbitControls;
+- automatic fit-to-building framing once the scene is ready;
+- explicit camera presets: **Fit / Iso / Top / Front / Right**;
+- an operator floor strip with **All** plus every authored level;
+- selecting a floor switches the viewer to `solo` mode and refits that level;
+- selecting **All** restores the stacked building view;
+- dashboard entry temporarily normalizes level mode to stacked and restores the
+  user's previous viewer level mode on exit;
+- pure camera-preset planning tests added under `apps/editor/lib/ha3d`.
+
+This branch intentionally has **no version bump and no PR yet**, so it does not
+spend another GitHub Actions checkpoint before the source review is complete.
+
+Next checkpoint after approval: refactor the right-side Home Assistant operator
+panel so hold/more-info behaves like a focused HA-style popup instead of expanding
+inside the entity list, and reduce the always-visible panel chrome.
 
 ## Completed
 
