@@ -1,13 +1,22 @@
 export function isEditableKeyboardTarget(target: EventTarget | null): boolean {
-  if (typeof HTMLElement === 'undefined' || !(target instanceof HTMLElement)) return false
+  if (!target || typeof target !== 'object') return false
 
-  const tagName = target.tagName
+  const candidate = target as EventTarget & {
+    tagName?: unknown
+    isContentEditable?: unknown
+    getAttribute?: (name: string) => string | null
+  }
+  const tagName =
+    typeof candidate.tagName === 'string' ? candidate.tagName.toUpperCase() : ''
+  const role =
+    typeof candidate.getAttribute === 'function' ? candidate.getAttribute('role') : null
+
   return (
     tagName === 'INPUT' ||
     tagName === 'TEXTAREA' ||
     tagName === 'SELECT' ||
-    target.isContentEditable ||
-    target.getAttribute('role') === 'textbox'
+    candidate.isContentEditable === true ||
+    role === 'textbox'
   )
 }
 
