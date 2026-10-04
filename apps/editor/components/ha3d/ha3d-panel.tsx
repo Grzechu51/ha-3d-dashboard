@@ -85,9 +85,18 @@ export default function Ha3dPanel() {
   }, [refreshingEntities, runtime.adapter])
 
   useEffect(() => {
-    if (!runtime.adapter?.refreshEntities) return
-    void refreshEntities()
-  }, [refreshEntities, runtime.adapter])
+    const adapter = runtime.adapter
+    if (!adapter?.refreshEntities) return
+
+    setRefreshingEntities(true)
+    setRefreshEntitiesError(null)
+    void adapter
+      .refreshEntities()
+      .catch((error) => {
+        setRefreshEntitiesError(error instanceof Error ? error.message : 'Entity refresh failed')
+      })
+      .finally(() => setRefreshingEntities(false))
+  }, [runtime.adapter])
 
   const togglePowerEntity = async (
     domain: 'light' | 'switch' | 'input_boolean',
