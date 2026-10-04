@@ -77,7 +77,9 @@ export function Ha3dDashboardControls({
   selectedNodeId = null,
   expandedNodeId = null,
   highlightsEnabled = true,
+  markersEnabled = true,
   onHighlightsEnabledChange,
+  onMarkersEnabledChange,
   onExpandedNodeIdChange,
   environmentMode = 'auto',
   onEnvironmentModeChange,
@@ -85,7 +87,9 @@ export function Ha3dDashboardControls({
   selectedNodeId?: string | null
   expandedNodeId?: string | null
   highlightsEnabled?: boolean
+  markersEnabled?: boolean
   onHighlightsEnabledChange?: (enabled: boolean) => void
+  onMarkersEnabledChange?: (enabled: boolean) => void
   onExpandedNodeIdChange?: (nodeId: string | null) => void
   environmentMode?: Ha3dEnvironmentMode
   onEnvironmentModeChange?: (mode: Ha3dEnvironmentMode) => void
@@ -174,7 +178,17 @@ export function Ha3dDashboardControls({
               onClick={() => onHighlightsEnabledChange(!highlightsEnabled)}
               type="button"
             >
-              Markers {highlightsEnabled ? 'on' : 'off'}
+              Highlights {highlightsEnabled ? 'on' : 'off'}
+            </button>
+          ) : null}
+          {onMarkersEnabledChange ? (
+            <button
+              aria-pressed={markersEnabled}
+              className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+              onClick={() => onMarkersEnabledChange(!markersEnabled)}
+              type="button"
+            >
+              Labels {markersEnabled ? 'on' : 'off'}
             </button>
           ) : null}
           <button
