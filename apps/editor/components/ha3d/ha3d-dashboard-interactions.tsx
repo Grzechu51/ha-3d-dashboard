@@ -2,7 +2,8 @@
 
 import { emitter, type NodeEvent, sceneRegistry } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
-import { useEffect, useSyncExternalStore } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
@@ -73,37 +74,58 @@ export function Ha3dDashboardInteractions({
     getHa3dProjectConfigSnapshot,
     getHa3dProjectConfigSnapshot,
   )
-  const geometryRevision = useViewer((state) => state.geometryRevision)
+  const interactiveNodeIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          project.bindings
+            .filter((binding) => binding.enabled)
+            .map((binding) => binding.nodeId),
+        ),
+      ),
+    [project.bindings],
+  )
+
+  const syncOutliner = () => {
+    const outliner = useViewer.getState().outliner
+    const selectedObjects =
+      selectedNodeId && interactiveNodeIds.includes(selectedNodeId)
+        ? [sceneRegistry.nodes.get(selectedNodeId)].filter(Boolean)
+        : []
+    const highlightedObjects = highlightsEnabled
+      ? interactiveNodeIds
+          .filter((nodeId) => nodeId !== selectedNodeId)
+          .map((nodeId) => sceneRegistry.nodes.get(nodeId))
+          .filter(Boolean)
+      : []
+
+    const selectedChanged =
+      outliner.selectedObjects.length !== selectedObjects.length ||
+      outliner.selectedObjects.some((object, index) => object !== selectedObjects[index])
+    if (selectedChanged) {
+      outliner.selectedObjects.length = 0
+      outliner.selectedObjects.push(...selectedObjects)
+    }
+
+    const highlightedChanged =
+      outliner.hoveredObjects.length !== highlightedObjects.length ||
+      outliner.hoveredObjects.some((object, index) => object !== highlightedObjects[index])
+    if (highlightedChanged) {
+      outliner.hoveredObjects.length = 0
+      outliner.hoveredObjects.push(...highlightedObjects)
+    }
+  }
+
+  useFrame(syncOutliner)
 
   useEffect(() => {
-    const outliner = useViewer.getState().outliner
-    outliner.selectedObjects.length = 0
-    outliner.hoveredObjects.length = 0
-
-    const interactiveNodeIds = new Set(
-      project.bindings
-        .filter((binding) => binding.enabled)
-        .map((binding) => binding.nodeId),
-    )
-
-    if (highlightsEnabled) {
-      for (const nodeId of interactiveNodeIds) {
-        if (nodeId === selectedNodeId) continue
-        const object = sceneRegistry.nodes.get(nodeId)
-        if (object) outliner.hoveredObjects.push(object)
-      }
-    }
-
-    if (selectedNodeId && interactiveNodeIds.has(selectedNodeId)) {
-      const object = sceneRegistry.nodes.get(selectedNodeId)
-      if (object) outliner.selectedObjects.push(object)
-    }
-
+    syncOutliner()
     return () => {
+      const outliner = useViewer.getState().outliner
       outliner.selectedObjects.length = 0
       outliner.hoveredObjects.length = 0
     }
-  }, [geometryRevision, highlightsEnabled, project.bindings, selectedNodeId])
+  }, [highlightsEnabled, interactiveNodeIds, selectedNodeId])
 
   useEffect(() => {
     const onNodeClick = (event: NodeEvent) => {
