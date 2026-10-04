@@ -98,8 +98,9 @@ export class HomeAssistantHassAdapter implements HomeAssistantAdapter {
     const states = await hass.callWS<HomeAssistantHassState[]>({ type: 'get_states' })
     const nextStates = Object.fromEntries(states.map((state) => [state.entity_id, state]))
     this.updateHass({
-      ...hass,
       states: nextStates,
+      callService: (...args) => hass.callService(...args),
+      callWS: <T,>(message: Readonly<Record<string, unknown>>) => hass.callWS!(message) as Promise<T>,
     })
   }
 
