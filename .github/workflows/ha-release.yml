@@ -39,7 +39,7 @@ jobs:
         id: release
         run: |
           CURRENT_VERSION="$(python3 -c 'import json; print(json.load(open("custom_components/ha_3d_dashboard/manifest.json", encoding="utf-8"))["version"])')"
-          CONST_VERSION="$(sed -n 's/^VERSION: Final = "\\(.*\\)"$/\\1/p' custom_components/ha_3d_dashboard/const.py)"
+          CONST_VERSION="$(grep '^VERSION: Final = ' custom_components/ha_3d_dashboard/const.py | cut -d'"' -f2)"
 
           if [ -z "${CURRENT_VERSION}" ] || [ "${CURRENT_VERSION}" != "${CONST_VERSION}" ]; then
             echo "Version mismatch before release: manifest=${CURRENT_VERSION:-<missing>} const=${CONST_VERSION:-<missing>}"
