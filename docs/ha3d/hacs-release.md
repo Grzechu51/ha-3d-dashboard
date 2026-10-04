@@ -2,11 +2,10 @@
 
 HA 3D Dashboard is prepared for HACS-style releases. HACS can only access
 **public GitHub repositories**, so the repository must be public for the beta
-test. `v0.3.0-beta.1` verified the install/backend/config-flow path. `v0.3.0-beta.2`
-fixed the panel host sizing but exposed a browser-runtime `process is not
-defined` crash. PR #20 is merged with an always-on browser `process.env`
-compatibility prelude; the next release target is `v0.3.0-beta.3`. These are
-custom-repository beta tests, not HACS-default or stable production releases.
+test. Early beta releases validated HACS installation, the native HA panel,
+standalone browser compatibility and real editor persistence. Current releases
+remain custom-repository beta tests, not HACS-default or stable production
+releases.
 
 ## Repository prerequisites
 
@@ -36,7 +35,8 @@ Manual installation remains supported for private development and recovery.
 The repository contains `BETA_RELEASE_LOCK`. While that file exists:
 
 - the integration source version must contain a `-beta.` prerelease suffix,
-- the **HA Release** workflow refuses `prerelease=false`,
+- **HA Release** derives prerelease status from the source version and refuses
+  a stable version while the lock exists,
 - the release preflight fails if a stable HA version is prepared,
 - release ZIPs must include `LICENSE.txt` and `THIRD_PARTY_NOTICES.txt`.
 
@@ -141,7 +141,7 @@ dist/SHA256SUMS
 To verify an explicit release version:
 
 ```bash
-python3 scripts/preflight-ha-release.py --version 0.3.0-beta.2
+python3 scripts/preflight-ha-release.py --version 0.3.0-beta.10
 ```
 
 ## Brand assets
