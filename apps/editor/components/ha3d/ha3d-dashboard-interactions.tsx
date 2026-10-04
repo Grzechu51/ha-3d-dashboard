@@ -253,6 +253,7 @@ export function Ha3dDashboardInteractions({
         return
       }
 
+      onExpandedNodeIdChange(null)
       void toggleBinding(binding)
         .then((handled) => {
           if (!handled) onExpandedNodeIdChange(nodeId)
