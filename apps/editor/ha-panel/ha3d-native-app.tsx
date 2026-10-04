@@ -26,6 +26,7 @@ import {
 } from 'react'
 import { BuildTab } from '../components/build-tab'
 import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-controls'
+import { Ha3dDashboardInteractions } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
 import {
@@ -519,11 +520,13 @@ function NativeDashboard({
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
   const [viewerReady, setViewerReady] = useState(false)
+  const [selectedBindingNodeId, setSelectedBindingNodeId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     setScene(undefined)
     setError(null)
+    setSelectedBindingNodeId(null)
 
     void session
       .load()
@@ -638,6 +641,10 @@ function NativeDashboard({
         <SceneEnvironment />
         <OrbitControls enableDamping makeDefault />
         <ViewerPresentations />
+        <Ha3dDashboardInteractions
+          onSelectNode={setSelectedBindingNodeId}
+          selectedNodeId={selectedBindingNodeId}
+        />
       </Viewer>
 
       <div className="pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 md:right-[21rem]">
@@ -667,7 +674,7 @@ function NativeDashboard({
         </div>
       </div>
 
-      <Ha3dDashboardControls />
+      <Ha3dDashboardControls selectedNodeId={selectedBindingNodeId} />
 
       {!viewerReady ? (
         <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-background/85 text-muted-foreground backdrop-blur-sm">
