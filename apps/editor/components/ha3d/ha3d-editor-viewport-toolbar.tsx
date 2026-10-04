@@ -8,7 +8,7 @@ import {
   useScene,
 } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { Box3, Vector3 } from 'three'
 import {
   type Ha3dDashboardCameraPreset,
@@ -59,16 +59,25 @@ export function Ha3dEditorViewportToolbar({
   environmentMode: Ha3dEnvironmentMode
   onEnvironmentModeChange: (mode: Ha3dEnvironmentMode) => void
 }) {
-  const nodes = useScene((state) => state.nodes)
   const selectedLevelId = useViewer((state) => state.selection.levelId)
   const levelMode = useViewer((state) => state.levelMode)
+  const levelSignature = useSyncExternalStore(
+    useScene.subscribe,
+    () =>
+      Object.values(useScene.getState().nodes)
+        .filter((node): node is LevelNode => node.type === 'level')
+        .map((level) => `${level.id}:${level.level}:${level.name ?? ''}:${level.parentId ?? ''}`)
+        .sort()
+        .join('|'),
+    () => '',
+  )
 
   const levels = useMemo(
     () =>
-      Object.values(nodes)
+      Object.values(useScene.getState().nodes)
         .filter((node): node is LevelNode => node.type === 'level')
         .sort((left, right) => right.level - left.level),
-    [nodes],
+    [levelSignature],
   )
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraPreset) => {
