@@ -1,4 +1,4 @@
-export function isEditableKeyboardTarget(target: EventTarget | null): boolean {
+export function isEditableKeyboardTarget(target: EventTarget | null | undefined): boolean {
   if (!target || typeof target !== 'object') return false
 
   const candidate = target as EventTarget & {
