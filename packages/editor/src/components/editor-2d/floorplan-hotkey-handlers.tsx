@@ -1,6 +1,7 @@
 'use client'
 
 import { memo, useEffect } from 'react'
+import { isEditableKeyboardEvent } from '../../lib/keyboard-pan'
 import useEditor from '../../store/use-editor'
 
 type FloorplanSiteKeyHandlerProps = {
@@ -16,14 +17,8 @@ export const FloorplanSiteKeyHandler = memo(function FloorplanSiteKeyHandler({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null
-      const isEditableTarget =
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        Boolean(target?.isContentEditable)
-
       if (
-        isEditableTarget ||
+        isEditableKeyboardEvent(event) ||
         !isFloorplanHovered ||
         phase !== 'site' ||
         event.metaKey ||
@@ -68,13 +63,7 @@ export const FloorplanDuplicateHotkey = memo(function FloorplanDuplicateHotkey({
         return
       }
 
-      const target = event.target as HTMLElement | null
-      const isEditableTarget =
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        Boolean(target?.isContentEditable)
-
-      if (isEditableTarget) {
+      if (isEditableKeyboardEvent(event)) {
         return
       }
 
