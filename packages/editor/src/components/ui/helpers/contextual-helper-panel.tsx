@@ -1,4 +1,4 @@
-import { Icon } from '@iconify/react'
+import { Ban, Grid2X2, Magnet, Minus, Repeat, Square, Triangle, type LucideIcon } from 'lucide-react'
 import type { ToolHint } from '@pascal-app/core'
 import { Fragment, useSyncExternalStore } from 'react'
 import {
@@ -32,6 +32,22 @@ const CONTAINER_CLASS =
   'pointer-events-none fixed top-1/2 right-4 z-40 grid max-w-[260px] -translate-y-1/2 grid-cols-[max-content_1fr] gap-x-2.5 gap-y-1.5 rounded-lg border border-border bg-background/95 px-3 py-2.5 shadow-lg backdrop-blur-md'
 
 const TOKEN_CLASS = 'h-5 px-1.5 text-[10px]'
+
+const PORTABLE_HUD_ICONS: Record<string, LucideIcon> = {
+  'lucide:grid-2x2': Grid2X2,
+  'lucide:magnet': Magnet,
+  'lucide:triangle': Triangle,
+  'lucide:ban': Ban,
+  'lucide:repeat': Repeat,
+  'lucide:minus': Minus,
+  'lucide:square': Square,
+}
+
+function PortableHudIcon({ icon }: { icon: string }) {
+  const Component = PORTABLE_HUD_ICONS[icon]
+  if (!Component) return null
+  return <Component aria-hidden="true" className="shrink-0" height={13} width={13} />
+}
 
 // Each row spans both columns as its own subgrid, inheriting the container's
 // tracks so its key/label cells land on the shared column lines.
@@ -116,7 +132,7 @@ function ChipRow({
         {shortcut ? <ShortcutToken className={TOKEN_CLASS} value={shortcut} /> : null}
       </span>
       <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground text-xs">
-        {icon ? <Icon className="shrink-0" height={13} icon={icon} width={13} /> : null}
+        {icon ? <PortableHudIcon icon={icon} /> : null}
         <span className="truncate">{label}</span>
       </span>
     </>
