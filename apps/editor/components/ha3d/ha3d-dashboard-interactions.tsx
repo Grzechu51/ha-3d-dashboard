@@ -85,9 +85,7 @@ export function Ha3dDashboardInteractions({
     () =>
       Array.from(
         new Set(
-          project.bindings
-            .filter((binding) => binding.enabled)
-            .map((binding) => binding.nodeId),
+          project.bindings.filter((binding) => binding.enabled).map((binding) => binding.nodeId),
         ),
       ),
     [project.bindings],
@@ -100,9 +98,7 @@ export function Ha3dDashboardInteractions({
         ? sceneObjectsForNodeIds([selectedNodeId])
         : []
     const highlightedObjects = highlightsEnabled
-      ? sceneObjectsForNodeIds(
-          interactiveNodeIds.filter((nodeId) => nodeId !== selectedNodeId),
-        )
+      ? sceneObjectsForNodeIds(interactiveNodeIds.filter((nodeId) => nodeId !== selectedNodeId))
       : []
 
     const selectedChanged =
