@@ -27,10 +27,10 @@ import {
   wallSegmentAnchors,
 } from '@pascal-app/core'
 import {
-  isEditableKeyboardEvent,
   CursorSphere,
   clearSurfacePlanSnapFeedback,
   EDITOR_LAYER,
+  isEditableKeyboardEvent,
   isGridSnapActive,
   isMagneticSnapActive,
   markToolCancelConsumed,
