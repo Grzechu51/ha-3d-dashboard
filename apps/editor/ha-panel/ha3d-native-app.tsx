@@ -35,7 +35,9 @@ import {
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
+import { Ha3dCustomObjectTile } from '../components/ha3d/ha3d-custom-object-tile'
 import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
+import { Ha3dEditorViewportToolbar } from '../components/ha3d/ha3d-editor-viewport-toolbar'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import {
   type Ha3dEnvironmentMode,
@@ -82,7 +84,13 @@ type Ha3dNativeAppProps = Readonly<{
 const EmptyEditorSidebarPanel = () => null
 
 function HaEditorItemsPanel() {
-  return <ItemsPanel showSourceFilter={false} showTagFilters={false} />
+  return (
+    <ItemsPanel
+      leadingTile={<Ha3dCustomObjectTile />}
+      showSourceFilter={false}
+      showTagFilters={false}
+    />
+  )
 }
 
 const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
@@ -565,12 +573,16 @@ function NativeDashboard({
   onEdit,
   onProjects,
   onShowMoreInfo,
+  environmentMode,
+  onEnvironmentModeChange,
 }: Readonly<{
   projectName: string
   session: HomeAssistantProjectSession
   onEdit?: () => void
   onProjects: () => void
   onShowMoreInfo: (entityId: string) => void
+  environmentMode: Ha3dEnvironmentMode
+  onEnvironmentModeChange: (mode: Ha3dEnvironmentMode) => void
 }>) {
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
@@ -578,7 +590,6 @@ function NativeDashboard({
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
-  const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
   const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
@@ -760,7 +771,7 @@ function NativeDashboard({
         environmentMode={environmentMode}
         highlightsEnabled={interactiveHighlights}
         markersEnabled={interactiveMarkers}
-        onEnvironmentModeChange={setEnvironmentMode}
+        onEnvironmentModeChange={onEnvironmentModeChange}
         onHighlightsEnabledChange={setInteractiveHighlights}
         onMarkersEnabledChange={setInteractiveMarkers}
         onShowMoreInfo={onShowMoreInfo}
@@ -805,6 +816,7 @@ function NativeProject({
   const [editorEpoch, setEditorEpoch] = useState(0)
   const [editorReady, setEditorReady] = useState(false)
   const [structureOpen, setStructureOpen] = useState(false)
+  const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
   const sceneSaveBlocked =
     saveStatus === 'pending' ||
@@ -850,6 +862,8 @@ function NativeProject({
         onProjects={() => {
           void onProjects()
         }}
+        environmentMode={environmentMode}
+        onEnvironmentModeChange={setEnvironmentMode}
         projectName={metadata.name}
         session={session}
         onShowMoreInfo={onShowMoreInfo}
@@ -877,6 +891,13 @@ function NativeProject({
           presentationPersistenceMode="external"
           projectId={metadata.id}
           sidebarTabs={HA_EDITOR_SIDEBAR_TABS}
+          viewerSceneSlot={<Ha3dSunEnvironment mode={environmentMode} />}
+          viewerToolbarRight={
+            <Ha3dEditorViewportToolbar
+              environmentMode={environmentMode}
+              onEnvironmentModeChange={setEnvironmentMode}
+            />
+          }
         />
       </EditorCrashBoundary>
 
