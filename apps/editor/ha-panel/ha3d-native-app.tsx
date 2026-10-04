@@ -570,6 +570,7 @@ function NativeDashboard({
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
   const [expandedInteractiveNodeId, setExpandedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
+  const [interactiveMarkers, setInteractiveMarkers] = useState(true)
   const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
 
   useEffect(() => {
@@ -699,6 +700,7 @@ function NativeDashboard({
         <Ha3dDashboardInteractions
           expandedNodeId={expandedInteractiveNodeId}
           highlightsEnabled={interactiveHighlights}
+          markersEnabled={interactiveMarkers}
           onExpandedNodeIdChange={setExpandedInteractiveNodeId}
           onSelectedNodeIdChange={setSelectedInteractiveNodeId}
           selectedNodeId={selectedInteractiveNodeId}
@@ -736,9 +738,11 @@ function NativeDashboard({
         environmentMode={environmentMode}
         expandedNodeId={expandedInteractiveNodeId}
         highlightsEnabled={interactiveHighlights}
+        markersEnabled={interactiveMarkers}
         onEnvironmentModeChange={setEnvironmentMode}
         onExpandedNodeIdChange={setExpandedInteractiveNodeId}
         onHighlightsEnabledChange={setInteractiveHighlights}
+        onMarkersEnabledChange={setInteractiveMarkers}
         selectedNodeId={selectedInteractiveNodeId}
       />
 
