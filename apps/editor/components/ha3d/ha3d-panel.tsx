@@ -54,7 +54,8 @@ export default function Ha3dPanel() {
     return isSupportedHomeAssistantDomain(domain)
   })
   const needle = query.trim().toLocaleLowerCase()
-  const entities = bindableEntities.filter((entity) => {
+  const entities = bindableEntities
+    .filter((entity) => {
       if (!needle) return true
       return (
         entity.entityId.toLocaleLowerCase().includes(needle) ||
@@ -269,7 +270,8 @@ export default function Ha3dPanel() {
                         <option value="default">Default</option>
                         {binding.domain === 'light' ||
                         binding.domain === 'switch' ||
-                        binding.domain === 'cover' ? (
+                        binding.domain === 'cover' ||
+                        binding.domain === 'input_boolean' ? (
                           <option value="toggle">Toggle</option>
                         ) : null}
                         <option value="more-info">More info</option>

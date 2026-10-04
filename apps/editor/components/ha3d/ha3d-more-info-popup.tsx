@@ -179,7 +179,9 @@ export function Ha3dMoreInfoPopup({
     >
       <section
         aria-label="Home Assistant more info"
+        aria-modal="true"
         className="max-h-[min(78vh,760px)] w-full max-w-[430px] overflow-hidden rounded-[28px] border border-white/10 bg-[#1d1f20]/96 text-white shadow-2xl backdrop-blur-2xl"
+        role="dialog"
       >
         <header className="flex items-start gap-3 border-white/10 border-b px-5 py-4">
           <div className="min-w-0 flex-1">

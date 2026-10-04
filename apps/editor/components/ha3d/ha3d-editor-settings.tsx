@@ -91,7 +91,7 @@ export function Ha3dEditorSettings() {
         </div>
         <p className="mt-3 text-muted-foreground text-xs leading-relaxed">
           Entity states update live. Use refresh after creating, renaming or removing helpers and
-          integrations in Home Assistant to force a fresh `get_states` inventory.
+          integrations in Home Assistant to force a fresh entity inventory.
         </p>
         {refreshError ? <p className="mt-2 text-destructive text-xs">{refreshError}</p> : null}
       </section>
