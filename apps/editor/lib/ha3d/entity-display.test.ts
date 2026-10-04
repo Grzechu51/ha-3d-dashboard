@@ -39,6 +39,23 @@ describe('Home Assistant entity display', () => {
     ).toBe('Closed')
   })
 
+  test('formats input booleans with switch-style labels', () => {
+    expect(
+      formatHomeAssistantEntityValue({
+        entityId: 'input_boolean.night_mode',
+        state: 'on',
+        attributes: { friendly_name: 'Night mode' },
+      }),
+    ).toBe('On')
+    expect(
+      formatHomeAssistantEntityValue({
+        entityId: 'input_boolean.night_mode',
+        state: 'off',
+        attributes: {},
+      }),
+    ).toBe('Off')
+  })
+
   test('formats climate current and target temperatures', () => {
     const entity = {
       entityId: 'climate.salon',
