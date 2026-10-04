@@ -79,10 +79,11 @@ jobs:
             git -C pr-head config user.name "github-actions[bot]"
             git -C pr-head config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git -C pr-head add custom_components/ha_3d_dashboard/frontend
-            # Do not add a GitHub-recognized skip-CI token here. Squash merges
-            # copy this generated commit subject into the main commit message,
-            # which would suppress the push-triggered HA Release workflow.
-            git -C pr-head commit -m "build(ha3d): update generated HA frontend"
+            # This bot-only commit must not start a second pull_request workflow.
+            # A github-actions[bot] synchronize run can require maintainer approval and
+            # duplicate the full CI gate. Squash merges must therefore use an explicit
+            # clean merge message so this skip token never reaches main.
+            git -C pr-head commit -m "build(ha3d): update generated HA frontend [skip ci]"
             git -C pr-head push origin "HEAD:${PR_HEAD_REF}"
           fi
 

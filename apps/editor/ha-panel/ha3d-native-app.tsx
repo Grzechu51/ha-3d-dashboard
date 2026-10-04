@@ -76,6 +76,7 @@ type PanelMode = 'dashboard' | 'edit'
 type Ha3dNativeAppProps = Readonly<{
   hass: NativeHomeAssistant | null
   narrow: boolean
+  onShowMoreInfo: (entityId: string) => void
 }>
 
 const EmptyEditorSidebarPanel = () => null
@@ -563,17 +564,18 @@ function NativeDashboard({
   session,
   onEdit,
   onProjects,
+  onShowMoreInfo,
 }: Readonly<{
   projectName: string
   session: HomeAssistantProjectSession
   onEdit?: () => void
   onProjects: () => void
+  onShowMoreInfo: (entityId: string) => void
 }>) {
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
   const [viewerReady, setViewerReady] = useState(false)
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
-  const [expandedInteractiveNodeId, setExpandedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
   const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
@@ -617,12 +619,10 @@ function NativeDashboard({
     useViewer.getState().setLevelMode('stacked')
     setViewerReady(false)
     setSelectedInteractiveNodeId(null)
-    setExpandedInteractiveNodeId(null)
 
     return () => {
       setViewerReady(false)
       setSelectedInteractiveNodeId(null)
-      setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
       useViewer.getState().setLevelMode(previousLevelMode)
@@ -719,11 +719,10 @@ function NativeDashboard({
         <ViewerPresentations />
         <Ha3dSunEnvironment mode={environmentMode} />
         <Ha3dDashboardInteractions
-          expandedNodeId={expandedInteractiveNodeId}
           highlightsEnabled={interactiveHighlights}
           markersEnabled={interactiveMarkers}
-          onExpandedNodeIdChange={setExpandedInteractiveNodeId}
           onSelectedNodeIdChange={setSelectedInteractiveNodeId}
+          onShowMoreInfo={onShowMoreInfo}
           selectedNodeId={selectedInteractiveNodeId}
         />
       </Viewer>
@@ -759,13 +758,12 @@ function NativeDashboard({
 
       <Ha3dDashboardControls
         environmentMode={environmentMode}
-        expandedNodeId={expandedInteractiveNodeId}
         highlightsEnabled={interactiveHighlights}
         markersEnabled={interactiveMarkers}
         onEnvironmentModeChange={setEnvironmentMode}
-        onExpandedNodeIdChange={setExpandedInteractiveNodeId}
         onHighlightsEnabledChange={setInteractiveHighlights}
         onMarkersEnabledChange={setInteractiveMarkers}
+        onShowMoreInfo={onShowMoreInfo}
         selectedNodeId={selectedInteractiveNodeId}
       />
 
@@ -789,6 +787,7 @@ function NativeProject({
   onClearNavigationError,
   onModeChange,
   onProjects,
+  onShowMoreInfo,
 }: Readonly<{
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
@@ -800,6 +799,7 @@ function NativeProject({
   onClearNavigationError: () => void
   onModeChange: (mode: PanelMode) => void
   onProjects: () => Promise<void>
+  onShowMoreInfo: (entityId: string) => void
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
@@ -852,6 +852,7 @@ function NativeProject({
         }}
         projectName={metadata.name}
         session={session}
+        onShowMoreInfo={onShowMoreInfo}
       />
     )
   }
@@ -981,7 +982,7 @@ function NativeProject({
   )
 }
 
-export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
+export function Ha3dNativeApp({ hass, narrow, onShowMoreInfo }: Ha3dNativeAppProps) {
   const hassRef = useRef(hass)
   hassRef.current = hass
 
@@ -1255,6 +1256,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
         onClearNavigationError={() => setNavigationError(null)}
         onModeChange={setMode}
         onProjects={returnToProjects}
+        onShowMoreInfo={onShowMoreInfo}
         session={session}
       />
     </div>
