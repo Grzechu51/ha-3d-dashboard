@@ -27,6 +27,7 @@ import {
 } from 'react'
 import { BuildTab } from '../components/build-tab'
 import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-controls'
+import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
@@ -105,9 +106,9 @@ const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
     icon: <Package className="h-5 w-5" />,
   },
   {
-    id: 'settings',
+    id: 'ha-settings',
     label: 'Settings',
-    component: EmptyEditorSidebarPanel,
+    component: Ha3dEditorSettings,
     mobileDefaultSnap: 0.5,
     mobileIcon: <Settings className="h-5 w-5" />,
     icon: <Settings className="h-5 w-5" />,
