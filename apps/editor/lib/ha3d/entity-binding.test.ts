@@ -5,6 +5,7 @@ import {
   entityDomain,
   isSupportedHomeAssistantDomain,
   normalizeCoverMotionConfig,
+  resolveDashboardInteractionAction,
   supportedHomeAssistantDomains,
 } from './entity-binding'
 
@@ -25,6 +26,8 @@ describe('Home Assistant entity bindings', () => {
       entityId: 'light.salon',
       domain: 'light',
       enabled: true,
+      tapAction: 'default',
+      holdAction: 'default',
     })
   })
 
@@ -39,8 +42,25 @@ describe('Home Assistant entity bindings', () => {
       entityId: 'cover.salon',
       domain: 'cover',
       enabled: true,
+      tapAction: 'default',
+      holdAction: 'default',
       coverMotion: DEFAULT_COVER_MOTION,
     })
+  })
+
+  test('resolves dashboard tap and hold defaults and overrides', () => {
+    const light = createEntityBinding({ nodeId: 'lamp', entityId: 'light.salon' })
+    const sensor = createEntityBinding({ nodeId: 'temp', entityId: 'sensor.temperature' })
+
+    expect(resolveDashboardInteractionAction(light, 'tap')).toBe('toggle')
+    expect(resolveDashboardInteractionAction(light, 'hold')).toBe('more-info')
+    expect(resolveDashboardInteractionAction(sensor, 'tap')).toBe('more-info')
+    expect(
+      resolveDashboardInteractionAction({ ...light, tapAction: 'more-info' }, 'tap'),
+    ).toBe('more-info')
+    expect(resolveDashboardInteractionAction({ ...light, holdAction: 'none' }, 'hold')).toBe(
+      'none',
+    )
   })
 
   test('validates custom cover motion', () => {
