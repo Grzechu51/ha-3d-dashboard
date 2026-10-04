@@ -13,6 +13,7 @@ import { useLayoutEffect, useState } from 'react'
 import { restoreHa3dDashboardProjectConfig } from '../../lib/ha3d/dashboard-persistence'
 import { resetHa3dProjectConfig } from '../../lib/ha3d/project-config'
 import { Ha3dDashboardControls } from './ha3d-dashboard-controls'
+import { Ha3dDashboardInteractions } from './ha3d-dashboard-interactions'
 
 export interface Ha3dDashboardSceneMeta {
   id: string
@@ -31,6 +32,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   const [sceneHydrated, setSceneHydrated] = useState(false)
   const [presentationsReady, setPresentationsReady] = useState(false)
   const [viewerReady, setViewerReady] = useState(false)
+  const [selectedBindingNodeId, setSelectedBindingNodeId] = useState<string | null>(null)
 
   useLayoutEffect(() => {
     restoreHa3dDashboardProjectConfig(projectId)
@@ -50,6 +52,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
     useViewer.getState().resetSelection()
     setSceneHydrated(true)
     setViewerReady(false)
+    setSelectedBindingNodeId(null)
 
     return () => {
       setSceneHydrated(false)
@@ -74,6 +77,10 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
           <SceneEnvironment />
           <OrbitControls enableDamping makeDefault />
           {presentationsReady ? <ViewerPresentations /> : null}
+          <Ha3dDashboardInteractions
+            onSelectNode={setSelectedBindingNodeId}
+            selectedNodeId={selectedBindingNodeId}
+          />
         </Viewer>
       ) : null}
 
@@ -90,7 +97,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
         </Link>
       </div>
 
-      <Ha3dDashboardControls />
+      <Ha3dDashboardControls selectedNodeId={selectedBindingNodeId} />
 
       {!(sceneHydrated && viewerReady && presentationsReady) ? (
         <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm">
