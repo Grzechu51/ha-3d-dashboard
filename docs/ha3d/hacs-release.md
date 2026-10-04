@@ -141,7 +141,7 @@ dist/SHA256SUMS
 To verify an explicit release version:
 
 ```bash
-python3 scripts/preflight-ha-release.py --version 0.3.0-beta.10
+python3 scripts/preflight-ha-release.py --version 0.3.0-beta.11
 ```
 
 ## Brand assets
