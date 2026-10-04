@@ -1,7 +1,7 @@
 'use client'
 
 import { emitter, type NodeEvent, sceneRegistry } from '@pascal-app/core'
-import { useViewer } from '@pascal-app/viewer'
+import { OVERLAY_LAYER, useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
@@ -100,6 +100,7 @@ function InteractiveEntityHighlight({
   const helper = useMemo(() => {
     const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
     next.renderOrder = 10_000
+    next.layers.set(OVERLAY_LAYER)
     next.frustumCulled = false
     next.raycast = () => {}
     next.material.depthTest = false
