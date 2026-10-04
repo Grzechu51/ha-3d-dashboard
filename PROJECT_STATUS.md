@@ -20,9 +20,9 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: Home Assistant operator UX + release automation recovery**
 
-Status: **PR #34 is merged; beta.15 source is on `main`; beta.16 is the recovery release**
+Status: **v0.3.0-beta.16 published automatically from `main`**
 
-The operator-UX work is now merged to `main`: live entity inventory refresh,
+The operator-UX work is merged to `main`: live entity inventory refresh,
 common HA helper bindings, HA-focused Settings, compact dashboard controls,
 HA-style More info, camera presets and authored-floor switching all passed the
 normal PR CI gate.
@@ -32,12 +32,14 @@ frontend commit subject. CI used `[skip ci]`; GitHub's squash merge copied that
 subject into the final `main` commit message, so GitHub suppressed the
 push-triggered **HA Release** workflow even though the source version changed.
 
-The recovery changes remove recognized skip-CI directives from the generated
-frontend commit, document the rule for future agents, and advance the integration
-to **`0.3.0-beta.16`** so the corrected automatic release path gets a fresh,
-non-reused prerelease version.
+PR #35 removed recognized skip-CI directives from the generated frontend commit,
+documented the rule for future agents and advanced the integration to
+**`0.3.0-beta.16`**. Its PR CI passed, it was squash-merged to `main`, and the
+corrected push path automatically ran **HA Release #33** successfully. GitHub
+published prerelease `v0.3.0-beta.16` with the HACS ZIP, manual-install ZIP and
+SHA256 checksums.
 
-After beta.16 is published, perform the real HA smoke test for:
+The next gate is the real HA smoke test for:
 
 - newly created helpers appearing automatically or after **Refresh**;
 - `input_boolean`, `input_number` and `input_select` bindings;
