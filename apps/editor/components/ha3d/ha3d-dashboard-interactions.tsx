@@ -5,7 +5,7 @@ import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import type { Group } from 'three'
+import { Box3, Box3Helper, type Group } from 'three'
 import {
   type EntityBinding,
   resolveDashboardInteractionAction,
@@ -89,6 +89,54 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
   return false
 }
 
+function InteractiveEntityHighlight({
+  nodeId,
+  selected,
+}: {
+  nodeId: string
+  selected: boolean
+}) {
+  const box = useMemo(() => new Box3(), [])
+  const helper = useMemo(() => {
+    const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
+    next.renderOrder = 10_000
+    next.material.depthTest = false
+    next.material.depthWrite = false
+    next.material.transparent = true
+    next.material.toneMapped = false
+    return next
+  }, [box, selected])
+
+  useEffect(
+    () => () => {
+      helper.geometry.dispose()
+      helper.material.dispose()
+    },
+    [helper],
+  )
+
+  useFrame(({ clock }) => {
+    const object = sceneRegistry.nodes.get(nodeId)
+    if (!object) {
+      helper.visible = false
+      return
+    }
+
+    box.setFromObject(object)
+    if (box.isEmpty()) {
+      helper.visible = false
+      return
+    }
+
+    helper.visible = true
+    helper.material.opacity = selected
+      ? 1
+      : 0.58 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.34
+  })
+
+  return <primitive object={helper} />
+}
+
 function InteractiveEntityMarker({
   binding,
   selected,
@@ -161,13 +209,15 @@ export function Ha3dDashboardInteractions({
   markersEnabled,
   onSelectedNodeIdChange,
   onExpandedNodeIdChange,
+  onShowMoreInfo,
 }: {
   selectedNodeId: string | null
-  expandedNodeId: string | null
+  expandedNodeId?: string | null
   highlightsEnabled: boolean
   markersEnabled: boolean
   onSelectedNodeIdChange: (nodeId: string | null) => void
-  onExpandedNodeIdChange: (nodeId: string | null) => void
+  onExpandedNodeIdChange?: (nodeId: string | null) => void
+  onShowMoreInfo?: (entityId: string) => void
 }) {
   const project = useSyncExternalStore(
     subscribeHa3dProjectConfig,
@@ -258,24 +308,31 @@ export function Ha3dDashboardInteractions({
       if (!binding) return
 
       onSelectedNodeIdChange(nodeId)
+      const showMoreInfo = () => {
+        if (onShowMoreInfo) {
+          onShowMoreInfo(binding.entityId)
+          return
+        }
+        onExpandedNodeIdChange?.(nodeId)
+      }
       const action = resolveDashboardInteractionAction(binding, gesture)
 
       if (action === 'none') return
       if (action === 'more-info') {
-        onExpandedNodeIdChange(nodeId)
+        showMoreInfo()
         return
       }
 
-      onExpandedNodeIdChange(null)
+      onExpandedNodeIdChange?.(null)
       void toggleBinding(binding)
         .then((handled) => {
-          if (!handled) onExpandedNodeIdChange(nodeId)
+          if (!handled) showMoreInfo()
         })
         .catch((error) => {
           console.error('[ha3d] dashboard entity action failed', error)
         })
     },
-    [onExpandedNodeIdChange, onSelectedNodeIdChange],
+    [onExpandedNodeIdChange, onSelectedNodeIdChange, onShowMoreInfo],
   )
 
   useEffect(() => {
@@ -342,6 +399,15 @@ export function Ha3dDashboardInteractions({
 
   return (
     <>
+      {highlightsEnabled
+        ? interactiveNodeIds.map((nodeId) => (
+            <InteractiveEntityHighlight
+              key={`${nodeId}:dashboard-highlight`}
+              nodeId={nodeId}
+              selected={nodeId === selectedNodeId}
+            />
+          ))
+        : null}
       {markersEnabled
         ? markerBindings.map((binding) => (
             <InteractiveEntityMarker

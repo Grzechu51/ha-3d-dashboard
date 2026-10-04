@@ -26,6 +26,7 @@ export function Ha3dDashboardControls({
   onHighlightsEnabledChange,
   onMarkersEnabledChange,
   onExpandedNodeIdChange,
+  onShowMoreInfo,
   environmentMode = 'auto',
   onEnvironmentModeChange,
 }: {
@@ -36,6 +37,7 @@ export function Ha3dDashboardControls({
   onHighlightsEnabledChange?: (enabled: boolean) => void
   onMarkersEnabledChange?: (enabled: boolean) => void
   onExpandedNodeIdChange?: (nodeId: string | null) => void
+  onShowMoreInfo?: (entityId: string) => void
   environmentMode?: Ha3dEnvironmentMode
   onEnvironmentModeChange?: (mode: Ha3dEnvironmentMode) => void
 } = {}) {
@@ -71,6 +73,14 @@ export function Ha3dDashboardControls({
       return leftName.localeCompare(rightName)
     })
 
+  const showMoreInfo = (binding: (typeof bindings)[number]['binding']) => {
+    if (onShowMoreInfo) {
+      onShowMoreInfo(binding.entityId)
+      return
+    }
+    onExpandedNodeIdChange?.(binding.nodeId)
+  }
+
   const quickAction = async (binding: (typeof bindings)[number]['binding']) => {
     const adapter = runtime.adapter
     const entity = adapter?.getEntity(binding.entityId)
@@ -88,7 +98,7 @@ export function Ha3dDashboardControls({
         entity.state === 'closed' || entity.state === 'closing' ? 'open_cover' : 'close_cover'
     }
     if (!service) {
-      onExpandedNodeIdChange?.(binding.nodeId)
+      showMoreInfo(binding)
       return
     }
 
@@ -256,11 +266,11 @@ export function Ha3dDashboardControls({
                     </button>
                   ) : null}
 
-                  {onExpandedNodeIdChange ? (
+                  {onShowMoreInfo || onExpandedNodeIdChange ? (
                     <button
                       aria-label={`More info for ${binding.entityId}`}
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/45 hover:bg-white/10 hover:text-white"
-                      onClick={() => onExpandedNodeIdChange(binding.nodeId)}
+                      onClick={() => showMoreInfo(binding)}
                       type="button"
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -278,7 +288,7 @@ export function Ha3dDashboardControls({
   return (
     <>
       {panel}
-      {onExpandedNodeIdChange ? (
+      {!onShowMoreInfo && onExpandedNodeIdChange ? (
         <Ha3dMoreInfoPopup nodeId={expandedNodeId} onClose={() => onExpandedNodeIdChange(null)} />
       ) : null}
     </>

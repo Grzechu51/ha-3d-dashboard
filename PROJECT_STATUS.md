@@ -18,9 +18,9 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: Home Assistant operator UX + release automation recovery**
+**Checkpoint: native Home Assistant More info + reliable dashboard highlights**
 
-Status: **v0.3.0-beta.16 published automatically from `main`**
+Status: **beta.16 smoke findings fixed on `fix/native-more-info-highlights-beta17`; beta.17 prepared**
 
 The operator-UX work is merged to `main`: live entity inventory refresh,
 common HA helper bindings, HA-focused Settings, compact dashboard controls,
@@ -39,15 +39,23 @@ corrected push path automatically ran **HA Release #33** successfully. GitHub
 published prerelease `v0.3.0-beta.16` with the HACS ZIP, manual-install ZIP and
 SHA256 checksums.
 
-The next gate is the real HA smoke test for:
+The beta.16 real-HA smoke test found two remaining dashboard defects:
 
-- newly created helpers appearing automatically or after **Refresh**;
-- `input_boolean`, `input_number` and `input_select` bindings;
-- the reduced HA-specific Settings panel;
-- More info controls for lights, covers, climate and helpers;
-- Fit / Iso / Top / Front / Right camera presets and floor switching;
-- the material thumbnails, Garage Panel, HA-owned lamp off-state, Highlights and Labels fixes
-  accumulated since beta.13.
+- More info was still a HA3D-built modal instead of Home Assistant's native entity dialog;
+- Highlights relied on the viewer post-processing outline path and could be invisible when that
+  pipeline was unavailable or ineffective in the embedded HA runtime.
+
+The beta.17 branch now bubbles Home Assistant's standard `hass-more-info` event with the exact
+entity id from the custom panel host, so HA owns the dialog and all entity-specific controls.
+The native dashboard no longer mounts the custom HA3D popup. The standalone browser dashboard
+keeps the custom modal as a fallback because it has no Home Assistant shell to receive that event.
+
+Highlights now also render a pulsing cyan 3D bounding-box helper for every bound interactive
+object, with a solid white box for the selected object. This path renders directly in the scene
+and does not depend on the WebGPU/post-processing outline pipeline.
+
+The next gate is the real HA smoke test of beta.17: native More info from hold/chevron and visible
+Highlights on the same bound objects.
 
 ## Completed
 

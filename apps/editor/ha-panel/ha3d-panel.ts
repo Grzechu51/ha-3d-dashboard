@@ -24,6 +24,16 @@ export class Ha3dDashboardPanel extends HTMLElement {
     this.scheduleBoundsSync()
   }
 
+  private readonly showMoreInfo = (entityId: string) => {
+    this.dispatchEvent(
+      new CustomEvent('hass-more-info', {
+        detail: { entityId },
+        bubbles: true,
+        composed: true,
+      }),
+    )
+  }
+
   constructor() {
     super()
     this.root = this.attachShadow({ mode: 'open' })
@@ -156,6 +166,7 @@ export class Ha3dDashboardPanel extends HTMLElement {
       createElement(Ha3dNativeApp, {
         hass: this.hassValue,
         narrow: this.narrowValue,
+        onShowMoreInfo: this.showMoreInfo,
       }),
     )
   }
