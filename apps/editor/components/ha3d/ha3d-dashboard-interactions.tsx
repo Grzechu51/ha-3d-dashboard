@@ -89,13 +89,7 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
   return false
 }
 
-function InteractiveEntityHighlight({
-  nodeId,
-  selected,
-}: {
-  nodeId: string
-  selected: boolean
-}) {
+function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; selected: boolean }) {
   const box = useMemo(() => new Box3(), [])
   const helper = useMemo(() => {
     const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
