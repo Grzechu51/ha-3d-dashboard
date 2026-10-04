@@ -16,9 +16,7 @@ const idle = (): KeyboardPanState => ({
   left: false,
   right: false,
 })
-const key = (
-  init: Partial<KeyboardEvent> & { path?: EventTarget[] } = {},
-) =>
+const key = (init: Partial<KeyboardEvent> & { path?: EventTarget[] } = {}) =>
   ({
     target: null,
     composedPath: () => init.path ?? [],
