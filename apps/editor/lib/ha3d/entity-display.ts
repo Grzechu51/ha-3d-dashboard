@@ -64,7 +64,7 @@ export function formatHomeAssistantEntityValue(entity: HomeAssistantEntityState)
 
   if (entity.state === 'unavailable' || entity.state === 'unknown') return entity.state
   if (domain === 'binary_sensor') return binarySensorLabel(entity)
-  if (domain === 'switch' || domain === 'light') {
+  if (domain === 'switch' || domain === 'light' || domain === 'input_boolean') {
     if (entity.state === 'on') return 'On'
     if (entity.state === 'off') return 'Off'
   }
