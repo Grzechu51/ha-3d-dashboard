@@ -3,7 +3,7 @@
 import { emitter, type NodeEvent, sceneRegistry } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
 import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
@@ -17,6 +17,13 @@ export const HA3D_INTERACTIVE_HOVER_STYLES = {
     strength: 1.25,
     pulse: false,
   },
+}
+
+function sceneObjectsForNodeIds(nodeIds: readonly string[]) {
+  return nodeIds.flatMap((nodeId) => {
+    const object = sceneRegistry.nodes.get(nodeId)
+    return object ? [object] : []
+  })
 }
 
 function actionableBindingForNode(nodeId: string) {
@@ -86,17 +93,16 @@ export function Ha3dDashboardInteractions({
     [project.bindings],
   )
 
-  const syncOutliner = () => {
+  const syncOutliner = useCallback(() => {
     const outliner = useViewer.getState().outliner
     const selectedObjects =
       selectedNodeId && interactiveNodeIds.includes(selectedNodeId)
-        ? [sceneRegistry.nodes.get(selectedNodeId)].filter(Boolean)
+        ? sceneObjectsForNodeIds([selectedNodeId])
         : []
     const highlightedObjects = highlightsEnabled
-      ? interactiveNodeIds
-          .filter((nodeId) => nodeId !== selectedNodeId)
-          .map((nodeId) => sceneRegistry.nodes.get(nodeId))
-          .filter(Boolean)
+      ? sceneObjectsForNodeIds(
+          interactiveNodeIds.filter((nodeId) => nodeId !== selectedNodeId),
+        )
       : []
 
     const selectedChanged =
@@ -114,7 +120,7 @@ export function Ha3dDashboardInteractions({
       outliner.hoveredObjects.length = 0
       outliner.hoveredObjects.push(...highlightedObjects)
     }
-  }
+  }, [highlightsEnabled, interactiveNodeIds, selectedNodeId])
 
   useFrame(syncOutliner)
 
@@ -125,7 +131,7 @@ export function Ha3dDashboardInteractions({
       outliner.selectedObjects.length = 0
       outliner.hoveredObjects.length = 0
     }
-  }, [highlightsEnabled, interactiveNodeIds, selectedNodeId])
+  }, [syncOutliner])
 
   useEffect(() => {
     const onNodeClick = (event: NodeEvent) => {
