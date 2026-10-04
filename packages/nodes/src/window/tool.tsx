@@ -22,6 +22,7 @@ import {
   WindowNode,
 } from '@pascal-app/core'
 import {
+  isEditableKeyboardEvent,
   calculateItemRotation,
   clearPlacementSurface,
   EDITOR_LAYER,
@@ -1021,8 +1022,7 @@ const WindowTool: React.FC = () => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'r' && e.key !== 'R') return
       if (e.repeat) return
-      const t = e.target as HTMLElement | null
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+      if (isEditableKeyboardEvent(e)) return
       e.preventDefault()
       sideFlip = !sideFlip
       triggerSFX('sfx:item-rotate')
