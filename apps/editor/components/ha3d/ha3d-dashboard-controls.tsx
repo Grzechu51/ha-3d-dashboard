@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronRight, Eye, EyeOff, Tags, X } from 'lucide-react'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { entityFriendlyName, formatHomeAssistantEntityValue } from '../../lib/ha3d/entity-display'
 import {
   getHa3dProjectConfigSnapshot,
@@ -58,33 +58,58 @@ export function Ha3dDashboardControls({
     if (selectedNodeId || expandedNodeId) setCollapsed(false)
   }, [expandedNodeId, selectedNodeId])
 
-  const bindings = project.bindings
-    .filter((binding) => binding.enabled)
-    .map((binding) => ({
-      binding,
-      entity: runtime.adapter?.getEntity(binding.entityId),
-    }))
-    .sort((left, right) => {
-      const leftSelected = left.binding.nodeId === selectedNodeId
-      const rightSelected = right.binding.nodeId === selectedNodeId
-      if (leftSelected !== rightSelected) return leftSelected ? -1 : 1
-      const leftName = left.entity ? entityFriendlyName(left.entity) : left.binding.entityId
-      const rightName = right.entity ? entityFriendlyName(right.entity) : right.binding.entityId
-      return leftName.localeCompare(rightName)
-    })
+  const rows = useMemo(() => {
+    const grouped = new Map<
+      string,
+      {
+        bindings: (typeof project.bindings)[number][]
+        entity: ReturnType<NonNullable<typeof runtime.adapter>['getEntity']> | undefined
+      }
+    >()
 
-  const showMoreInfo = (binding: (typeof bindings)[number]['binding']) => {
+    for (const binding of project.bindings) {
+      if (!binding.enabled) continue
+      const existing = grouped.get(binding.entityId)
+      if (existing) {
+        existing.bindings.push(binding)
+        continue
+      }
+      grouped.set(binding.entityId, {
+        bindings: [binding],
+        entity: runtime.adapter?.getEntity(binding.entityId),
+      })
+    }
+
+    return Array.from(grouped.entries())
+      .map(([entityId, row]) => ({ entityId, ...row }))
+      .sort((left, right) => {
+        const leftSelected = left.bindings.some((binding) => binding.nodeId === selectedNodeId)
+        const rightSelected = right.bindings.some((binding) => binding.nodeId === selectedNodeId)
+        if (leftSelected !== rightSelected) return leftSelected ? -1 : 1
+        const leftName = left.entity ? entityFriendlyName(left.entity) : left.entityId
+        const rightName = right.entity ? entityFriendlyName(right.entity) : right.entityId
+        return leftName.localeCompare(rightName)
+      })
+  }, [project.bindings, runtime.adapter, selectedNodeId])
+
+  const linkedObjectCount = useMemo(
+    () => new Set(project.bindings.filter((binding) => binding.enabled).map((binding) => binding.nodeId)).size,
+    [project.bindings],
+  )
+
+  const showMoreInfo = (entityId: string, fallbackNodeId: string) => {
     if (onShowMoreInfo) {
-      onShowMoreInfo(binding.entityId)
+      onShowMoreInfo(entityId)
       return
     }
-    onExpandedNodeIdChange?.(binding.nodeId)
+    onExpandedNodeIdChange?.(fallbackNodeId)
   }
 
-  const quickAction = async (binding: (typeof bindings)[number]['binding']) => {
+  const quickAction = async (row: (typeof rows)[number]) => {
+    const binding = row.bindings[0]
     const adapter = runtime.adapter
-    const entity = adapter?.getEntity(binding.entityId)
-    if (!(adapter && entity)) return
+    const entity = row.entity
+    if (!(binding && adapter && entity)) return
 
     let service: string | null = null
     if (
@@ -97,8 +122,9 @@ export function Ha3dDashboardControls({
       service =
         entity.state === 'closed' || entity.state === 'closing' ? 'open_cover' : 'close_cover'
     }
+
     if (!service) {
-      showMoreInfo(binding)
+      showMoreInfo(row.entityId, binding.nodeId)
       return
     }
 
@@ -107,7 +133,7 @@ export function Ha3dDashboardControls({
       await adapter.callService({
         domain: binding.domain,
         service,
-        target: { entityId: binding.entityId },
+        target: { entityId: row.entityId },
       })
     } catch (error) {
       setActionError(actionErrorMessage(error))
@@ -116,27 +142,27 @@ export function Ha3dDashboardControls({
 
   const panel = collapsed ? (
     <button
-      className="pointer-events-auto absolute right-3 bottom-3 z-40 rounded-full border border-white/10 bg-black/70 px-4 py-2 font-medium text-sm text-white shadow-xl backdrop-blur-xl md:top-3 md:bottom-auto"
+      className="pointer-events-auto absolute right-3 bottom-3 z-40 rounded-full border border-white/10 bg-slate-950/75 px-4 py-2 font-medium text-sm text-white shadow-xl backdrop-blur-xl md:top-3 md:bottom-auto"
       onClick={() => setCollapsed(false)}
       type="button"
     >
-      HA controls
+      Home Assistant
     </button>
   ) : (
-    <aside className="pointer-events-auto absolute right-3 bottom-3 left-3 z-40 max-h-[46vh] overflow-hidden rounded-2xl border border-white/10 bg-black/72 text-white shadow-2xl backdrop-blur-xl md:top-3 md:bottom-3 md:left-auto md:w-[19rem] md:max-h-none">
-      <div className="border-white/10 border-b px-3.5 py-3">
-        <div className="flex items-center gap-2">
+    <aside className="pointer-events-auto absolute right-3 bottom-3 left-3 z-40 max-h-[48vh] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/78 text-white shadow-2xl backdrop-blur-xl md:top-3 md:bottom-3 md:left-auto md:w-[20rem] md:max-h-none">
+      <div className="border-white/10 border-b p-3">
+        <div className="flex items-center gap-2.5">
           <span
             className={
               runtime.connected
-                ? 'size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.65)]'
+                ? 'size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]'
                 : 'size-2 rounded-full bg-slate-500'
             }
           />
           <div className="min-w-0 flex-1">
             <div className="font-semibold text-sm">Home Assistant</div>
             <div className="truncate text-[10px] text-white/45">
-              {bindings.length} bound entities
+              {rows.length} entities · {linkedObjectCount} linked objects
             </div>
           </div>
           <button
@@ -149,14 +175,14 @@ export function Ha3dDashboardControls({
           </button>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-1.5">
+        <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl bg-white/[0.035] p-1">
           {onHighlightsEnabledChange ? (
             <button
               aria-pressed={highlightsEnabled}
               className={
                 highlightsEnabled
-                  ? 'flex items-center justify-center gap-1.5 rounded-xl bg-cyan-400/15 px-2 py-2 text-cyan-200 text-xs ring-1 ring-cyan-300/20'
-                  : 'flex items-center justify-center gap-1.5 rounded-xl bg-white/5 px-2 py-2 text-white/50 text-xs hover:bg-white/10'
+                  ? 'flex items-center justify-center gap-1.5 rounded-lg bg-cyan-400/15 px-2 py-1.5 text-cyan-100 text-[10px] ring-1 ring-cyan-300/20'
+                  : 'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] text-white/45 hover:bg-white/10 hover:text-white'
               }
               onClick={() => onHighlightsEnabledChange(!highlightsEnabled)}
               type="button"
@@ -174,8 +200,8 @@ export function Ha3dDashboardControls({
               aria-pressed={markersEnabled}
               className={
                 markersEnabled
-                  ? 'flex items-center justify-center gap-1.5 rounded-xl bg-cyan-400/15 px-2 py-2 text-cyan-200 text-xs ring-1 ring-cyan-300/20'
-                  : 'flex items-center justify-center gap-1.5 rounded-xl bg-white/5 px-2 py-2 text-white/50 text-xs hover:bg-white/10'
+                  ? 'flex items-center justify-center gap-1.5 rounded-lg bg-cyan-400/15 px-2 py-1.5 text-cyan-100 text-[10px] ring-1 ring-cyan-300/20'
+                  : 'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] text-white/45 hover:bg-white/10 hover:text-white'
               }
               onClick={() => onMarkersEnabledChange(!markersEnabled)}
               type="button"
@@ -187,41 +213,47 @@ export function Ha3dDashboardControls({
         </div>
 
         {onEnvironmentModeChange ? (
-          <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl bg-white/5 p-1">
+          <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl bg-white/[0.035] p-1">
             {(['auto', 'day', 'twilight', 'night'] as const).map((mode) => (
               <button
                 aria-pressed={environmentMode === mode}
                 className={
                   environmentMode === mode
-                    ? 'rounded-lg bg-white/12 px-1.5 py-1.5 font-medium text-[10px] text-white'
-                    : 'rounded-lg px-1.5 py-1.5 text-[10px] text-white/45 hover:bg-white/8 hover:text-white'
+                    ? 'rounded-lg bg-amber-300/15 px-1.5 py-1.5 font-medium text-[10px] text-amber-100 ring-1 ring-amber-200/15'
+                    : 'rounded-lg px-1.5 py-1.5 text-[10px] text-white/40 hover:bg-white/10 hover:text-white'
                 }
                 key={mode}
                 onClick={() => onEnvironmentModeChange(mode)}
                 type="button"
               >
-                {mode === 'auto' ? 'Auto' : mode[0]!.toUpperCase() + mode.slice(1)}
+                {mode === 'auto'
+                  ? 'Auto'
+                  : mode === 'twilight'
+                    ? 'Dusk'
+                    : mode[0]!.toUpperCase() + mode.slice(1)}
               </button>
             ))}
           </div>
         ) : null}
       </div>
 
-      <div className="max-h-[calc(46vh-8rem)] overflow-y-auto p-2 md:max-h-[calc(100vh-11rem)]">
+      <div className="max-h-[calc(48vh-8.5rem)] overflow-y-auto p-2 md:max-h-[calc(100vh-11.5rem)]">
         {actionError ? (
           <div className="mb-2 rounded-xl border border-red-400/25 bg-red-500/10 px-3 py-2 text-red-200 text-xs">
             {actionError}
           </div>
         ) : null}
 
-        {bindings.length === 0 ? (
-          <div className="rounded-xl border border-white/10 px-3 py-4 text-center text-white/45 text-xs">
-            No entities are bound to this scene.
+        {rows.length === 0 ? (
+          <div className="rounded-xl border border-white/10 px-3 py-5 text-center text-white/45 text-xs">
+            No entities are linked to this scene.
           </div>
         ) : (
           <div className="space-y-1">
-            {bindings.map(({ binding, entity }) => {
-              const selected = binding.nodeId === selectedNodeId
+            {rows.map((row) => {
+              const binding = row.bindings[0]
+              if (!binding) return null
+              const selected = row.bindings.some((entry) => entry.nodeId === selectedNodeId)
               const hasQuickAction =
                 binding.domain === 'light' ||
                 binding.domain === 'switch' ||
@@ -233,34 +265,40 @@ export function Ha3dDashboardControls({
                   className={
                     selected
                       ? 'flex items-center gap-2 rounded-xl bg-cyan-400/12 p-2 ring-1 ring-cyan-300/25'
-                      : 'flex items-center gap-2 rounded-xl p-2 hover:bg-white/6'
+                      : 'flex items-center gap-2 rounded-xl p-2 transition-colors hover:bg-white/[0.055]'
                   }
-                  key={`${binding.nodeId}:${binding.domain}`}
+                  key={row.entityId}
                 >
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium text-xs">
-                      {entity ? entityFriendlyName(entity) : binding.entityId}
+                      {row.entity ? entityFriendlyName(row.entity) : row.entityId}
                     </div>
-                    <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-white/40">
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10px] text-white/40">
                       <span className="truncate">
-                        {entity ? formatHomeAssistantEntityValue(entity) : 'Unavailable'}
+                        {row.entity ? formatHomeAssistantEntityValue(row.entity) : 'Unavailable'}
                       </span>
                       <span>·</span>
                       <span>{binding.domain}</span>
+                      {row.bindings.length > 1 ? (
+                        <>
+                          <span>·</span>
+                          <span className="shrink-0">{row.bindings.length} objects</span>
+                        </>
+                      ) : null}
                     </div>
                   </div>
 
-                  {hasQuickAction && entity ? (
+                  {hasQuickAction && row.entity ? (
                     <button
-                      className="rounded-lg bg-white/7 px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/12 hover:text-white"
-                      onClick={() => void quickAction(binding)}
+                      className="min-w-9 rounded-lg bg-white/[0.06] px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10 hover:text-white"
+                      onClick={() => void quickAction(row)}
                       type="button"
                     >
                       {binding.domain === 'cover'
-                        ? entity.state === 'closed' || entity.state === 'closing'
+                        ? row.entity.state === 'closed' || row.entity.state === 'closing'
                           ? 'Open'
                           : 'Close'
-                        : entity.state === 'on'
+                        : row.entity.state === 'on'
                           ? 'Off'
                           : 'On'}
                     </button>
@@ -268,9 +306,9 @@ export function Ha3dDashboardControls({
 
                   {onShowMoreInfo || onExpandedNodeIdChange ? (
                     <button
-                      aria-label={`More info for ${binding.entityId}`}
+                      aria-label={`More info for ${row.entityId}`}
                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/45 hover:bg-white/10 hover:text-white"
-                      onClick={() => showMoreInfo(binding)}
+                      onClick={() => showMoreInfo(row.entityId, binding.nodeId)}
                       type="button"
                     >
                       <ChevronRight className="h-4 w-4" />
