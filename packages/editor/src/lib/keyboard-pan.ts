@@ -13,7 +13,7 @@ const KEYBOARD_PAN_VIEW_WIDTH_PER_SECOND = 0.65
 const KEYBOARD_PAN_MIN_SPEED = 2
 const KEYBOARD_PAN_MAX_SPEED = 55
 
-export function isEditableKeyboardTarget(target: EventTarget | null) {
+export function isEditableKeyboardTarget(target: EventTarget | null | undefined) {
   return (
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
