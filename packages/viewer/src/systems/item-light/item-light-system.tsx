@@ -104,7 +104,7 @@ export function ItemLightSystem() {
   useFrame(({ camera }, delta) => {
     if (bakedOwner) return
     const dt = Math.min(delta, 0.1)
-    const { registrations } = useItemLightPool.getState()
+    const { registrations, suppressedKeys } = useItemLightPool.getState()
 
     // ── 1. Throttled priority reassignment ──────────────────────────────────
     camera.getWorldPosition(_camPos)
