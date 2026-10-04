@@ -27,4 +27,5 @@ export interface HomeAssistantAdapter {
   listEntities(): readonly HomeAssistantEntityState[]
   subscribe(listener: HomeAssistantStateListener): () => void
   callService(call: HomeAssistantServiceCall): Promise<void>
+  refreshEntities?(): Promise<void>
 }
