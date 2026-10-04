@@ -27,6 +27,7 @@ import {
   wallSegmentAnchors,
 } from '@pascal-app/core'
 import {
+  isEditableKeyboardEvent,
   CursorSphere,
   clearSurfacePlanSnapFeedback,
   EDITOR_LAYER,
@@ -918,13 +919,7 @@ export const RoofTool: React.FC = () => {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement ||
-        (event.target instanceof HTMLElement && event.target.isContentEditable)
-      ) {
-        return
-      }
+      if (isEditableKeyboardEvent(event)) return
       if (roofType === 'conical') {
         if (
           (event.key === 'p' || event.key === 'P') &&
