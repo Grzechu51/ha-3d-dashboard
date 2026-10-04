@@ -678,6 +678,17 @@ export function BuildTab() {
             </div>
           ) : null}
         </div>
+      ) : mode === 'build' && activeTool ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <ToolOptionsPanel
+            kind={activeTool}
+            onSelect={() => {
+              if (!(useEditor.getState().mode === 'build' && useEditor.getState().tool === activeTool)) {
+                activateBuildTool(activeTool)
+              }
+            }}
+          />
+        </div>
       ) : null}
     </div>
   )
