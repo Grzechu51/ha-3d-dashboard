@@ -524,6 +524,7 @@ function NativeDashboard({
   const [error, setError] = useState<string | null>(null)
   const [viewerReady, setViewerReady] = useState(false)
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
+  const [expandedInteractiveNodeId, setExpandedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
 
   useEffect(() => {
@@ -555,10 +556,12 @@ function NativeDashboard({
     useViewer.getState().resetSelection()
     setViewerReady(false)
     setSelectedInteractiveNodeId(null)
+    setExpandedInteractiveNodeId(null)
 
     return () => {
       setViewerReady(false)
       setSelectedInteractiveNodeId(null)
+    setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
       useViewer.getState().setProjectId(null)
@@ -648,7 +651,9 @@ function NativeDashboard({
         <OrbitControls enableDamping makeDefault />
         <ViewerPresentations />
         <Ha3dDashboardInteractions
+          expandedNodeId={expandedInteractiveNodeId}
           highlightsEnabled={interactiveHighlights}
+          onExpandedNodeIdChange={setExpandedInteractiveNodeId}
           onSelectedNodeIdChange={setSelectedInteractiveNodeId}
           selectedNodeId={selectedInteractiveNodeId}
         />
@@ -682,7 +687,9 @@ function NativeDashboard({
       </div>
 
       <Ha3dDashboardControls
+        expandedNodeId={expandedInteractiveNodeId}
         highlightsEnabled={interactiveHighlights}
+        onExpandedNodeIdChange={setExpandedInteractiveNodeId}
         onHighlightsEnabledChange={setInteractiveHighlights}
         selectedNodeId={selectedInteractiveNodeId}
       />
