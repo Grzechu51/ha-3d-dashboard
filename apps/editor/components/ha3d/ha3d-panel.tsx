@@ -194,7 +194,11 @@ export default function Ha3dPanel() {
                         value={binding.tapAction}
                       >
                         <option value="default">Default</option>
-                        <option value="toggle">Toggle</option>
+                        {binding.domain === 'light' ||
+                        binding.domain === 'switch' ||
+                        binding.domain === 'cover' ? (
+                          <option value="toggle">Toggle</option>
+                        ) : null}
                         <option value="more-info">More info</option>
                         <option value="none">None</option>
                       </select>
@@ -212,7 +216,11 @@ export default function Ha3dPanel() {
                         value={binding.holdAction}
                       >
                         <option value="default">Default</option>
-                        <option value="toggle">Toggle</option>
+                        {binding.domain === 'light' ||
+                        binding.domain === 'switch' ||
+                        binding.domain === 'cover' ? (
+                          <option value="toggle">Toggle</option>
+                        ) : null}
                         <option value="more-info">More info</option>
                         <option value="none">None</option>
                       </select>
