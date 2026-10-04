@@ -150,7 +150,7 @@ const WindowTool: React.FC = () => {
 
     const ownedPreviewIds = new Set<string>()
     const fallbackPreview = WindowNode.parse({
-        ...placementDefaults,
+      ...placementDefaults,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       side: 'front',
@@ -336,7 +336,7 @@ const WindowTool: React.FC = () => {
       if (draftRef.current && draftRef.current.parentId !== event.node.id) destroyDraft()
       if (!draftRef.current) {
         const node = WindowNode.parse({
-        ...placementDefaults,
+          ...placementDefaults,
           position: target.position,
           rotation: [0, itemRotation, 0],
           side,
@@ -466,7 +466,7 @@ const WindowTool: React.FC = () => {
 
       if (!draftRef.current) {
         const node = WindowNode.parse({
-        ...placementDefaults,
+          ...placementDefaults,
           position: [0, DEFAULT_SILL_CENTER_Y, 0],
           rotation: [0, itemRotation, 0],
           side,
@@ -931,7 +931,7 @@ const WindowTool: React.FC = () => {
         })
       } else {
         const node = WindowNode.parse({
-        ...placementDefaults,
+          ...placementDefaults,
           position,
           rotation: [0, 0, 0],
           side: 'front',
