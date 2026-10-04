@@ -90,7 +90,7 @@ export function Ha3dDashboardControls({
         const rightName = right.entity ? entityFriendlyName(right.entity) : right.entityId
         return leftName.localeCompare(rightName)
       })
-  }, [project.bindings, runtime.adapter, selectedNodeId])
+  }, [project.bindings, runtime.adapter, runtime.revision, selectedNodeId])
 
   const linkedObjectCount = useMemo(
     () => new Set(project.bindings.filter((binding) => binding.enabled).map((binding) => binding.nodeId)).size,
