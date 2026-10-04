@@ -2,7 +2,7 @@
 
 import { useViewer } from '@pascal-app/viewer'
 import { RefreshCw } from 'lucide-react'
-import { useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
@@ -14,7 +14,7 @@ function ToggleButton({
   onClick,
 }: {
   active: boolean
-  children: React.ReactNode
+  children: ReactNode
   onClick: () => void
 }) {
   return (
