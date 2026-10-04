@@ -1,7 +1,8 @@
 'use client'
 
 import { emitter, type NodeEvent, sceneRegistry } from '@pascal-app/core'
-import { OVERLAY_LAYER, useViewer } from '@pascal-app/viewer'
+import { EDITOR_LAYER } from '@pascal-app/editor'
+import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
@@ -94,7 +95,7 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
   const helper = useMemo(() => {
     const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
     next.renderOrder = 10_000
-    next.layers.set(OVERLAY_LAYER)
+    next.layers.set(EDITOR_LAYER)
     next.frustumCulled = false
     next.raycast = () => {}
     next.material.depthTest = false
@@ -220,7 +221,7 @@ export function Ha3dDashboardInteractions({
 
   useEffect(() => {
     const previousMask = camera.layers.mask
-    camera.layers.enable(OVERLAY_LAYER)
+    camera.layers.enable(EDITOR_LAYER)
     return () => {
       camera.layers.mask = previousMask
     }
