@@ -18,8 +18,24 @@ export function isEditableKeyboardTarget(target: EventTarget | null) {
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
     target instanceof HTMLSelectElement ||
-    (target instanceof HTMLElement && target.isContentEditable)
+    (target instanceof HTMLElement &&
+      (target.isContentEditable ||
+        target.getAttribute('role') === 'textbox' ||
+        target.getAttribute('role') === 'searchbox'))
   )
+}
+
+export function editableKeyboardEventTarget(event: KeyboardEvent): HTMLElement | null {
+  for (const entry of event.composedPath()) {
+    if (entry instanceof HTMLElement && isEditableKeyboardTarget(entry)) return entry
+  }
+  return event.target instanceof HTMLElement && isEditableKeyboardTarget(event.target)
+    ? event.target
+    : null
+}
+
+export function isEditableKeyboardEvent(event: KeyboardEvent): boolean {
+  return editableKeyboardEventTarget(event) !== null
 }
 
 export function setKeyboardPanKey(
@@ -67,9 +83,7 @@ export function clearKeyboardPanKeys(state: KeyboardPanState) {
 
 /** Pan keys are ignored with a modifier held (shortcuts) or while typing. */
 export function acceptsKeyboardPan(event: KeyboardEvent) {
-  return (
-    !(event.metaKey || event.ctrlKey || event.altKey) && !isEditableKeyboardTarget(event.target)
-  )
+  return !(event.metaKey || event.ctrlKey || event.altKey) && !isEditableKeyboardEvent(event)
 }
 
 /** Screen-space direction: `horizontal` +1 is right, `vertical` +1 is forward (up). */
