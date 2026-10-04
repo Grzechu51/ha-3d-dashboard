@@ -86,12 +86,16 @@ treat CI runs as deliberate checkpoints, not as an edit-by-edit feedback loop.
   be used to force a CI run.
 - Normal PR CI uses Linux for the portable CLI smoke test. The macOS smoke belongs to the
   release workflow and should not be added back to every PR without an explicit reason.
-- The generated Home Assistant frontend is committed by CI with the neutral subject
-  `build(ha3d): update generated HA frontend`. **Do not add `[skip ci]`, `[ci skip]` or another
-  GitHub-recognized skip directive to that generated commit.** GitHub's squash merge copies PR
-  commit subjects into the final `main` commit message; a skip directive there suppresses the
-  push-triggered `HA Release` workflow. The CI bot push uses the repository `GITHUB_TOKEN`, so
-  it does not need a skip token to prevent a recursive full workflow run.
+- The generated Home Assistant frontend is committed by CI with
+  `build(ha3d): update generated HA frontend [skip ci]`. The skip token is intentional: the bot
+  push otherwise creates a second `pull_request/synchronize` workflow owned by
+  `github-actions[bot]`, which can stop in `action_required` waiting for maintainer approval
+  and wastes a duplicate full CI run.
+- **Never let that skip token reach the squash commit on `main`.** When merging through the GitHub
+  connector, always provide an explicit clean `commit_title` **and** clean `commit_message`
+  that do not include the PR commit list or any skip directive. When merging in the GitHub UI,
+  remove the generated commit subject / skip token from the squash commit body before confirming.
+  Otherwise GitHub suppresses the push-triggered `HA Release` workflow.
 - Full CI intentionally runs on pull requests, not again after merge to `main`. Do not restore
   duplicate post-merge CI unless the user explicitly asks for that tradeoff.
 - `HACS Validate` remains manual. Do not run it as routine verification and do not re-run

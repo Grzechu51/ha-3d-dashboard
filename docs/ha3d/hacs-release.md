@@ -245,10 +245,15 @@ For normal beta development:
 Do not manually run a duplicate release after a successful automatic run. Do not
 create a stable release while `BETA_RELEASE_LOCK` exists.
 
-Do not use GitHub-recognized skip-CI directives in commits that can be copied into a squash
-merge message. The generated frontend commit deliberately uses a neutral subject: a skip token in
-the squashed `main` commit suppresses the push event and therefore prevents automatic
-**HA Release** publication.
+The CI-generated frontend commit intentionally ends with `[skip ci]` so its bot push does not
+start a second PR workflow that may require maintainer approval. The skip directive is safe only
+while it stays on the PR branch.
+
+For every squash merge, make the final `main` commit message explicit and clean: do not copy the
+generated commit subject or any GitHub-recognized skip directive into the squash body. Connector
+merges must set both a clean `commit_title` and clean `commit_message`; manual GitHub UI merges
+must remove the generated skip-token line before confirmation. A skip directive in the resulting
+`main` commit suppresses the push-triggered **HA Release** workflow.
 
 ## Adding as a custom HACS repository
 

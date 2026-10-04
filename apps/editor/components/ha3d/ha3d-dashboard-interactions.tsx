@@ -6,7 +6,7 @@ import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Box3, Box3Helper, type Group } from 'three'
+import { Box3, Box3Helper, type Group, type LineBasicMaterial } from 'three'
 import {
   type EntityBinding,
   resolveDashboardInteractionAction,
@@ -92,25 +92,26 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
 
 function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; selected: boolean }) {
   const box = useMemo(() => new Box3(), [])
-  const helper = useMemo(() => {
+  const { helper, material } = useMemo(() => {
     const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
+    const nextMaterial = next.material as LineBasicMaterial
     next.renderOrder = 10_000
     next.layers.set(EDITOR_LAYER)
     next.frustumCulled = false
     next.raycast = () => {}
-    next.material.depthTest = false
-    next.material.depthWrite = false
-    next.material.transparent = true
-    next.material.toneMapped = false
-    return next
+    nextMaterial.depthTest = false
+    nextMaterial.depthWrite = false
+    nextMaterial.transparent = true
+    nextMaterial.toneMapped = false
+    return { helper: next, material: nextMaterial }
   }, [box, selected])
 
   useEffect(
     () => () => {
       helper.geometry.dispose()
-      helper.material.dispose()
+      material.dispose()
     },
-    [helper],
+    [helper, material],
   )
 
   useFrame(({ clock }) => {
@@ -127,7 +128,7 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
     }
 
     helper.visible = true
-    helper.material.opacity = selected
+    material.opacity = selected
       ? 1
       : 0.58 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.34
   })
