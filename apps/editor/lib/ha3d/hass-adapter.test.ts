@@ -85,6 +85,33 @@ describe('Home Assistant hass adapter', () => {
     unsubscribe()
   })
 
+  test('publishes entities added by the normal hass lifecycle', () => {
+    const light = {
+      entity_id: 'light.salon',
+      state: 'off',
+      attributes: {},
+    }
+    const helper = {
+      entity_id: 'input_number.target',
+      state: '22',
+      attributes: { min: 10, max: 30, step: 0.5 },
+    }
+    const adapter = new HomeAssistantHassAdapter(hass({ 'light.salon': light }))
+    const changes: string[][] = []
+    const unsubscribe = adapter.subscribe((ids) => changes.push([...ids].sort()))
+
+    adapter.updateHass(
+      hass({
+        'light.salon': light,
+        'input_number.target': helper,
+      }),
+    )
+
+    expect(adapter.getEntity('input_number.target')?.state).toBe('22')
+    expect(changes).toEqual([['input_number.target']])
+    unsubscribe()
+  })
+
   test('refreshes entity inventory through Home Assistant get_states', async () => {
     const first = {
       entity_id: 'light.salon',
