@@ -39,6 +39,29 @@ function rgbAttribute(entity: { attributes: Readonly<Record<string, unknown>> } 
   ]
 }
 
+function lightColorTemperature(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): { value: number; min: number; max: number } | null {
+  if (!entity) return null
+  const modes = Array.isArray(entity.attributes.supported_color_modes)
+    ? entity.attributes.supported_color_modes.filter((mode): mode is string => typeof mode === 'string')
+    : []
+  if (!modes.includes('color_temp')) return null
+
+  const numberAttr = (key: string) => {
+    const value = entity.attributes[key]
+    return typeof value === 'number' && Number.isFinite(value) ? value : null
+  }
+  const min = numberAttr('min_color_temp_kelvin') ?? 2000
+  const max = numberAttr('max_color_temp_kelvin') ?? 6500
+  const current = numberAttr('color_temp_kelvin') ?? Math.round((min + max) / 2)
+  return {
+    value: Math.max(min, Math.min(max, current)),
+    min: Math.min(min, max),
+    max: Math.max(min, max),
+  }
+}
+
 function rgbToHex(rgb: [number, number, number]): string {
   return `#${rgb.map((value) => value.toString(16).padStart(2, '0')).join('')}`
 }
@@ -212,6 +235,7 @@ export function Ha3dDashboardControls({
           const brightnessPct =
             brightness == null ? null : Math.max(0, Math.min(100, Math.round((brightness / 255) * 100)))
           const rgb = rgbAttribute(entity)
+          const colorTemperature = lightColorTemperature(entity)
 
           return (
             <section
@@ -302,6 +326,25 @@ export function Ha3dDashboardControls({
                         }}
                         type="color"
                         value={rgbToHex(rgb)}
+                      />
+                    </label>
+                  ) : null}
+
+                  {colorTemperature ? (
+                    <label className="block text-muted-foreground text-[10px]">
+                      Color temperature · {Math.round(colorTemperature.value)} K
+                      <input
+                        className="mt-1 block w-full"
+                        max={colorTemperature.max}
+                        min={colorTemperature.min}
+                        onChange={(event) =>
+                          void callService('light', 'turn_on', binding.entityId, {
+                            color_temp_kelvin: Number(event.target.value),
+                          })
+                        }
+                        step="50"
+                        type="range"
+                        value={colorTemperature.value}
                       />
                     </label>
                   ) : null}
