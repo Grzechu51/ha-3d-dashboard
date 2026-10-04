@@ -6,7 +6,14 @@ import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Box3, Box3Helper, type Group, type LineBasicMaterial } from 'three'
+import {
+  EdgesGeometry,
+  Group,
+  LineBasicMaterial,
+  LineSegments,
+  type Mesh,
+  type Object3D,
+} from 'three'
 import {
   type EntityBinding,
   resolveDashboardInteractionAction,
@@ -90,48 +97,123 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
   return false
 }
 
+type HighlightEdgeEntry = Readonly<{
+  source: Object3D
+  line: LineSegments
+}>
+
+function isWorldVisible(object: Object3D): boolean {
+  let current: Object3D | null = object
+  while (current) {
+    if (!current.visible) return false
+    current = current.parent
+  }
+  return true
+}
+
 function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; selected: boolean }) {
-  const box = useMemo(() => new Box3(), [])
-  const { helper, material } = useMemo(() => {
-    const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
-    const nextMaterial = next.material as LineBasicMaterial
+  const geometryRevision = useViewer((state) => state.geometryRevision)
+  const group = useMemo(() => {
+    const next = new Group()
+    next.name = `ha3d-highlight:${nodeId}`
     next.renderOrder = 10_000
     next.layers.set(EDITOR_LAYER)
-    next.frustumCulled = false
-    next.raycast = () => {}
-    nextMaterial.depthTest = false
-    nextMaterial.depthWrite = false
-    nextMaterial.transparent = true
-    nextMaterial.toneMapped = false
-    return { helper: next, material: nextMaterial }
-  }, [box, selected])
+    return next
+  }, [nodeId])
+  const material = useMemo(() => {
+    const next = new LineBasicMaterial({
+      color: selected ? 0xff_ff_ff : 0x22_d3ee,
+      transparent: true,
+      opacity: 0.9,
+      depthTest: false,
+      depthWrite: false,
+      toneMapped: false,
+    })
+    return next
+  }, [selected])
+  const entriesRef = useRef<HighlightEdgeEntry[]>([])
+  const builtRootRef = useRef<Object3D | null>(null)
+  const builtRevisionRef = useRef(-1)
+
+  const clearEdges = useCallback(() => {
+    for (const entry of entriesRef.current) {
+      entry.line.geometry.dispose()
+      group.remove(entry.line)
+    }
+    entriesRef.current = []
+    builtRootRef.current = null
+  }, [group])
+
+  const rebuildEdges = useCallback(
+    (root: Object3D) => {
+      clearEdges()
+      root.updateWorldMatrix(true, true)
+
+      const entries: HighlightEdgeEntry[] = []
+      root.traverse((child) => {
+        const mesh = child as Mesh
+        if (!(mesh.isMesh && mesh.geometry?.getAttribute('position'))) return
+
+        const geometry = new EdgesGeometry(mesh.geometry, 32)
+        const positions = geometry.getAttribute('position')
+        if (!positions || positions.count === 0) {
+          geometry.dispose()
+          return
+        }
+
+        const line = new LineSegments(geometry, material)
+        line.name = `ha3d-highlight-edge:${nodeId}`
+        line.matrixAutoUpdate = false
+        line.matrix.copy(mesh.matrixWorld)
+        line.matrixWorldNeedsUpdate = true
+        line.renderOrder = 10_000
+        line.frustumCulled = false
+        line.layers.set(EDITOR_LAYER)
+        line.raycast = () => {}
+        group.add(line)
+        entries.push({ source: mesh, line })
+      })
+
+      entriesRef.current = entries
+      builtRootRef.current = root
+      builtRevisionRef.current = geometryRevision
+    },
+    [clearEdges, geometryRevision, group, material, nodeId],
+  )
 
   useEffect(
     () => () => {
-      helper.geometry.dispose()
+      clearEdges()
       material.dispose()
     },
-    [helper, material],
+    [clearEdges, material],
   )
 
   useFrame(({ clock }) => {
-    const object = sceneRegistry.nodes.get(nodeId)
-    if (!object) {
-      helper.visible = false
+    const root = sceneRegistry.nodes.get(nodeId)
+    if (!root) {
+      group.visible = false
+      builtRootRef.current = null
       return
     }
 
-    box.setFromObject(object, true)
-    if (box.isEmpty()) {
-      helper.visible = false
-      return
+    if (builtRootRef.current !== root || builtRevisionRef.current !== geometryRevision) {
+      rebuildEdges(root)
     }
 
-    helper.visible = true
-    material.opacity = selected ? 1 : 0.58 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.34
+    root.updateWorldMatrix(true, true)
+    for (const entry of entriesRef.current) {
+      entry.line.visible = isWorldVisible(entry.source)
+      entry.line.matrix.copy(entry.source.matrixWorld)
+      entry.line.matrixWorldNeedsUpdate = true
+    }
+
+    group.visible = isWorldVisible(root) && entriesRef.current.length > 0
+    material.color.setHex(selected ? 0xff_ff_ff : 0x22_d3ee)
+    material.opacity = selected ? 1 : 0.64 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.28
   })
 
-  return <primitive object={helper} />
+  return <primitive object={group} />
 }
 
 function InteractiveEntityMarker({
