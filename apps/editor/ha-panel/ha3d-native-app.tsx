@@ -623,7 +623,7 @@ function NativeDashboard({
     return () => {
       setViewerReady(false)
       setSelectedInteractiveNodeId(null)
-        useViewer.getState().resetSelection()
+      useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
       useViewer.getState().setLevelMode(previousLevelMode)
       useViewer.getState().setProjectId(null)

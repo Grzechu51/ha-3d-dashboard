@@ -100,6 +100,8 @@ function InteractiveEntityHighlight({
   const helper = useMemo(() => {
     const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
     next.renderOrder = 10_000
+    next.frustumCulled = false
+    next.raycast = () => {}
     next.material.depthTest = false
     next.material.depthWrite = false
     next.material.transparent = true
@@ -122,7 +124,7 @@ function InteractiveEntityHighlight({
       return
     }
 
-    box.setFromObject(object)
+    box.setFromObject(object, true)
     if (box.isEmpty()) {
       helper.visible = false
       return
