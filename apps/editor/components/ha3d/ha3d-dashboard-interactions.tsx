@@ -26,10 +26,10 @@ const MAX_GESTURE_MOVE_PX = 8
 
 export const HA3D_INTERACTIVE_HOVER_STYLES = {
   default: {
-    visibleColor: 0x38_bdf8,
+    visibleColor: 0x22_d3ee,
     hiddenColor: 0x38_bdf8,
-    strength: 1.25,
-    pulse: false,
+    strength: 5.5,
+    pulse: true,
   },
 }
 
@@ -117,23 +117,33 @@ function InteractiveEntityMarker({
 
   if (!entity) return null
 
+  const active = !['off', 'closed', 'idle', 'unavailable', 'unknown'].includes(entity.state)
+
   return (
     <group ref={groupRef} visible={located}>
-      <Html center distanceFactor={7} style={{ pointerEvents: 'none' }}>
+      <Html center distanceFactor={9} style={{ pointerEvents: 'none' }}>
         <div
           className={
             selected
-              ? 'whitespace-nowrap rounded-lg border border-sky-300/80 bg-sky-950/90 px-2.5 py-1.5 text-sky-50 shadow-xl ring-1 ring-sky-400/30 backdrop-blur-md'
-              : 'whitespace-nowrap rounded-lg border border-sky-400/40 bg-background/88 px-2.5 py-1.5 text-foreground shadow-lg backdrop-blur-md'
+              ? 'relative whitespace-nowrap rounded-xl border border-cyan-300/90 bg-slate-950/90 px-3 py-2 text-white shadow-2xl ring-1 ring-cyan-300/35 backdrop-blur-md'
+              : 'relative whitespace-nowrap rounded-xl border border-white/15 bg-black/75 px-3 py-2 text-white shadow-xl backdrop-blur-md'
           }
         >
-          <div className="max-w-40 truncate text-[10px] opacity-75">
+          <div className="max-w-44 truncate font-medium text-[11px] leading-none">
             {entityFriendlyName(entity)}
           </div>
-          <div className="flex items-center gap-1.5 font-medium text-[11px]">
-            <span className="inline-block size-1.5 rounded-full bg-sky-400" />
+          <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-white/75">
+            <span
+              className={
+                active
+                  ? 'inline-block size-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(103,232,249,0.9)]'
+                  : 'inline-block size-1.5 rounded-full bg-slate-400'
+              }
+            />
             {formatHomeAssistantEntityValue(entity)}
           </div>
+          <span className="absolute top-full left-1/2 h-3 w-px -translate-x-1/2 bg-white/30" />
+          <span className="absolute top-[calc(100%+0.7rem)] left-1/2 size-1.5 -translate-x-1/2 rounded-full bg-white/60" />
         </div>
       </Html>
     </group>
