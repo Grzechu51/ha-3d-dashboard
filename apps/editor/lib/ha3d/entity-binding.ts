@@ -8,9 +8,12 @@ const SUPPORTED_DOMAINS = [
 ] as const
 
 const COVER_MOTION_AXES = ['x', 'y', 'z'] as const
+const INTERACTION_ACTIONS = ['default', 'toggle', 'more-info', 'none'] as const
 
 export type SupportedHomeAssistantDomain = (typeof SUPPORTED_DOMAINS)[number]
 export type CoverMotionAxis = (typeof COVER_MOTION_AXES)[number]
+export type DashboardInteractionAction = (typeof INTERACTION_ACTIONS)[number]
+export type ResolvedDashboardInteractionAction = Exclude<DashboardInteractionAction, 'default'>
 
 export type CoverMotionConfig = Readonly<{
   axis: CoverMotionAxis
@@ -29,6 +32,8 @@ export type EntityBinding = Readonly<{
   entityId: string
   domain: SupportedHomeAssistantDomain
   enabled: boolean
+  tapAction: DashboardInteractionAction
+  holdAction: DashboardInteractionAction
   coverMotion?: CoverMotionConfig
 }>
 
@@ -36,8 +41,32 @@ export type CreateEntityBindingInput = Readonly<{
   nodeId: string
   entityId: string
   enabled?: boolean
+  tapAction?: DashboardInteractionAction
+  holdAction?: DashboardInteractionAction
   coverMotion?: CoverMotionConfig
 }>
+
+export function normalizeDashboardInteractionAction(
+  value: unknown,
+  fallback: DashboardInteractionAction = 'default',
+): DashboardInteractionAction {
+  return typeof value === 'string' && (INTERACTION_ACTIONS as readonly string[]).includes(value)
+    ? (value as DashboardInteractionAction)
+    : fallback
+}
+
+export function resolveDashboardInteractionAction(
+  binding: Pick<EntityBinding, 'domain' | 'tapAction' | 'holdAction'>,
+  gesture: 'tap' | 'hold',
+): ResolvedDashboardInteractionAction {
+  const configured = gesture === 'tap' ? binding.tapAction : binding.holdAction
+  if (configured !== 'default') return configured
+
+  if (gesture === 'hold') return 'more-info'
+  return binding.domain === 'light' || binding.domain === 'switch' || binding.domain === 'cover'
+    ? 'toggle'
+    : 'more-info'
+}
 
 export function entityDomain(entityId: string): string | null {
   const separator = entityId.indexOf('.')
@@ -106,6 +135,8 @@ export function createEntityBinding(input: CreateEntityBindingInput): EntityBind
     entityId,
     domain,
     enabled: input.enabled ?? true,
+    tapAction: normalizeDashboardInteractionAction(input.tapAction),
+    holdAction: normalizeDashboardInteractionAction(input.holdAction),
   }
 
   return domain === 'cover'

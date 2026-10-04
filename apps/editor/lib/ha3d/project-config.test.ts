@@ -30,12 +30,16 @@ describe('HA 3D project configuration', () => {
         entityId: 'light.second',
         domain: 'light',
         enabled: true,
+        tapAction: 'default',
+        holdAction: 'default',
       },
       {
         nodeId: 'item_lamp',
         entityId: 'sensor.temperature',
         domain: 'sensor',
         enabled: true,
+        tapAction: 'default',
+        holdAction: 'default',
       },
     ])
   })
@@ -54,6 +58,8 @@ describe('HA 3D project configuration', () => {
         entityId: 'light.salon',
         domain: 'light',
         enabled: true,
+        tapAction: 'default',
+        holdAction: 'default',
       },
     ])
   })
@@ -83,6 +89,8 @@ describe('HA 3D project configuration', () => {
         entityId: 'cover.salon',
         domain: 'cover',
         enabled: true,
+        tapAction: 'default',
+        holdAction: 'default',
         coverMotion: {
           axis: 'z',
           openOffsetMeters: -1.6,
@@ -90,6 +98,27 @@ describe('HA 3D project configuration', () => {
         },
       },
     ])
+  })
+
+  test('normalizes legacy bindings without interaction actions', () => {
+    ha3dProjectConfiguration.restore({
+      version: 1,
+      bindings: [
+        {
+          nodeId: 'legacy_lamp',
+          entityId: 'light.legacy',
+          domain: 'light',
+          enabled: true,
+        },
+      ],
+    })
+
+    expect(getHa3dProjectConfigSnapshot().bindings[0]).toMatchObject({
+      nodeId: 'legacy_lamp',
+      entityId: 'light.legacy',
+      tapAction: 'default',
+      holdAction: 'default',
+    })
   })
 
   test('loads legacy project config with empty structure mappings', () => {
@@ -172,6 +201,8 @@ describe('HA 3D project configuration', () => {
             entityId: 'light.salon',
             domain: 'cover',
             enabled: true,
+            tapAction: 'default',
+            holdAction: 'default',
           },
         ],
       }),

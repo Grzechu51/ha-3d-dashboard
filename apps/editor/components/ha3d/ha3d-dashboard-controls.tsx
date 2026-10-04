@@ -9,6 +9,7 @@ import {
   numericEntityAttribute,
   stringListEntityAttribute,
 } from '../../lib/ha3d/entity-display'
+import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
@@ -17,19 +18,78 @@ import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
+import type { Ha3dEnvironmentMode } from './ha3d-sun-environment'
 
 function actionErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Home Assistant service call failed'
 }
 
+function lightColorModes(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): readonly string[] {
+  const raw = entity?.attributes.supported_color_modes
+  return Array.isArray(raw) ? raw.filter((mode): mode is string => typeof mode === 'string') : []
+}
+
+function lightSupportsBrightness(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): boolean {
+  return lightColorModes(entity).some((mode) => mode !== 'onoff')
+}
+
+function lightSupportsColor(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): boolean {
+  const modes = lightColorModes(entity)
+  return ['hs', 'xy', 'rgb', 'rgbw', 'rgbww'].some((mode) => modes.includes(mode))
+}
+
+function lightColorTemperature(
+  entity: { attributes: Readonly<Record<string, unknown>> } | undefined,
+): { value: number; min: number; max: number } | null {
+  if (!entity || !lightColorModes(entity).includes('color_temp')) return null
+
+  const numberAttr = (key: string) => {
+    const value = entity.attributes[key]
+    return typeof value === 'number' && Number.isFinite(value) ? value : null
+  }
+  const min = numberAttr('min_color_temp_kelvin') ?? 2000
+  const max = numberAttr('max_color_temp_kelvin') ?? 6500
+  const current = numberAttr('color_temp_kelvin') ?? Math.round((min + max) / 2)
+  return {
+    value: Math.max(min, Math.min(max, current)),
+    min: Math.min(min, max),
+    max: Math.max(min, max),
+  }
+}
+
+function hexToRgb(value: string): [number, number, number] | null {
+  const match = /^#([0-9a-f]{6})$/i.exec(value)
+  if (!match) return null
+  const packed = Number.parseInt(match[1]!, 16)
+  return [(packed >> 16) & 0xff, (packed >> 8) & 0xff, packed & 0xff]
+}
+
 export function Ha3dDashboardControls({
   selectedNodeId = null,
+  expandedNodeId = null,
   highlightsEnabled = true,
+  markersEnabled = true,
   onHighlightsEnabledChange,
+  onMarkersEnabledChange,
+  onExpandedNodeIdChange,
+  environmentMode = 'auto',
+  onEnvironmentModeChange,
 }: {
   selectedNodeId?: string | null
+  expandedNodeId?: string | null
   highlightsEnabled?: boolean
+  markersEnabled?: boolean
   onHighlightsEnabledChange?: (enabled: boolean) => void
+  onMarkersEnabledChange?: (enabled: boolean) => void
+  onExpandedNodeIdChange?: (nodeId: string | null) => void
+  environmentMode?: Ha3dEnvironmentMode
+  onEnvironmentModeChange?: (mode: Ha3dEnvironmentMode) => void
 } = {}) {
   const [collapsed, setCollapsed] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -45,8 +105,8 @@ export function Ha3dDashboardControls({
   )
 
   useEffect(() => {
-    if (selectedNodeId) setCollapsed(false)
-  }, [selectedNodeId])
+    if (selectedNodeId || expandedNodeId) setCollapsed(false)
+  }, [expandedNodeId, selectedNodeId])
 
   const bindings = project.bindings
     .filter((binding) => binding.enabled)
@@ -118,6 +178,16 @@ export function Ha3dDashboardControls({
               Highlights {highlightsEnabled ? 'on' : 'off'}
             </button>
           ) : null}
+          {onMarkersEnabledChange ? (
+            <button
+              aria-pressed={markersEnabled}
+              className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
+              onClick={() => onMarkersEnabledChange(!markersEnabled)}
+              type="button"
+            >
+              Labels {markersEnabled ? 'on' : 'off'}
+            </button>
+          ) : null}
           <button
             className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
             onClick={() => setCollapsed(true)}
@@ -128,7 +198,32 @@ export function Ha3dDashboardControls({
         </div>
       </div>
 
-      <div className="max-h-[calc(46vh-3.4rem)] space-y-2 overflow-y-auto p-3 md:max-h-[calc(100vh-6rem)]">
+      {onEnvironmentModeChange ? (
+        <div className="flex items-center justify-between gap-2 border-border/70 border-b px-4 py-2">
+          <span className="text-muted-foreground text-[10px] uppercase tracking-wide">
+            Environment
+          </span>
+          <div className="flex rounded-md border border-border bg-background/70 p-0.5">
+            {(['auto', 'day', 'twilight', 'night'] as const).map((mode) => (
+              <button
+                aria-pressed={environmentMode === mode}
+                className={
+                  environmentMode === mode
+                    ? 'rounded px-2 py-1 font-medium text-[10px] text-sky-300 bg-sky-400/10'
+                    : 'rounded px-2 py-1 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground'
+                }
+                key={mode}
+                onClick={() => onEnvironmentModeChange(mode)}
+                type="button"
+              >
+                {mode === 'auto' ? 'Auto Sun' : mode[0]!.toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="max-h-[calc(46vh-5.9rem)] space-y-2 overflow-y-auto p-3 md:max-h-[calc(100vh-8.5rem)]">
         {actionError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-xs">
             {actionError}
@@ -146,6 +241,17 @@ export function Ha3dDashboardControls({
           const climateTarget = numericEntityAttribute(entity, 'temperature')
           const climateModes = stringListEntityAttribute(entity, 'hvac_modes')
           const detail = entity ? formatHomeAssistantEntityDetail(entity) : null
+          const expanded = binding.nodeId === expandedNodeId
+          const brightness = numericEntityAttribute(entity, 'brightness')
+          const brightnessPct = lightSupportsBrightness(entity)
+            ? brightness == null
+              ? 100
+              : Math.max(0, Math.min(100, Math.round((brightness / 255) * 100)))
+            : null
+          const lightColor = lightSupportsColor(entity)
+            ? resolveHomeAssistantLightVisualState(entity).color
+            : null
+          const colorTemperature = lightColorTemperature(entity)
 
           return (
             <section
@@ -165,6 +271,11 @@ export function Ha3dDashboardControls({
                     {binding.nodeId === selectedNodeId ? (
                       <span className="shrink-0 rounded bg-sky-400/15 px-1.5 py-0.5 text-[9px] text-sky-300">
                         selected
+                      </span>
+                    ) : null}
+                    {expanded ? (
+                      <span className="shrink-0 rounded bg-violet-400/15 px-1.5 py-0.5 text-[9px] text-violet-300">
+                        more info
                       </span>
                     ) : null}
                   </div>
@@ -196,6 +307,76 @@ export function Ha3dDashboardControls({
                 >
                   {entity.state === 'on' ? 'Turn off' : 'Turn on'}
                 </button>
+              ) : null}
+
+              {entity && binding.domain === 'light' && expanded ? (
+                <div className="mt-3 space-y-3 border-border/70 border-t pt-3">
+                  {brightnessPct !== null ? (
+                    <label className="block text-muted-foreground text-[10px]">
+                      Brightness · {brightnessPct}%
+                      <input
+                        className="mt-1 block w-full"
+                        max="100"
+                        min="1"
+                        onChange={(event) =>
+                          void callService('light', 'turn_on', binding.entityId, {
+                            brightness_pct: Number(event.target.value),
+                          })
+                        }
+                        type="range"
+                        value={Math.max(1, brightnessPct)}
+                      />
+                    </label>
+                  ) : null}
+
+                  {lightColor ? (
+                    <label className="flex items-center justify-between gap-3 text-muted-foreground text-[10px]">
+                      Color
+                      <input
+                        aria-label="Light color"
+                        className="h-8 w-14 cursor-pointer rounded border border-border bg-transparent"
+                        onChange={(event) => {
+                          const next = hexToRgb(event.target.value)
+                          if (!next) return
+                          void callService('light', 'turn_on', binding.entityId, {
+                            rgb_color: next,
+                          })
+                        }}
+                        type="color"
+                        value={lightColor}
+                      />
+                    </label>
+                  ) : null}
+
+                  {colorTemperature ? (
+                    <label className="block text-muted-foreground text-[10px]">
+                      Color temperature · {Math.round(colorTemperature.value)} K
+                      <input
+                        className="mt-1 block w-full"
+                        max={colorTemperature.max}
+                        min={colorTemperature.min}
+                        onChange={(event) =>
+                          void callService('light', 'turn_on', binding.entityId, {
+                            color_temp_kelvin: Number(event.target.value),
+                          })
+                        }
+                        step="50"
+                        type="range"
+                        value={colorTemperature.value}
+                      />
+                    </label>
+                  ) : null}
+
+                  {onExpandedNodeIdChange ? (
+                    <button
+                      className="w-full rounded-md border border-border px-3 py-2 text-xs hover:bg-accent"
+                      onClick={() => onExpandedNodeIdChange(null)}
+                      type="button"
+                    >
+                      Close more info
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
 
               {entity && binding.domain === 'cover' ? (

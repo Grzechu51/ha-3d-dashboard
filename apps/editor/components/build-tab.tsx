@@ -51,6 +51,152 @@ const WINDOW_PLACEMENT_PRESETS = [
   { label: 'Louvered', value: 'louvered' },
 ] as const
 
+const STAIR_PLACEMENT_PRESETS = [
+  { label: 'Straight', value: 'straight' },
+  { label: 'Curved', value: 'curved' },
+  { label: 'Spiral', value: 'spiral' },
+] as const
+
+function WindowPresetIcon({ type }: { type: (typeof WINDOW_PLACEMENT_PRESETS)[number]['value'] }) {
+  const splitHorizontal = type === 'single-hung' || type === 'double-hung'
+  const splitVertical = type === 'sliding'
+  const angled = type === 'casement' || type === 'awning'
+  const projected = type === 'bay' || type === 'bow'
+
+  return (
+    <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
+      <rect
+        fill="none"
+        height="25"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        width="32"
+        x="4"
+        y="3.5"
+      />
+      {splitVertical ? (
+        <line stroke="currentColor" strokeWidth="1.4" x1="20" x2="20" y1="4.5" y2="27.5" />
+      ) : null}
+      {splitHorizontal ? (
+        <line stroke="currentColor" strokeWidth="1.4" x1="5" x2="35" y1="16" y2="16" />
+      ) : null}
+      {type === 'double-hung' ? (
+        <>
+          <path d="M17 12h6l-2-2m2 2-2 2" fill="none" stroke="currentColor" strokeWidth="1.1" />
+          <path d="M23 20h-6l2 2m-2-2 2-2" fill="none" stroke="currentColor" strokeWidth="1.1" />
+        </>
+      ) : null}
+      {angled ? (
+        type === 'awning' ? (
+          <path d="M6 6l28 8v12" fill="none" stroke="currentColor" strokeWidth="1.4" />
+        ) : (
+          <path d="M6 5l18 11-18 11" fill="none" stroke="currentColor" strokeWidth="1.4" />
+        )
+      ) : null}
+      {projected ? (
+        <path
+          d={type === 'bay' ? 'M7 25l7-18h12l7 18' : 'M7 25c3-12 8-18 13-18s10 6 13 18'}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+        />
+      ) : null}
+      {type === 'louvered'
+        ? [9, 13, 17, 21].map((y) => (
+            <line
+              key={y}
+              stroke="currentColor"
+              strokeWidth="1.2"
+              x1="9"
+              x2="31"
+              y1={y}
+              y2={y - 2}
+            />
+          ))
+        : null}
+      {type === 'fixed' ? (
+        <path d="M7 7l26 18M33 7L7 25" opacity=".55" stroke="currentColor" strokeWidth="1" />
+      ) : null}
+    </svg>
+  )
+}
+
+function DoorPresetIcon({ type }: { type: (typeof DOOR_PLACEMENT_PRESETS)[number]['value'] }) {
+  const doubleLeaf = type === 'double' || type === 'french' || type === 'sliding'
+  return (
+    <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
+      <rect
+        fill="none"
+        height="27"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        width="22"
+        x="9"
+        y="2.5"
+      />
+      {doubleLeaf ? (
+        <line stroke="currentColor" strokeWidth="1.3" x1="20" x2="20" y1="3.5" y2="28.5" />
+      ) : null}
+      {type === 'hinged' || type === 'double' || type === 'french' ? (
+        <path
+          d="M10 29A19 19 0 0 1 29 10"
+          fill="none"
+          opacity=".7"
+          stroke="currentColor"
+          strokeWidth="1.1"
+        />
+      ) : null}
+      {type === 'sliding' || type === 'pocket' || type === 'barn' ? (
+        <path d="M7 16h26m-4-3 4 3-4 3" fill="none" stroke="currentColor" strokeWidth="1.2" />
+      ) : null}
+      {type === 'folding' ? (
+        <path
+          d="M10 4l5 12-5 12m5-24 5 12-5 12m5-24 5 12-5 12m5-24 5 12-5 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+      ) : null}
+      {type.startsWith('garage-')
+        ? [8, 13, 18, 23].map((y) => (
+            <line key={y} stroke="currentColor" strokeWidth="1.1" x1="10" x2="30" y1={y} y2={y} />
+          ))
+        : null}
+    </svg>
+  )
+}
+
+function StairPresetIcon({ type }: { type: (typeof STAIR_PLACEMENT_PRESETS)[number]['value'] }) {
+  if (type === 'spiral') {
+    return (
+      <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
+        <path
+          d="M20 16c0-6 10-6 10 0 0 9-16 11-21 3-5-9 7-18 18-14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <circle cx="20" cy="16" fill="currentColor" r="1.5" />
+      </svg>
+    )
+  }
+  if (type === 'curved') {
+    return (
+      <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
+        <path d="M7 25c4-13 12-19 26-18" fill="none" stroke="currentColor" strokeWidth="2" />
+        <path d="M10 23l5 1m-2-7 5 2m0-8 4 3m3-7 3 4" stroke="currentColor" strokeWidth="1.2" />
+      </svg>
+    )
+  }
+  return (
+    <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
+      <path d="M5 26h7v-6h7v-6h7V8h9" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  )
+}
+
 const DOOR_PLACEMENT_PRESETS = [
   { label: 'Hinged', value: 'hinged', width: 0.9, height: 2.1, leafCount: 1 },
   { label: 'Double', value: 'double', width: 1.5, height: 2.1, leafCount: 2 },
@@ -83,6 +229,7 @@ export function BuildTab() {
   const roofDefaults = useEditor((s) => s.toolDefaults.roof)
   const windowDefaults = useEditor((s) => s.toolDefaults.window)
   const doorDefaults = useEditor((s) => s.toolDefaults.door)
+  const stairDefaults = useEditor((s) => s.toolDefaults.stair)
   const floorplanMode = useFloorplanMode((s) => s.mode)
   const follow = useLiquidLineToolOptions((s) => s.follow)
   const toggleFollow = useLiquidLineToolOptions((s) => s.toggleFollow)
@@ -249,7 +396,10 @@ export function BuildTab() {
                   }}
                   type="button"
                 >
-                  {preset.label}
+                  <span className="flex items-center gap-2">
+                    <WindowPresetIcon type={preset.value} />
+                    <span>{preset.label}</span>
+                  </span>
                 </button>
               )
             })}
@@ -291,7 +441,10 @@ export function BuildTab() {
                   }}
                   type="button"
                 >
-                  {preset.label}
+                  <span className="flex items-center gap-2">
+                    <DoorPresetIcon type={preset.value} />
+                    <span>{preset.label}</span>
+                  </span>
                 </button>
               )
             })}
@@ -299,6 +452,50 @@ export function BuildTab() {
           <p className="px-0.5 text-[11px] text-muted-foreground leading-relaxed">
             Choose a door construction, then place it on a wall. Detailed hardware and opening
             behaviour remain editable after placement.
+          </p>
+        </div>
+      ) : mode === 'build' && activeTool === 'stair' ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Stair type</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {STAIR_PLACEMENT_PRESETS.map((preset) => {
+              const selected = (stairDefaults?.stairType ?? 'straight') === preset.value
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={cn(
+                    'rounded-lg px-2 py-2 font-medium text-xs transition-colors',
+                    selected
+                      ? 'bg-primary/10 text-primary ring-1 ring-primary/50'
+                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                  key={preset.value}
+                  onClick={() => {
+                    triggerSFX('sfx:menu-click')
+                    const current = useEditor.getState().toolDefaults.stair ?? {}
+                    useEditor.getState().setToolDefaults('stair', {
+                      ...current,
+                      stairType: preset.value,
+                      ...(preset.value === 'spiral'
+                        ? { sweepAngle: Math.PI * 2, innerRadius: 0.15 }
+                        : preset.value === 'curved'
+                          ? { sweepAngle: Math.PI / 2, innerRadius: 0.9 }
+                          : {}),
+                    })
+                  }}
+                  type="button"
+                >
+                  <span className="flex flex-col items-center gap-1">
+                    <StairPresetIcon type={preset.value} />
+                    <span>{preset.label}</span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          <p className="px-0.5 text-[11px] text-muted-foreground leading-relaxed">
+            Choose the stair geometry before placement. Detailed rise, destination, railing and
+            dimensions remain editable after placement.
           </p>
         </div>
       ) : mode === 'build' && (activeTool === 'roof' || isRoofFeatureActive) ? (
@@ -526,6 +723,19 @@ export function BuildTab() {
               </span>
             </div>
           ) : null}
+        </div>
+      ) : mode === 'build' && activeTool ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <ToolOptionsPanel
+            kind={activeTool}
+            onSelect={() => {
+              if (
+                !(useEditor.getState().mode === 'build' && useEditor.getState().tool === activeTool)
+              ) {
+                activateBuildTool(activeTool)
+              }
+            }}
+          />
         </div>
       ) : null}
     </div>

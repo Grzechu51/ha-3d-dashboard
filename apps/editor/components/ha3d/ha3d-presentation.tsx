@@ -2,17 +2,11 @@
 
 import { type AnyNodeId, sceneRegistry } from '@pascal-app/core'
 import { type LightSource, useItemLightPool } from '@pascal-app/viewer'
-import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import type { Group, Object3D, Vector3 } from 'three'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
+import type { Object3D, Vector3 } from 'three'
 import { resolveCoverOpenOffset, stepCoverOffset } from '../../lib/ha3d/cover-state'
 import { DEFAULT_COVER_MOTION, type EntityBinding } from '../../lib/ha3d/entity-binding'
-import {
-  entityFriendlyName,
-  formatHomeAssistantEntityDetail,
-  formatHomeAssistantEntityValue,
-} from '../../lib/ha3d/entity-display'
 import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHa3dProjectConfigSnapshot,
@@ -26,7 +20,6 @@ import {
 const MAX_LIGHT_INTENSITY = 2
 const LIGHT_DISTANCE = 8
 const EXTERNAL_POSITION_EPSILON_SQ = 0.00000001
-const BADGE_DOMAINS = new Set(['switch', 'sensor', 'binary_sensor', 'climate'])
 
 function HaLightBinding({
   binding,
@@ -141,53 +134,6 @@ function HaCoverBinding({
   return null
 }
 
-function HaStateBadge({
-  binding,
-  runtime,
-}: {
-  binding: EntityBinding
-  runtime: ReturnType<typeof getHomeAssistantRuntimeSnapshot>
-}) {
-  const groupRef = useRef<Group | null>(null)
-  const [located, setLocated] = useState(false)
-  const entity = runtime.adapter?.getEntity(binding.entityId)
-
-  useFrame(() => {
-    const group = groupRef.current
-    if (!group) return
-
-    const object = sceneRegistry.nodes.get(binding.nodeId as AnyNodeId)
-    if (!object) {
-      if (located) setLocated(false)
-      return
-    }
-
-    object.getWorldPosition(group.position)
-    group.position.y += 0.35
-    if (!located) setLocated(true)
-  })
-
-  if (!entity) return null
-
-  const detail = formatHomeAssistantEntityDetail(entity)
-
-  return (
-    <group ref={groupRef} visible={located}>
-      <Html center distanceFactor={8} style={{ pointerEvents: 'none' }}>
-        <div className="whitespace-nowrap rounded-md border border-border bg-background/90 px-2 py-1 shadow-md backdrop-blur-sm">
-          <div className="max-w-40 truncate text-muted-foreground text-[10px]">
-            {entityFriendlyName(entity)}
-          </div>
-          <div className="font-medium text-foreground text-xs">
-            {formatHomeAssistantEntityValue(entity)}
-          </div>
-          {detail ? <div className="text-muted-foreground text-[10px]">{detail}</div> : null}
-        </div>
-      </Html>
-    </group>
-  )
-}
-
 export default function Ha3dPresentation() {
   const project = useSyncExternalStore(
     subscribeHa3dProjectConfig,
@@ -217,15 +163,6 @@ export default function Ha3dPresentation() {
           <HaCoverBinding
             binding={binding}
             key={`${binding.nodeId}:${binding.domain}`}
-            runtime={runtime}
-          />
-        ))}
-      {project.bindings
-        .filter((binding) => BADGE_DOMAINS.has(binding.domain) && binding.enabled)
-        .map((binding) => (
-          <HaStateBadge
-            binding={binding}
-            key={`${binding.nodeId}:${binding.domain}:badge`}
             runtime={runtime}
           />
         ))}

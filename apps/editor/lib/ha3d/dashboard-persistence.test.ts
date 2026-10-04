@@ -45,6 +45,8 @@ describe('HA 3D dashboard persistence', () => {
         entityId: 'light.salon',
         domain: 'light',
         enabled: true,
+        tapAction: 'default',
+        holdAction: 'default',
       },
     ])
   })

@@ -1,3 +1,4 @@
+import { validateBuildJson } from '@pascal-app/core'
 import {
   acquireSceneReadOnlyLease,
   applySceneGraphToEditor,
@@ -31,6 +32,10 @@ import {
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
+import {
+  type Ha3dEnvironmentMode,
+  Ha3dSunEnvironment,
+} from '../components/ha3d/ha3d-sun-environment'
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
 import {
   createHomeAssistantProject,
@@ -190,6 +195,7 @@ function ProjectPicker({
   busyProjectId,
   onOpen,
   onCreate,
+  onImport,
   onRename,
   onDelete,
   onRefresh,
@@ -202,12 +208,15 @@ function ProjectPicker({
   busyProjectId: string | null
   onOpen: (projectId: string) => void
   onCreate: (name: string) => Promise<void>
+  onImport: (file: File) => Promise<void>
   onRename: (project: Ha3dProjectMetadata, name: string) => Promise<void>
   onDelete: (project: Ha3dProjectMetadata) => Promise<void>
   onRefresh: () => Promise<void>
 }>) {
   const [name, setName] = useState('My home')
   const [creating, setCreating] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const importInputRef = useRef<HTMLInputElement | null>(null)
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null)
@@ -232,6 +241,19 @@ function ProjectPicker({
       // The parent already surfaces the Home Assistant error in the picker.
     } finally {
       setCreating(false)
+    }
+  }
+
+  const importPascalProject = async (file: File | undefined) => {
+    if (!file || importing || busyProjectId) return
+    setImporting(true)
+    try {
+      await onImport(file)
+      if (importInputRef.current) importInputRef.current.value = ''
+    } catch {
+      // The parent surfaces the validation / Home Assistant error.
+    } finally {
+      setImporting(false)
     }
   }
 
@@ -456,6 +478,28 @@ function ProjectPicker({
               <p className="mt-3 text-muted-foreground text-xs leading-relaxed">
                 New projects are created in Home Assistant Store and open directly in Edit mode.
               </p>
+
+              <div className="mt-4 border-border/70 border-t pt-4">
+                <div className="font-medium text-sm">Import Pascal project</div>
+                <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+                  Import a native Pascal Build JSON export as a new HA 3D project.
+                </p>
+                <input
+                  accept=".json,application/json"
+                  className="hidden"
+                  onChange={(event) => void importPascalProject(event.currentTarget.files?.[0])}
+                  ref={importInputRef}
+                  type="file"
+                />
+                <button
+                  className="mt-3 w-full rounded-lg border border-border px-3 py-2 font-medium text-sm hover:bg-accent disabled:opacity-50"
+                  disabled={importing || creating || busyProjectId !== null}
+                  onClick={() => importInputRef.current?.click()}
+                  type="button"
+                >
+                  {importing ? 'Importing…' : 'Import Pascal JSON'}
+                </button>
+              </div>
             </form>
           ) : (
             <aside className="rounded-xl border border-border bg-background/60 p-4">
@@ -524,7 +568,10 @@ function NativeDashboard({
   const [error, setError] = useState<string | null>(null)
   const [viewerReady, setViewerReady] = useState(false)
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
+  const [expandedInteractiveNodeId, setExpandedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
+  const [interactiveMarkers, setInteractiveMarkers] = useState(true)
+  const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
 
   useEffect(() => {
     let cancelled = false
@@ -555,10 +602,12 @@ function NativeDashboard({
     useViewer.getState().resetSelection()
     setViewerReady(false)
     setSelectedInteractiveNodeId(null)
+    setExpandedInteractiveNodeId(null)
 
     return () => {
       setViewerReady(false)
       setSelectedInteractiveNodeId(null)
+      setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
       useViewer.getState().setProjectId(null)
@@ -647,8 +696,12 @@ function NativeDashboard({
         <SceneEnvironment />
         <OrbitControls enableDamping makeDefault />
         <ViewerPresentations />
+        <Ha3dSunEnvironment mode={environmentMode} />
         <Ha3dDashboardInteractions
+          expandedNodeId={expandedInteractiveNodeId}
           highlightsEnabled={interactiveHighlights}
+          markersEnabled={interactiveMarkers}
+          onExpandedNodeIdChange={setExpandedInteractiveNodeId}
           onSelectedNodeIdChange={setSelectedInteractiveNodeId}
           selectedNodeId={selectedInteractiveNodeId}
         />
@@ -682,8 +735,14 @@ function NativeDashboard({
       </div>
 
       <Ha3dDashboardControls
+        environmentMode={environmentMode}
+        expandedNodeId={expandedInteractiveNodeId}
         highlightsEnabled={interactiveHighlights}
+        markersEnabled={interactiveMarkers}
+        onEnvironmentModeChange={setEnvironmentMode}
+        onExpandedNodeIdChange={setExpandedInteractiveNodeId}
         onHighlightsEnabledChange={setInteractiveHighlights}
+        onMarkersEnabledChange={setInteractiveMarkers}
         selectedNodeId={selectedInteractiveNodeId}
       />
 
@@ -1001,6 +1060,53 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
     [api, rememberProject],
   )
 
+  const importPascalProject = useCallback(
+    async (file: File) => {
+      setProjectError(null)
+      try {
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error('Pascal project is larger than the 10 MB project import limit.')
+        }
+
+        let parsed: unknown
+        try {
+          parsed = JSON.parse(await file.text()) as unknown
+        } catch {
+          throw new Error('The selected file is not valid JSON.')
+        }
+
+        const validation = validateBuildJson(parsed)
+        if (!validation.ok || !validation.parsed) {
+          const firstIssue = validation.errors[0] ?? validation.schemaIssues[0]
+          throw new Error(
+            firstIssue?.message
+              ? `Pascal project validation failed: ${firstIssue.message}`
+              : 'Pascal project validation failed.',
+          )
+        }
+
+        const sourceName = file.name.replace(/\.json$/i, '').trim()
+        const name = sourceName || 'Imported Pascal project'
+        const project = await createHomeAssistantProject(api, {
+          name,
+          scene: validation.parsed as unknown as Readonly<Record<string, unknown>>,
+        })
+
+        setProjects((current) => [
+          ...current.filter((candidate) => candidate.id !== project.id),
+          project,
+        ])
+        rememberProject(project.id)
+        setMode('edit')
+        setSelectedProjectId(project.id)
+      } catch (error) {
+        setProjectError(projectErrorMessage(error))
+        throw error
+      }
+    },
+    [api, rememberProject],
+  )
+
   const renameProject = useCallback(
     async (project: Ha3dProjectMetadata, name: string) => {
       setBusyProjectId(project.id)
@@ -1092,6 +1198,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
         loading={loadingProjects}
         onCreate={createProject}
         onDelete={deleteProject}
+        onImport={importPascalProject}
         onOpen={openProject}
         onRefresh={refreshProjects}
         onRename={renameProject}
