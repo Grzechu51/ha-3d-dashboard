@@ -738,16 +738,16 @@ function NativeDashboard({
         />
       </Viewer>
 
-      <div className="pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 md:right-[21rem]">
-        <div className="min-w-0 rounded-xl border border-border/70 bg-background/90 px-3 py-2 shadow-lg backdrop-blur">
+      <div className="pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 md:right-[22rem]">
+        <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 text-white shadow-xl backdrop-blur-xl">
           <div className="truncate font-semibold text-sm">{projectName}</div>
-          <div className="text-muted-foreground text-[10px]">
+          <div className="text-[10px] text-white/40">
             Dashboard · rev {session.getSnapshot().revision ?? '—'}
           </div>
         </div>
         <div className="pointer-events-auto flex gap-2">
           <button
-            className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
+            className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 font-medium text-white/70 text-xs shadow-xl backdrop-blur-xl hover:bg-slate-900/90 hover:text-white"
             onClick={onProjects}
             type="button"
           >
@@ -755,7 +755,7 @@ function NativeDashboard({
           </button>
           {onEdit ? (
             <button
-              className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
+              className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 font-medium text-white/70 text-xs shadow-xl backdrop-blur-xl hover:bg-slate-900/90 hover:text-white"
               onClick={onEdit}
               type="button"
             >
