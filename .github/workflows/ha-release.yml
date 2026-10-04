@@ -6,14 +6,13 @@ on:
       - main
     paths:
       - "custom_components/ha_3d_dashboard/manifest.json"
-      - "custom_components/ha_3d_dashboard/const.py"
   workflow_dispatch:
     inputs:
       version:
         description: "Optional version override; must already match manifest.json and const.py"
         required: false
         type: string
-      dry-run:
+      dry_run:
         description: "Build and verify packages without creating a GitHub release"
         required: true
         type: boolean
@@ -22,7 +21,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: ha-release-${{ github.ref }}
+  group: ha-release
   cancel-in-progress: false
 
 jobs:
@@ -34,16 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
           fetch-depth: 0
 
       - name: Resolve release metadata
         id: release
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BEFORE_SHA: ${{ github.event.before }}
-          REQUESTED_VERSION: ${{ inputs.version }}
-          REQUESTED_DRY_RUN: ${{ inputs['dry-run'] }}
         run: |
           CURRENT_VERSION="$(python3 -c 'import json; print(json.load(open("custom_components/ha_3d_dashboard/manifest.json", encoding="utf-8"))["version"])')"
           CONST_VERSION="$(sed -n 's/^VERSION: Final = "\\(.*\\)"$/\\1/p' custom_components/ha_3d_dashboard/const.py)"
@@ -57,12 +50,8 @@ jobs:
           DRY_RUN="false"
           SHOULD_RELEASE="true"
 
-          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
-            if [ -n "${REQUESTED_VERSION}" ]; then
-              VERSION="${REQUESTED_VERSION}"
-            fi
-            DRY_RUN="${REQUESTED_DRY_RUN:-false}"
-          else
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            BEFORE_SHA="$(python3 -c 'import json,os; print(json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8")).get("before", ""))')"
             PREVIOUS_VERSION=""
             if [ -n "${BEFORE_SHA}" ] && [ "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]; then
               PREVIOUS_VERSION="$(git show "${BEFORE_SHA}:custom_components/ha_3d_dashboard/manifest.json" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])' 2>/dev/null || true)"
@@ -70,6 +59,20 @@ jobs:
             if [ -n "${PREVIOUS_VERSION}" ] && [ "${PREVIOUS_VERSION}" = "${CURRENT_VERSION}" ]; then
               SHOULD_RELEASE="false"
             fi
+          elif [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+              echo "Manual HA releases must run from the main branch."
+              exit 1
+            fi
+            REQUESTED_VERSION="$(python3 -c 'import json,os; data=json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8")); print(data.get("inputs", {}).get("version", ""))')"
+            REQUESTED_DRY_RUN="$(python3 -c 'import json,os; data=json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8")); print(data.get("inputs", {}).get("dry_run", "false"))')"
+            if [ -n "${REQUESTED_VERSION}" ]; then
+              VERSION="${REQUESTED_VERSION}"
+            fi
+            DRY_RUN="${REQUESTED_DRY_RUN:-false}"
+          else
+            echo "Unsupported HA release event: ${GITHUB_EVENT_NAME}"
+            exit 1
           fi
 
           case "${VERSION}" in
