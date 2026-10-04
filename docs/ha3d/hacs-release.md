@@ -198,11 +198,9 @@ release workflow:
 .github/workflows/ha-release.yml
 ```
 
-Normal beta publication is automatic. The workflow watches `main` for changes
-to the HA integration source version in:
-
-- `custom_components/ha_3d_dashboard/manifest.json`,
-- `custom_components/ha_3d_dashboard/const.py`.
+Normal beta publication is automatic. The workflow watches `main` for a change to
+`custom_components/ha_3d_dashboard/manifest.json`; release metadata validation then requires
+`custom_components/ha_3d_dashboard/const.py` to contain the same source version.
 
 After a reviewed PR with green normal CI is merged, a real source-version change
 starts **HA Release** automatically. The workflow reads the version from source,
@@ -246,6 +244,11 @@ For normal beta development:
 
 Do not manually run a duplicate release after a successful automatic run. Do not
 create a stable release while `BETA_RELEASE_LOCK` exists.
+
+Do not use GitHub-recognized skip-CI directives in commits that can be copied into a squash
+merge message. The generated frontend commit deliberately uses a neutral subject: a skip token in
+the squashed `main` commit suppresses the push event and therefore prevents automatic
+**HA Release** publication.
 
 ## Adding as a custom HACS repository
 

@@ -79,7 +79,10 @@ jobs:
             git -C pr-head config user.name "github-actions[bot]"
             git -C pr-head config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git -C pr-head add custom_components/ha_3d_dashboard/frontend
-            git -C pr-head commit -m "build(ha3d): update generated HA frontend [skip ci]"
+            # Do not add a GitHub-recognized skip-CI token here. Squash merges
+            # copy this generated commit subject into the main commit message,
+            # which would suppress the push-triggered HA Release workflow.
+            git -C pr-head commit -m "build(ha3d): update generated HA frontend"
             git -C pr-head push origin "HEAD:${PR_HEAD_REF}"
           fi
 
