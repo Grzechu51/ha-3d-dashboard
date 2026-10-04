@@ -62,12 +62,18 @@ if (leakedNextImageMarkers.length > 0) {
 
 const processEnvReferences = browserBundle.split('process.env').length - 1
 const iconReferences = browserBundle.split('/icons/').length - 1
-const browserBundleForHa = browserBundle.replaceAll('/icons/', '/ha3d_static/icons/')
+const materialReferences = browserBundle.split('/material/').length - 1
+const browserBundleForHa = browserBundle
+  .replaceAll('/icons/', '/ha3d_static/icons/')
+  .replaceAll('/material/', '/ha3d_static/material/')
 await writeFile(jsOutput, `${browserProcessPrelude}\n${browserBundleForHa}`)
 console.info(
   `[ha3d-panel] injected browser process.env shim; bundle contains ${processEnvReferences} process.env reference(s)`,
 )
 console.info(`[ha3d-panel] rewrote ${iconReferences} /icons/ reference(s) to /ha3d_static/icons/`)
+console.info(
+  `[ha3d-panel] rewrote ${materialReferences} /material/ reference(s) to /ha3d_static/material/`,
+)
 
 const css = await readFile(cssSource, 'utf8')
 const tailwindPlugin = tailwindcss() as unknown as AcceptedPlugin
@@ -75,7 +81,12 @@ const processed = await postcss([tailwindPlugin]).process(css, {
   from: cssSource,
   to: cssOutput,
 })
-await writeFile(cssOutput, processed.css.replaceAll('/icons/', '/ha3d_static/icons/'))
+await writeFile(
+  cssOutput,
+  processed.css
+    .replaceAll('/icons/', '/ha3d_static/icons/')
+    .replaceAll('/material/', '/ha3d_static/material/'),
+)
 
 for (const file of (await readdir(outputDir)).sort()) {
   const path = resolve(outputDir, file)
