@@ -1,6 +1,6 @@
 'use client'
 
-import { RoofType as RoofTypeSchema, useRegistryVersion } from '@pascal-app/core'
+import { emitter, RoofType as RoofTypeSchema, useRegistryVersion } from '@pascal-app/core'
 import {
   MaterialPaintPanel,
   TerrainSculptPanel,
@@ -39,6 +39,18 @@ import { cn } from '@/lib/utils'
 
 const subscribeToClientMount = () => () => {}
 
+const WINDOW_TYPE_OPTIONS = [
+  { label: 'Fixed', value: 'fixed' },
+  { label: 'Sliding', value: 'sliding' },
+  { label: 'Casement', value: 'casement' },
+  { label: 'Awning', value: 'awning' },
+  { label: 'Single Hung', value: 'single-hung' },
+  { label: 'Double Hung', value: 'double-hung' },
+  { label: 'Bay', value: 'bay' },
+  { label: 'Bow', value: 'bow' },
+  { label: 'Louvered', value: 'louvered' },
+] as const
+
 /**
  * Build tab for the open-source standalone editor — a preset-less replica of
  * the community Build sidebar. Clicking a type activates its raw tool, drawn
@@ -50,6 +62,7 @@ export function BuildTab() {
   const activeTool = useEditor((s) => s.tool)
   const mode = useEditor((s) => s.mode)
   const roofDefaults = useEditor((s) => s.toolDefaults.roof)
+  const windowDefaults = useEditor((s) => s.toolDefaults.window)
   const floorplanMode = useFloorplanMode((s) => s.mode)
   const follow = useLiquidLineToolOptions((s) => s.follow)
   const toggleFollow = useLiquidLineToolOptions((s) => s.toggleFollow)
@@ -88,6 +101,8 @@ export function BuildTab() {
   const isKitchenActive = mode === 'build' && activeTool === 'cabinet'
   const parsedRoofType = RoofTypeSchema.safeParse(roofDefaults?.roofType)
   const activeRoofType = parsedRoofType.success ? parsedRoofType.data : 'gable'
+  const activeWindowType =
+    typeof windowDefaults?.windowType === 'string' ? windowDefaults.windowType : 'fixed'
 
   const isTypeActive = (type: BuildType) => {
     if (type.mode) return mode === type.mode
@@ -97,6 +112,20 @@ export function BuildTab() {
       return mode === 'build' && (activeTool === 'roof' || isRoofFeatureActive)
     return mode === 'build' && activeTool === type.kind
   }
+
+  const handleWindowType = useCallback((windowType: string) => {
+    emitter.emit('tool:cancel')
+    const editor = useEditor.getState()
+    editor.setToolDefaults('window', {
+      ...editor.toolDefaults.window,
+      openingKind: 'window',
+      windowType,
+      ...(windowType === 'awning' ? { awningDirection: 'up' } : {}),
+      ...(windowType === 'casement'
+        ? { casementStyle: 'single', hingesSide: 'left' }
+        : {}),
+    })
+  }, [])
 
   const handleTypeClick = useCallback((type: BuildType) => {
     setMepOpen(type.id === 'mep')
@@ -280,6 +309,42 @@ export function BuildTab() {
             </div>
           ) : null}
         </div>
+      ) : mode === 'build' && activeTool === 'window' ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">
+            Window type
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {WINDOW_TYPE_OPTIONS.map((option) => {
+              const active = activeWindowType === option.value
+              return (
+                <button
+                  aria-pressed={active}
+                  className={cn(
+                    'rounded-lg px-2.5 py-2 text-left font-medium text-xs transition-colors',
+                    active
+                      ? 'bg-primary/10 text-primary ring-1 ring-primary/50'
+                      : 'bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                  key={option.value}
+                  onClick={() => {
+                    triggerSFX('sfx:menu-click')
+                    handleWindowType(option.value)
+                  }}
+                  onMouseEnter={() => triggerSFX('sfx:menu-hover')}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="px-0.5 text-[11px] text-muted-foreground leading-relaxed">
+            Choose the structural window variant, then place it on a wall. Detailed size, frame,
+            grid and opening controls remain available after placement.
+          </p>
+          <ToolOptionsPanel className="border-border/50 border-t pt-3" kind="window" />
+        </div>
       ) : isKitchenActive ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
           <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Kitchen</div>
@@ -410,6 +475,10 @@ export function BuildTab() {
               </span>
             </div>
           ) : null}
+        </div>
+      ) : mode === 'build' && activeTool ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <ToolOptionsPanel className="border-border/50 border-t pt-3" kind={activeTool} />
         </div>
       ) : null}
     </div>
