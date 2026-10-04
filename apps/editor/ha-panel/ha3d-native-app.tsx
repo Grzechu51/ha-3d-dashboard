@@ -255,7 +255,7 @@ function ProjectPicker({
   }
 
   return (
-    <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-4 text-foreground md:p-8">
+    <main className="dark flex min-h-full w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-4 text-foreground md:p-8">
       <section className="w-full max-w-5xl rounded-2xl border border-border bg-card shadow-2xl">
         <header className="flex flex-wrap items-center justify-between gap-3 border-border border-b px-5 py-4">
           <div>
@@ -560,7 +560,7 @@ function NativeDashboard({
 
   if (error) {
     return (
-      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-6 text-foreground">
+      <main className="dark flex min-h-full w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-6 text-foreground">
         <div className="max-w-lg rounded-xl border border-destructive/40 bg-card p-5">
           <h2 className="font-semibold">Project could not be loaded</h2>
           <p className="mt-2 text-destructive text-sm">{error}</p>
@@ -589,7 +589,7 @@ function NativeDashboard({
 
   if (scene === undefined) {
     return (
-      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background text-muted-foreground">
+      <main className="dark flex min-h-full w-full min-w-0 items-center justify-center overflow-x-hidden bg-background text-muted-foreground">
         Loading project…
       </main>
     )
@@ -597,7 +597,7 @@ function NativeDashboard({
 
   if (!scene || scene.rootNodeIds.length === 0 || Object.keys(scene.nodes).length === 0) {
     return (
-      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-6 text-foreground">
+      <main className="dark flex min-h-full w-full min-w-0 items-center justify-center overflow-x-hidden bg-background p-6 text-foreground">
         <div className="max-w-lg rounded-2xl border border-border bg-card p-6 text-center shadow-xl">
           <h2 className="font-semibold text-lg">{projectName}</h2>
           <p className="mt-2 text-muted-foreground text-sm">
@@ -627,7 +627,7 @@ function NativeDashboard({
   }
 
   return (
-    <main className="dark relative h-screen w-full min-w-0 overflow-hidden bg-background text-foreground">
+    <main className="dark relative h-full w-full min-w-0 overflow-hidden bg-background text-foreground">
       <Viewer
         defaultRender={{ shading: 'solid' }}
         onSceneReadyChange={setViewerReady}
@@ -757,7 +757,7 @@ function NativeProject({
   }
 
   return (
-    <main className="dark relative h-screen w-full min-w-0 overflow-hidden bg-background text-foreground">
+    <main className="dark relative h-full w-full min-w-0 overflow-hidden bg-background text-foreground">
       <EditorCrashBoundary
         key={`editor-boundary:${editorEpoch}`}
         onProjects={() => {
@@ -779,8 +779,8 @@ function NativeProject({
         />
       </EditorCrashBoundary>
 
-      <div className="pointer-events-none absolute top-3 right-3 z-[90] flex max-w-[calc(100%-1.5rem)] items-center gap-2">
-        <div className="pointer-events-auto flex items-center gap-2 rounded-xl border border-border/70 bg-background/92 px-3 py-2 text-xs shadow-xl backdrop-blur">
+      <div className="pointer-events-none absolute top-3 right-3 z-[90] flex max-w-[calc(100%-1.5rem)] flex-wrap items-center justify-end gap-2">
+        <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-end gap-2 rounded-xl border border-border/70 bg-background/92 px-3 py-2 text-xs shadow-xl backdrop-blur">
           <span className="max-w-40 truncate font-medium">{metadata.name}</span>
           <span className="text-border">|</span>
           <SessionStatus saveStatus={saveStatus} session={session} />
@@ -1057,7 +1057,7 @@ export function Ha3dNativeApp({ hass, narrow }: Ha3dNativeAppProps) {
 
   if (!hass) {
     return (
-      <main className="dark flex min-h-screen w-full min-w-0 items-center justify-center overflow-x-hidden bg-background text-muted-foreground">
+      <main className="dark flex min-h-full w-full min-w-0 items-center justify-center overflow-x-hidden bg-background text-muted-foreground">
         Waiting for Home Assistant…
       </main>
     )
