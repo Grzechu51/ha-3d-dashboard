@@ -81,6 +81,7 @@ type HostKind = 'wall' | 'roof' | null
  * the wall side faces are big raycast targets.
  */
 const DoorTool: React.FC = () => {
+  const placementDefaults = useEditor((state) => state.toolDefaults.door) as Partial<DoorNode>
   const draftRef = useRef<DoorNode | null>(null)
   const cursorGroupRef = useRef<Group>(null!)
   const edgesRef = useRef<LineSegments>(null!)
@@ -100,6 +101,7 @@ const DoorTool: React.FC = () => {
   const ghostStub = useMemo(
     () =>
       DoorNode.parse({
+        ...placementDefaults,
         position: [0, 0, 0],
         rotation: [0, 0, 0],
         side: fallbackPose?.side ?? 'front',
@@ -116,6 +118,7 @@ const DoorTool: React.FC = () => {
 
     const ownedPreviewIds = new Set<string>()
     const fallbackPreview = DoorNode.parse({
+        ...placementDefaults,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
       side: 'front',
@@ -249,6 +252,7 @@ const DoorTool: React.FC = () => {
         thickness: 0.1,
       })
       const ghost = DoorNode.parse({
+        ...placementDefaults,
         ...fallbackPreview,
         metadata: { isTransient: true },
         parentId: wall.id,
@@ -325,6 +329,7 @@ const DoorTool: React.FC = () => {
 
       if (!draftRef.current) {
         const node = DoorNode.parse({
+        ...placementDefaults,
           position: [0, height / 2, 0],
           rotation: [0, itemRotation, 0],
           side,
@@ -422,6 +427,7 @@ const DoorTool: React.FC = () => {
       }).length
 
       const node = DoorNode.parse({
+        ...placementDefaults,
         name: `Door ${doorCount + 1}`,
         position: [clampedX, clampedY, 0],
         rotation: [0, itemRotation, 0],
@@ -617,6 +623,7 @@ const DoorTool: React.FC = () => {
         })
       } else {
         const node = DoorNode.parse({
+        ...placementDefaults,
           position,
           rotation: [0, 0, 0],
           side: 'front',
@@ -657,6 +664,7 @@ const DoorTool: React.FC = () => {
       ).length
 
       const node = DoorNode.parse({
+        ...placementDefaults,
         name: `Door ${doorCount + 1}`,
         position,
         rotation: [0, 0, 0],
@@ -777,7 +785,7 @@ const DoorTool: React.FC = () => {
       emitter.off('tool:cancel', onCancel)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [])
+  }, [placementDefaults])
 
   // Cursor geometry: door outline. Static dims, so build it once and dispose on
   // unmount rather than reallocating (and orphaning) an EdgesGeometry on every
