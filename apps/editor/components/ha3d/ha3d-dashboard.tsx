@@ -69,7 +69,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
       setSceneHydrated(false)
       setViewerReady(false)
       setSelectedInteractiveNodeId(null)
-    setExpandedInteractiveNodeId(null)
+      setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
       useViewer.getState().setProjectId(null)
