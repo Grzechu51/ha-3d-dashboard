@@ -21,6 +21,7 @@ MANIFEST_PATH = COMPONENT_DIR / "manifest.json"
 CONST_PATH = COMPONENT_DIR / "const.py"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "dist"
 PASCAL_ICONS_DIR = REPO_ROOT / "apps/editor/public/icons"
+PASCAL_MATERIALS_DIR = REPO_ROOT / "apps/editor/public/material"
 
 EXCLUDED_PARTS = {"tests", "__pycache__"}
 EXCLUDED_SUFFIXES = {".pyc", ".pyo"}
@@ -194,6 +195,21 @@ def icon_archive_name(path: Path, layout: str) -> str:
     return (COMPONENT_RELATIVE / target).as_posix()
 
 
+def material_asset_files() -> list[Path]:
+    if not PASCAL_MATERIALS_DIR.is_dir():
+        raise RuntimeError(
+            f"Pascal material asset directory is missing: {PASCAL_MATERIALS_DIR.relative_to(REPO_ROOT)}"
+        )
+    return sorted(path for path in PASCAL_MATERIALS_DIR.rglob("*") if path.is_file())
+
+
+def material_archive_name(path: Path, layout: str) -> str:
+    target = Path("frontend/material") / path.relative_to(PASCAL_MATERIALS_DIR)
+    if layout == LAYOUT_HACS:
+        return target.as_posix()
+    return (COMPONENT_RELATIVE / target).as_posix()
+
+
 def default_output(version: str, layout: str) -> Path:
     if layout == LAYOUT_HACS:
         return DEFAULT_OUTPUT_DIR / "ha_3d_dashboard.zip"
@@ -211,6 +227,7 @@ def write_archive(
     output: Path,
     files: list[Path],
     icon_files: list[Path],
+    material_files: list[Path],
     layout: str,
 ) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -222,17 +239,21 @@ def write_archive(
             archive.writestr(zip_info(archive_name(path, layout)), path.read_bytes())
         for path in icon_files:
             archive.writestr(zip_info(icon_archive_name(path, layout)), path.read_bytes())
+        for path in material_files:
+            archive.writestr(zip_info(material_archive_name(path, layout)), path.read_bytes())
 
 
 def verify_archive(
     output: Path,
     files: list[Path],
     icon_files: list[Path],
+    material_files: list[Path],
     version: str,
     layout: str,
 ) -> None:
     expected_names = [archive_name(path, layout) for path in files]
     expected_names.extend(icon_archive_name(path, layout) for path in icon_files)
+    expected_names.extend(material_archive_name(path, layout) for path in material_files)
     with zipfile.ZipFile(output, "r") as archive:
         actual_names = archive.namelist()
         if actual_names != expected_names:
@@ -260,15 +281,21 @@ def verify_archive(
             for notice in ("LICENSE.txt", "THIRD_PARTY_NOTICES.txt"):
                 if notice not in actual_names:
                     raise RuntimeError(f"HACS ZIP is missing {notice}")
-            for icon in (
+            for runtime_asset in (
                 "frontend/icons/select.webp",
                 "frontend/icons/settings.webp",
                 "frontend/icons/level.webp",
                 "frontend/icons/site-flag.webp",
                 "frontend/icons/building.webp",
+                "frontend/material/metal/copper_metal/copper_metal_thumb.webp",
+                "frontend/material/metal/polished_metal/polished_metal_thumb.webp",
+                "frontend/material/metal/stainless_steel_brushed/stainless_steel_brushed_thumb.webp",
+                "frontend/material/flooring/garage_panel/garage_panel_diffuse.jpg",
             ):
-                if icon not in actual_names:
-                    raise RuntimeError(f"HACS ZIP is missing Pascal runtime asset {icon}")
+                if runtime_asset not in actual_names:
+                    raise RuntimeError(
+                        f"HACS ZIP is missing Pascal runtime asset {runtime_asset}"
+                    )
 
 
 def sha256(path: Path) -> str:
@@ -289,13 +316,14 @@ def main() -> int:
 
         files = package_files()
         icon_files = icon_asset_files()
+        material_files = material_asset_files()
         output = (
             args.output.resolve()
             if args.output is not None
             else default_output(version, args.layout)
         )
-        write_archive(output, files, icon_files, args.layout)
-        verify_archive(output, files, icon_files, version, args.layout)
+        write_archive(output, files, icon_files, material_files, args.layout)
+        verify_archive(output, files, icon_files, material_files, version, args.layout)
     except (OSError, RuntimeError, subprocess.CalledProcessError, json.JSONDecodeError) as error:
         print(f"HA package build failed: {error}", file=sys.stderr)
         return 1
@@ -305,6 +333,7 @@ def main() -> int:
     print(f"Layout: {args.layout}")
     print(f"Runtime files: {len(files)}")
     print(f"Pascal icon assets: {len(icon_files)}")
+    print(f"Pascal material assets: {len(material_files)}")
     print(f"SHA256: {sha256(output)}")
     if args.layout == LAYOUT_HACS:
         print("Archive root: integration files (HACS release layout)")
