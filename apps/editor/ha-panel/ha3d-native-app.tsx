@@ -30,12 +30,12 @@ import {
   type Ha3dDashboardCameraRequest,
 } from '../components/ha3d/ha3d-dashboard-camera'
 import { Ha3dDashboardControls } from '../components/ha3d/ha3d-dashboard-controls'
-import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
-import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
+import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
+import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import {
   type Ha3dEnvironmentMode,

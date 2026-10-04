@@ -126,7 +126,7 @@ describe('Home Assistant hass adapter', () => {
     const adapter = new HomeAssistantHassAdapter({
       states: { 'light.salon': first },
       callService: async () => {},
-      callWS: async <T,>(message: Readonly<Record<string, unknown>>) => {
+      callWS: async <T>(message: Readonly<Record<string, unknown>>) => {
         expect(message).toEqual({ type: 'get_states' })
         return [first, second] as T
       },
@@ -136,10 +136,12 @@ describe('Home Assistant hass adapter', () => {
 
     await adapter.refreshEntities()
 
-    expect(adapter.listEntities().map((entity) => entity.entityId).sort()).toEqual([
-      'input_boolean.tryb_nocny',
-      'light.salon',
-    ])
+    expect(
+      adapter
+        .listEntities()
+        .map((entity) => entity.entityId)
+        .sort(),
+    ).toEqual(['input_boolean.tryb_nocny', 'light.salon'])
     expect(changes).toEqual([['input_boolean.tryb_nocny']])
     unsubscribe()
   })

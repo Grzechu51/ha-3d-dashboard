@@ -118,7 +118,7 @@ export function Ha3dMoreInfoPopup({
   useEffect(() => {
     setError(null)
     setTextDraft(entity?.state ?? '')
-  }, [binding?.entityId, entity?.state])
+  }, [entity?.state])
 
   if (!(nodeId && binding)) return null
 
@@ -158,9 +158,7 @@ export function Ha3dMoreInfoPopup({
       : null
   const colorTemperature =
     entity && binding.domain === 'light' ? lightColorTemperature(entity) : null
-  const coverPosition = entity
-    ? Math.round(resolveHomeAssistantCoverOpenFraction(entity) * 100)
-    : 0
+  const coverPosition = entity ? Math.round(resolveHomeAssistantCoverOpenFraction(entity) * 100) : 0
   const climateTarget = numericEntityAttribute(entity, 'temperature')
   const climateModes = stringListEntityAttribute(entity, 'hvac_modes')
   const numberValue = Number.parseFloat(entity?.state ?? '')
@@ -222,9 +220,7 @@ export function Ha3dMoreInfoPopup({
                   ? 'mt-5 w-full rounded-2xl bg-amber-300 px-4 py-3 font-semibold text-black text-sm'
                   : 'mt-5 w-full rounded-2xl bg-white/8 px-4 py-3 font-semibold text-sm text-white hover:bg-white/12'
               }
-              onClick={() =>
-                void callService(binding.domain, isOn ? 'turn_off' : 'turn_on')
-              }
+              onClick={() => void callService(binding.domain, isOn ? 'turn_off' : 'turn_on')}
               type="button"
             >
               {isOn ? 'Turn off' : 'Turn on'}

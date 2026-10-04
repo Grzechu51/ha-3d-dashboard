@@ -16,11 +16,11 @@ import {
   type Ha3dDashboardCameraRequest,
 } from './ha3d-dashboard-camera'
 import { Ha3dDashboardControls } from './ha3d-dashboard-controls'
-import { Ha3dDashboardNavigation } from './ha3d-dashboard-navigation'
 import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from './ha3d-dashboard-interactions'
+import { Ha3dDashboardNavigation } from './ha3d-dashboard-navigation'
 import { type Ha3dEnvironmentMode, Ha3dSunEnvironment } from './ha3d-sun-environment'
 
 export interface Ha3dDashboardSceneMeta {

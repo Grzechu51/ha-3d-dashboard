@@ -151,7 +151,11 @@ export function Ha3dDashboardControls({
               onClick={() => onHighlightsEnabledChange(!highlightsEnabled)}
               type="button"
             >
-              {highlightsEnabled ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+              {highlightsEnabled ? (
+                <Eye className="h-3.5 w-3.5" />
+              ) : (
+                <EyeOff className="h-3.5 w-3.5" />
+              )}
               Highlights
             </button>
           ) : null}
@@ -275,10 +279,7 @@ export function Ha3dDashboardControls({
     <>
       {panel}
       {onExpandedNodeIdChange ? (
-        <Ha3dMoreInfoPopup
-          nodeId={expandedNodeId}
-          onClose={() => onExpandedNodeIdChange(null)}
-        />
+        <Ha3dMoreInfoPopup nodeId={expandedNodeId} onClose={() => onExpandedNodeIdChange(null)} />
       ) : null}
     </>
   )

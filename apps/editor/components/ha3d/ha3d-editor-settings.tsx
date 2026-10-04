@@ -103,10 +103,7 @@ export function Ha3dEditorSettings() {
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <ToggleButton
-            active={shadows}
-            onClick={() => useViewer.getState().setShadows(!shadows)}
-          >
+          <ToggleButton active={shadows} onClick={() => useViewer.getState().setShadows(!shadows)}>
             Shadows
           </ToggleButton>
           <ToggleButton

@@ -100,7 +100,8 @@ export class HomeAssistantHassAdapter implements HomeAssistantAdapter {
     this.updateHass({
       states: nextStates,
       callService: (...args) => hass.callService(...args),
-      callWS: <T,>(message: Readonly<Record<string, unknown>>) => hass.callWS!(message) as Promise<T>,
+      callWS: <T>(message: Readonly<Record<string, unknown>>) =>
+        hass.callWS!(message) as Promise<T>,
     })
   }
 

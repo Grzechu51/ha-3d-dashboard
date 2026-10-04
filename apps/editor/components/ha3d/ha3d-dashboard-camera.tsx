@@ -6,8 +6,8 @@ import { CameraControls, type CameraControlsImpl } from '@react-three/drei'
 import { useEffect, useRef } from 'react'
 import { Box3, Vector3 } from 'three'
 import {
-  resolveHa3dDashboardCameraPose,
   type Ha3dDashboardCameraPreset,
+  resolveHa3dDashboardCameraPose,
 } from '../../lib/ha3d/dashboard-camera'
 
 export type Ha3dDashboardCameraRequest = Readonly<{
