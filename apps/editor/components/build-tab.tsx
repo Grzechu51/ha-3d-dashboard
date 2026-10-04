@@ -311,9 +311,7 @@ export function BuildTab() {
         </div>
       ) : mode === 'build' && activeTool === 'window' ? (
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">
-            Window type
-          </div>
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Window type</div>
           <div className="grid grid-cols-2 gap-1.5">
             {WINDOW_TYPE_OPTIONS.map((option) => {
               const active = activeWindowType === option.value
