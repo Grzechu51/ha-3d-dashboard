@@ -23,6 +23,7 @@ import { useViewer } from '@pascal-app/viewer'
 import { useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { isEditableKeyboardEvent } from '../../../lib/keyboard-target'
 import { sfxEmitter } from '../../../lib/sfx-bus'
 import {
   resolveStairDestinationLevel,
@@ -131,12 +132,12 @@ function resolvePlacedStairRise(
   return getLevelFloorToFloorHeight(levelId, nodes) - base
 }
 
-function createSeedStairSegment(rise: number) {
+function createSeedStairSegment(rise: number, defaults: Partial<StairNode> = {}) {
   return createDefaultStairSegment({
-    width: DEFAULT_STAIR_WIDTH,
+    width: defaults.width ?? DEFAULT_STAIR_WIDTH,
     length: DEFAULT_STAIR_LENGTH,
     height: rise,
-    stepCount: DEFAULT_STAIR_STEP_COUNT,
+    stepCount: defaults.stepCount ?? DEFAULT_STAIR_STEP_COUNT,
     attachmentSide: DEFAULT_STAIR_ATTACHMENT_SIDE,
     fillToFloor: DEFAULT_STAIR_FILL_TO_FLOOR,
     thickness: DEFAULT_STAIR_THICKNESS,
@@ -150,6 +151,7 @@ function createDefaultStairNode({
   position,
   rotation,
   segmentId,
+  defaults = {},
 }: {
   name: string
   levelId: LevelNode['id']
@@ -157,11 +159,9 @@ function createDefaultStairNode({
   position: [number, number, number]
   rotation: number
   segmentId: StairSegmentNode['id']
+  defaults?: Partial<StairNode>
 }) {
   return StairNode.parse({
-    name,
-    position,
-    rotation,
     stairType: DEFAULT_STAIR_TYPE,
     fromLevelId: levelId,
     toLevelId: nextLevelId,
@@ -179,6 +179,12 @@ function createDefaultStairNode({
     showStepSupports: DEFAULT_SPIRAL_SHOW_STEP_SUPPORTS,
     railingHeight: DEFAULT_STAIR_RAILING_HEIGHT,
     railingMode: DEFAULT_STAIR_RAILING_MODE,
+    ...defaults,
+    name,
+    position,
+    rotation,
+    fromLevelId: levelId,
+    toLevelId: nextLevelId,
     children: [segmentId],
   })
 }
@@ -191,6 +197,7 @@ function commitStairPlacement(
   position: [number, number, number],
   rotation: number,
   supportSurface: PointerSupportSurface | null,
+  placementDefaults: Partial<StairNode> = {},
 ): void {
   const { createNodes, nodes } = useScene.getState()
   const placementLevelId = resolveStairPlacementLevelId(
@@ -202,7 +209,10 @@ function commitStairPlacement(
 
   const stairCount = Object.values(nodes).filter((n) => n.type === 'stair').length
   const name = `Staircase ${stairCount + 1}`
-  const seed = createSeedStairSegment(getLevelFloorToFloorHeight(placementLevelId, nodes))
+  const seed = createSeedStairSegment(
+    getLevelFloorToFloorHeight(placementLevelId, nodes),
+    placementDefaults,
+  )
 
   const destinationPlan = resolveStairDestinationLevel({
     createMissing: true,
@@ -219,6 +229,7 @@ function commitStairPlacement(
       position,
       rotation,
       segmentId: seed.id,
+      defaults: placementDefaults,
     }),
     parentId: placementLevelId,
   })
@@ -275,6 +286,7 @@ export const StairTool: React.FC = () => {
   const previousGridPosRef = useRef<[number, number] | null>(null)
   const lastCanonicalPositionRef = useRef<[number, number, number] | null>(null)
   const currentLevelId = useViewer((state) => state.selection.levelId)
+  const placementDefaults = useEditor((state) => state.toolDefaults.stair) as Partial<StairNode>
 
   const previewRise = useScene((state) =>
     currentLevelId ? getLevelFloorToFloorHeight(currentLevelId, state.nodes) : DEFAULT_LEVEL_HEIGHT,
@@ -321,7 +333,10 @@ export const StairTool: React.FC = () => {
         nodes,
       })
       const nextLevelId = destinationPlan?.toLevel.id ?? placementLevelId
-      const seed = createSeedStairSegment(getLevelFloorToFloorHeight(placementLevelId, nodes))
+      const seed = createSeedStairSegment(
+        getLevelFloorToFloorHeight(placementLevelId, nodes),
+        placementDefaults,
+      )
       const stair = createDefaultStairNode({
         name: 'Staircase Preview',
         levelId: placementLevelId,
@@ -329,6 +344,7 @@ export const StairTool: React.FC = () => {
         position,
         rotation,
         segmentId: seed.id,
+        defaults: placementDefaults,
       })
       const segment = {
         ...seed,
@@ -548,7 +564,13 @@ export const StairTool: React.FC = () => {
       const position = resolveStairPosition(event)
       if (!position) return
 
-      commitStairPlacement(currentLevelId, position, rotationRef.current, supportSurfaceRef.current)
+      commitStairPlacement(
+        currentLevelId,
+        position,
+        rotationRef.current,
+        supportSurfaceRef.current,
+        placementDefaults,
+      )
       openingPreview.clear()
       // Commit cleared the opening preview, so force the next hover (even on the
       // same cell) to rebuild rather than dedupe against the just-placed key.
@@ -573,9 +595,7 @@ export const StairTool: React.FC = () => {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return
-      }
+      if (isEditableKeyboardEvent(event)) return
 
       const ROTATION_STEP = Math.PI / 4
       let rotationDelta = 0
@@ -615,7 +635,7 @@ export const StairTool: React.FC = () => {
       useFacingPose.getState().clear()
       useStairBuildPreview.getState().reset()
     }
-  }, [currentLevelId])
+  }, [currentLevelId, placementDefaults])
 
   return (
     <group>
