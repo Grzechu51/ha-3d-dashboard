@@ -4,6 +4,7 @@ import {
   type EntityBinding,
   entityDomain,
   normalizeCoverMotionConfig,
+  normalizeDashboardInteractionAction,
   type SupportedHomeAssistantDomain,
 } from './entity-binding'
 
@@ -49,6 +50,8 @@ function bindingsEqual(left: EntityBinding, right: EntityBinding): boolean {
     left.entityId === right.entityId &&
     left.domain === right.domain &&
     left.enabled === right.enabled &&
+    left.tapAction === right.tapAction &&
+    left.holdAction === right.holdAction &&
     coverMotionEqual(left, right)
   )
 }
@@ -166,6 +169,8 @@ function parsePersistedBinding(raw: unknown): EntityBinding {
     nodeId: record.nodeId,
     entityId: record.entityId,
     enabled: record.enabled as boolean | undefined,
+    tapAction: normalizeDashboardInteractionAction(record.tapAction),
+    holdAction: normalizeDashboardInteractionAction(record.holdAction),
     coverMotion: domain === 'cover' ? normalizeCoverMotionConfig(record.coverMotion) : undefined,
   })
   if (record.domain !== undefined && record.domain !== binding.domain) {
