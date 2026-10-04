@@ -63,7 +63,11 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
   const entity = adapter.getEntity(binding.entityId)
   if (!entity) return false
 
-  if (binding.domain === 'light' || binding.domain === 'switch') {
+  if (
+    binding.domain === 'light' ||
+    binding.domain === 'switch' ||
+    binding.domain === 'input_boolean'
+  ) {
     await adapter.callService({
       domain: binding.domain,
       service: entity.state === 'on' ? 'turn_off' : 'turn_on',

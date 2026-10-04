@@ -25,6 +25,7 @@ export type HomeAssistantHassLike = Readonly<{
     serviceData?: Readonly<Record<string, unknown>>,
     target?: HomeAssistantHassServiceTarget,
   ) => Promise<unknown>
+  callWS?: <T>(message: Readonly<Record<string, unknown>>) => Promise<T>
 }>
 
 function toEntityState(state: HomeAssistantHassState): HomeAssistantEntityState {
@@ -88,6 +89,20 @@ export class HomeAssistantHassAdapter implements HomeAssistantAdapter {
     return () => {
       this.listeners.delete(listener)
     }
+  }
+
+  async refreshEntities(): Promise<void> {
+    const hass = this.hass
+    if (!hass?.callWS) return
+
+    const states = await hass.callWS<HomeAssistantHassState[]>({ type: 'get_states' })
+    const nextStates = Object.fromEntries(states.map((state) => [state.entity_id, state]))
+    this.updateHass({
+      states: nextStates,
+      callService: (...args) => hass.callService(...args),
+      callWS: <T>(message: Readonly<Record<string, unknown>>) =>
+        hass.callWS!(message) as Promise<T>,
+    })
   }
 
   async callService(call: HomeAssistantServiceCall): Promise<void> {

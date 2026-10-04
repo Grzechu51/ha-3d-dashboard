@@ -7,16 +7,20 @@ import {
   useScene,
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
-import { OrbitControls } from '@react-three/drei'
 import Link from 'next/link'
-import { useLayoutEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { restoreHa3dDashboardProjectConfig } from '../../lib/ha3d/dashboard-persistence'
 import { resetHa3dProjectConfig } from '../../lib/ha3d/project-config'
+import {
+  Ha3dDashboardCameraControls,
+  type Ha3dDashboardCameraRequest,
+} from './ha3d-dashboard-camera'
 import { Ha3dDashboardControls } from './ha3d-dashboard-controls'
 import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from './ha3d-dashboard-interactions'
+import { Ha3dDashboardNavigation } from './ha3d-dashboard-navigation'
 import { type Ha3dEnvironmentMode, Ha3dSunEnvironment } from './ha3d-sun-environment'
 
 export interface Ha3dDashboardSceneMeta {
@@ -41,6 +45,14 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
   const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
+  const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
+
+  const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
+    setCameraRequest((current) => ({
+      id: (current?.id ?? 0) + 1,
+      preset,
+    }))
+  }, [])
 
   useLayoutEffect(() => {
     restoreHa3dDashboardProjectConfig(projectId)
@@ -54,10 +66,12 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
 
   useLayoutEffect(() => {
     const releaseReadOnly = acquireSceneReadOnlyLease()
+    const previousLevelMode = useViewer.getState().levelMode
     useViewer.getState().setProjectId(projectId)
     useScene.getState().unloadScene()
     applySceneGraphToEditor(scene)
     useViewer.getState().resetSelection()
+    useViewer.getState().setLevelMode('stacked')
     setSceneHydrated(true)
     setViewerReady(false)
     setSelectedInteractiveNodeId(null)
@@ -70,10 +84,16 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
       setExpandedInteractiveNodeId(null)
       useViewer.getState().resetSelection()
       useScene.getState().unloadScene()
+      useViewer.getState().setLevelMode(previousLevelMode)
       useViewer.getState().setProjectId(null)
       releaseReadOnly()
     }
   }, [projectId, scene])
+
+  useEffect(() => {
+    if (!viewerReady) return
+    requestCameraPreset('fit')
+  }, [requestCameraPreset, viewerReady])
 
   return (
     <main className="dark relative h-screen w-screen overflow-hidden bg-background text-foreground">
@@ -87,7 +107,7 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
           selectionManager="custom"
         >
           <SceneEnvironment />
-          <OrbitControls enableDamping makeDefault />
+          <Ha3dDashboardCameraControls request={cameraRequest} />
           {presentationsReady ? <ViewerPresentations /> : null}
           <Ha3dSunEnvironment mode={environmentMode} />
           <Ha3dDashboardInteractions
@@ -113,6 +133,8 @@ export function Ha3dDashboard({ scene, meta }: Ha3dDashboardProps) {
           Open editor
         </Link>
       </div>
+
+      <Ha3dDashboardNavigation onCameraPreset={requestCameraPreset} scene={scene} />
 
       <Ha3dDashboardControls
         environmentMode={environmentMode}

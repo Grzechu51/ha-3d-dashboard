@@ -18,39 +18,44 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: real Home Assistant dashboard polish**
+**Checkpoint: Home Assistant operator UX and live entity inventory**
 
-Status: **v0.3.0-beta.13 published; beta.14 fixes prepared from the real HA smoke test**
+Status: **beta.14 source is on `main`; beta.15 is being prepared on `feat/ha-dashboard-operator-nav`**
 
-PR #32 is merged to `main` and `v0.3.0-beta.13` is published. The native HA
-panel now has interactive 3D labels, configurable tap/hold actions, light
-more-info controls, Auto Sun, visual opening/stair presets and native Pascal JSON
-import.
+PR #33 is merged to `main` and its PR CI/MCP CI passed. It contains the
+material-runtime packaging fix, Garage Panel asset correction, HA-bound lamp
+ownership fix, stronger interactive highlights and polished 3D labels. At the
+latest check there is still no automatic `v0.3.0-beta.14` GitHub Release, so
+beta.14 must not be reused as the next source version.
 
-The beta.13 smoke test confirmed those paths work, and exposed the next concrete
-issues:
+The active branch now implements the next operator-facing checkpoint:
 
-- Home Assistant packages did not include Pascal material runtime assets, so
-  texture-backed thumbnails such as Copper / Polished Metal / Brushed Steel
-  were broken in the embedded editor;
-- the Garage Panel catalog entry referenced generated files that do not exist in
-  the repository;
-- HA-bound catalog lamps could still keep their Pascal-native light source in
-  addition to the HA-driven source, which could leave visible illumination when
-  Home Assistant reported the light off;
-- interactive Highlights were technically present but too weak to read clearly
-  in the real dark dashboard;
-- entity Labels need a stronger, cleaner dashboard treatment.
+- smooth dashboard camera with **Fit / Iso / Top / Front / Right** presets;
+- **All + authored floor** switching, with a selected floor shown in solo mode;
+- the same navigation is wired into the real native Home Assistant dashboard,
+  not only the standalone dashboard route;
+- compact right-side HA controls instead of the large developer-style entity cards;
+- a focused HA-style **More info** modal for light, switch/helper, cover, climate,
+  number/select/text controls and read-only entity state;
+- live entity inventory refresh through Home Assistant `get_states`, including an
+  automatic refresh when the binding panel attaches and an explicit **Refresh**
+  action for helpers/integrations created while the editor is already open;
+- binding support expanded to common helper/entity domains:
+  `input_boolean`, `input_number`, `input_select`, `input_text`,
+  `input_datetime`, `number`, `select` and `text`;
+- normal Home Assistant `hass.states` lifecycle additions are covered by tests,
+  so newly added entities also appear without manual refresh when HA pushes them;
+- the embedded editor's generic Pascal Settings panel is replaced by a focused
+  HA 3D settings panel with HA connection/entity refresh plus only useful display
+  controls (shadows, materials and camera projection).
 
-The active beta.14 branch fixes those five findings by routing and packaging the
-full local material runtime, repairing Garage Panel paths, suppressing the native
-catalog light while an HA light binding owns the object, synchronizing the
-catalog toggle with HA state, strengthening the cyan outline and polishing the
-3D label badge.
+Source review found no new core/viewer layer coupling: HA-specific UI remains in
+`apps/editor` and is injected into `Viewer` through public presentation seams.
 
-After beta.14 is smoke-tested, the next UI checkpoint is the dashboard operator
-experience: cleaner right-side controls, native/HA-style more-info popup, camera
-view presets and explicit floor switching.
+The next release version for this branch is **`0.3.0-beta.15`**. After one normal
+PR CI checkpoint and merge, perform the real HA smoke test for entity refresh,
+helper binding, Settings cleanup, popup controls, floor/camera navigation and the
+beta.14 material/light/highlight fixes.
 
 ## Completed
 
@@ -72,12 +77,9 @@ Implemented:
 
 Supported binding domains at this checkpoint:
 
-- `light`
-- `switch`
-- `cover`
-- `sensor`
-- `binary_sensor`
-- `climate`
+- `light`, `switch`, `cover`, `sensor`, `binary_sensor`, `climate`
+- `input_boolean`, `input_number`, `input_select`, `input_text`, `input_datetime`
+- `number`, `select`, `text`
 
 ### 2. Native Home Assistant host
 

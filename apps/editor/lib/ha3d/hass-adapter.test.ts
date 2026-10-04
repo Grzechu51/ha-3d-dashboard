@@ -85,6 +85,67 @@ describe('Home Assistant hass adapter', () => {
     unsubscribe()
   })
 
+  test('publishes entities added by the normal hass lifecycle', () => {
+    const light = {
+      entity_id: 'light.salon',
+      state: 'off',
+      attributes: {},
+    }
+    const helper = {
+      entity_id: 'input_number.target',
+      state: '22',
+      attributes: { min: 10, max: 30, step: 0.5 },
+    }
+    const adapter = new HomeAssistantHassAdapter(hass({ 'light.salon': light }))
+    const changes: string[][] = []
+    const unsubscribe = adapter.subscribe((ids) => changes.push([...ids].sort()))
+
+    adapter.updateHass(
+      hass({
+        'light.salon': light,
+        'input_number.target': helper,
+      }),
+    )
+
+    expect(adapter.getEntity('input_number.target')?.state).toBe('22')
+    expect(changes).toEqual([['input_number.target']])
+    unsubscribe()
+  })
+
+  test('refreshes entity inventory through Home Assistant get_states', async () => {
+    const first = {
+      entity_id: 'light.salon',
+      state: 'off',
+      attributes: {},
+    }
+    const second = {
+      entity_id: 'input_boolean.tryb_nocny',
+      state: 'on',
+      attributes: { friendly_name: 'Tryb nocny' },
+    }
+    const adapter = new HomeAssistantHassAdapter({
+      states: { 'light.salon': first },
+      callService: async () => {},
+      callWS: async <T>(message: Readonly<Record<string, unknown>>) => {
+        expect(message).toEqual({ type: 'get_states' })
+        return [first, second] as T
+      },
+    })
+    const changes: string[][] = []
+    const unsubscribe = adapter.subscribe((ids) => changes.push([...ids].sort()))
+
+    await adapter.refreshEntities()
+
+    expect(
+      adapter
+        .listEntities()
+        .map((entity) => entity.entityId)
+        .sort(),
+    ).toEqual(['input_boolean.tryb_nocny', 'light.salon'])
+    expect(changes).toEqual([['input_boolean.tryb_nocny']])
+    unsubscribe()
+  })
+
   test('forwards service calls with HA entity targets', async () => {
     const calls: unknown[][] = []
     const adapter = new HomeAssistantHassAdapter(hass({}, calls))

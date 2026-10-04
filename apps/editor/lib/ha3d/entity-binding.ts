@@ -5,6 +5,14 @@ const SUPPORTED_DOMAINS = [
   'sensor',
   'binary_sensor',
   'climate',
+  'input_boolean',
+  'input_number',
+  'input_select',
+  'input_text',
+  'input_datetime',
+  'number',
+  'select',
+  'text',
 ] as const
 
 const COVER_MOTION_AXES = ['x', 'y', 'z'] as const
@@ -63,7 +71,10 @@ export function resolveDashboardInteractionAction(
   if (configured !== 'default') return configured
 
   if (gesture === 'hold') return 'more-info'
-  return binding.domain === 'light' || binding.domain === 'switch' || binding.domain === 'cover'
+  return binding.domain === 'light' ||
+    binding.domain === 'switch' ||
+    binding.domain === 'cover' ||
+    binding.domain === 'input_boolean'
     ? 'toggle'
     : 'more-info'
 }

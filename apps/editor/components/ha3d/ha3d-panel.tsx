@@ -2,7 +2,7 @@
 
 import { type AnyNodeId, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
-import { useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   createEntityBinding,
@@ -30,6 +30,8 @@ import {
 
 export default function Ha3dPanel() {
   const [query, setQuery] = useState('')
+  const [refreshingEntities, setRefreshingEntities] = useState(false)
+  const [refreshEntitiesError, setRefreshEntitiesError] = useState<string | null>(null)
   const selectedIds = useViewer((state) => state.selection.selectedIds)
   const selectedNodeId = selectedIds.length === 1 ? (selectedIds[0] as AnyNodeId) : null
   const selectedNode = useScene((state) =>
@@ -46,12 +48,13 @@ export default function Ha3dPanel() {
     getHa3dProjectConfigSnapshot,
   )
 
+  const allEntities = runtime.adapter?.listEntities() ?? []
+  const bindableEntities = allEntities.filter((entity) => {
+    const domain = entity.entityId.split('.')[0] ?? ''
+    return isSupportedHomeAssistantDomain(domain)
+  })
   const needle = query.trim().toLocaleLowerCase()
-  const entities = (runtime.adapter?.listEntities() ?? [])
-    .filter((entity) => {
-      const domain = entity.entityId.split('.')[0] ?? ''
-      return isSupportedHomeAssistantDomain(domain)
-    })
+  const entities = bindableEntities
     .filter((entity) => {
       if (!needle) return true
       return (
@@ -65,7 +68,40 @@ export default function Ha3dPanel() {
     ? project.bindings.filter((binding) => binding.nodeId === selectedNodeId)
     : []
 
-  const togglePowerEntity = async (domain: 'light' | 'switch', entityId: string) => {
+  const refreshEntities = useCallback(async () => {
+    const adapter = runtime.adapter
+    const refresh = adapter?.refreshEntities
+    if (!refresh || refreshingEntities) return
+
+    setRefreshingEntities(true)
+    setRefreshEntitiesError(null)
+    try {
+      await refresh.call(adapter)
+    } catch (error) {
+      setRefreshEntitiesError(error instanceof Error ? error.message : 'Entity refresh failed')
+    } finally {
+      setRefreshingEntities(false)
+    }
+  }, [refreshingEntities, runtime.adapter])
+
+  useEffect(() => {
+    const adapter = runtime.adapter
+    if (!adapter?.refreshEntities) return
+
+    setRefreshingEntities(true)
+    setRefreshEntitiesError(null)
+    void adapter
+      .refreshEntities()
+      .catch((error) => {
+        setRefreshEntitiesError(error instanceof Error ? error.message : 'Entity refresh failed')
+      })
+      .finally(() => setRefreshingEntities(false))
+  }, [runtime.adapter])
+
+  const togglePowerEntity = async (
+    domain: 'light' | 'switch' | 'input_boolean',
+    entityId: string,
+  ) => {
     const adapter = runtime.adapter
     const entity = adapter?.getEntity(entityId)
     if (!(adapter && entity)) return
@@ -135,11 +171,26 @@ export default function Ha3dPanel() {
 
       <div className="rounded-lg border border-border bg-card p-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="font-medium text-sm">Bridge</span>
-          <span className="text-muted-foreground text-xs">
-            {runtime.connected ? runtime.adapter?.id : 'not connected'}
-          </span>
+          <div>
+            <div className="font-medium text-sm">Home Assistant entities</div>
+            <div className="mt-0.5 text-muted-foreground text-xs">
+              {runtime.connected
+                ? `${bindableEntities.length} bindable · ${allEntities.length} total`
+                : 'Bridge not connected'}
+            </div>
+          </div>
+          <button
+            className="rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!runtime.adapter?.refreshEntities || refreshingEntities}
+            onClick={() => void refreshEntities()}
+            type="button"
+          >
+            {refreshingEntities ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
+        {refreshEntitiesError ? (
+          <div className="mt-2 text-destructive text-xs">{refreshEntitiesError}</div>
+        ) : null}
       </div>
 
       <div className="rounded-lg border border-border bg-card p-3">
@@ -196,7 +247,8 @@ export default function Ha3dPanel() {
                         <option value="default">Default</option>
                         {binding.domain === 'light' ||
                         binding.domain === 'switch' ||
-                        binding.domain === 'cover' ? (
+                        binding.domain === 'cover' ||
+                        binding.domain === 'input_boolean' ? (
                           <option value="toggle">Toggle</option>
                         ) : null}
                         <option value="more-info">More info</option>
@@ -218,7 +270,8 @@ export default function Ha3dPanel() {
                         <option value="default">Default</option>
                         {binding.domain === 'light' ||
                         binding.domain === 'switch' ||
-                        binding.domain === 'cover' ? (
+                        binding.domain === 'cover' ||
+                        binding.domain === 'input_boolean' ? (
                           <option value="toggle">Toggle</option>
                         ) : null}
                         <option value="more-info">More info</option>
@@ -246,6 +299,15 @@ export default function Ha3dPanel() {
                         <button
                           className="rounded border border-border px-2 py-1 text-xs hover:bg-accent"
                           onClick={() => void togglePowerEntity('switch', binding.entityId)}
+                          type="button"
+                        >
+                          {entity.state === 'on' ? 'Turn off' : 'Turn on'}
+                        </button>
+                      ) : null}
+                      {binding.domain === 'input_boolean' && entity ? (
+                        <button
+                          className="rounded border border-border px-2 py-1 text-xs hover:bg-accent"
+                          onClick={() => void togglePowerEntity('input_boolean', binding.entityId)}
                           type="button"
                         >
                           {entity.state === 'on' ? 'Turn off' : 'Turn on'}

@@ -51,10 +51,12 @@ describe('Home Assistant entity bindings', () => {
   test('resolves dashboard tap and hold defaults and overrides', () => {
     const light = createEntityBinding({ nodeId: 'lamp', entityId: 'light.salon' })
     const sensor = createEntityBinding({ nodeId: 'temp', entityId: 'sensor.temperature' })
+    const helper = createEntityBinding({ nodeId: 'mode', entityId: 'input_boolean.night_mode' })
 
     expect(resolveDashboardInteractionAction(light, 'tap')).toBe('toggle')
     expect(resolveDashboardInteractionAction(light, 'hold')).toBe('more-info')
     expect(resolveDashboardInteractionAction(sensor, 'tap')).toBe('more-info')
+    expect(resolveDashboardInteractionAction(helper, 'tap')).toBe('toggle')
     expect(resolveDashboardInteractionAction({ ...light, tapAction: 'more-info' }, 'tap')).toBe(
       'more-info',
     )
@@ -95,6 +97,14 @@ describe('Home Assistant entity bindings', () => {
       'sensor',
       'binary_sensor',
       'climate',
+      'input_boolean',
+      'input_number',
+      'input_select',
+      'input_text',
+      'input_datetime',
+      'number',
+      'select',
+      'text',
     ])
   })
 })

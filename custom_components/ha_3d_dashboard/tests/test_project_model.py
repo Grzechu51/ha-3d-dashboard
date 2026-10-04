@@ -179,6 +179,30 @@ class ProjectCollectionTests(unittest.TestCase):
                 },
             )
 
+    def test_common_helper_bindings_are_supported(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        created = collection.create(
+            project_id="helpers",
+            name="Helpers",
+            ha_config={
+                "version": 1,
+                "bindings": [
+                    {"nodeId": "mode", "entityId": "input_boolean.night_mode"},
+                    {"nodeId": "target", "entityId": "input_number.target_temperature"},
+                    {"nodeId": "scene", "entityId": "input_select.scene"},
+                ],
+            },
+        )
+
+        self.assertEqual(
+            [binding["entityId"] for binding in created["ha_config"]["bindings"]],
+            [
+                "input_boolean.night_mode",
+                "input_number.target_temperature",
+                "input_select.scene",
+            ],
+        )
+
     def test_structure_mappings_persist(self) -> None:
         collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
         created = collection.create(
