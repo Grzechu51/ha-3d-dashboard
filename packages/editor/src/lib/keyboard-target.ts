@@ -6,10 +6,8 @@ export function isEditableKeyboardTarget(target: EventTarget | null): boolean {
     isContentEditable?: unknown
     getAttribute?: (name: string) => string | null
   }
-  const tagName =
-    typeof candidate.tagName === 'string' ? candidate.tagName.toUpperCase() : ''
-  const role =
-    typeof candidate.getAttribute === 'function' ? candidate.getAttribute('role') : null
+  const tagName = typeof candidate.tagName === 'string' ? candidate.tagName.toUpperCase() : ''
+  const role = typeof candidate.getAttribute === 'function' ? candidate.getAttribute('role') : null
 
   return (
     tagName === 'INPUT' ||
