@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useSyncExternalStore } from 'react'
+import type { Ha3dEnvironmentMode } from './ha3d-sun-environment'
 import { resolveHomeAssistantCoverOpenFraction } from '../../lib/ha3d/cover-state'
 import {
   entityFriendlyName,
@@ -55,12 +56,16 @@ export function Ha3dDashboardControls({
   highlightsEnabled = true,
   onHighlightsEnabledChange,
   onExpandedNodeIdChange,
+  environmentMode = 'auto',
+  onEnvironmentModeChange,
 }: {
   selectedNodeId?: string | null
   expandedNodeId?: string | null
   highlightsEnabled?: boolean
   onHighlightsEnabledChange?: (enabled: boolean) => void
   onExpandedNodeIdChange?: (nodeId: string | null) => void
+  environmentMode?: Ha3dEnvironmentMode
+  onEnvironmentModeChange?: (mode: Ha3dEnvironmentMode) => void
 } = {}) {
   const [collapsed, setCollapsed] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -159,7 +164,32 @@ export function Ha3dDashboardControls({
         </div>
       </div>
 
-      <div className="max-h-[calc(46vh-3.4rem)] space-y-2 overflow-y-auto p-3 md:max-h-[calc(100vh-6rem)]">
+      {onEnvironmentModeChange ? (
+        <div className="flex items-center justify-between gap-2 border-border/70 border-b px-4 py-2">
+          <span className="text-muted-foreground text-[10px] uppercase tracking-wide">
+            Environment
+          </span>
+          <div className="flex rounded-md border border-border bg-background/70 p-0.5">
+            {(['auto', 'day', 'twilight', 'night'] as const).map((mode) => (
+              <button
+                aria-pressed={environmentMode === mode}
+                className={
+                  environmentMode === mode
+                    ? 'rounded px-2 py-1 font-medium text-[10px] text-sky-300 bg-sky-400/10'
+                    : 'rounded px-2 py-1 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground'
+                }
+                key={mode}
+                onClick={() => onEnvironmentModeChange(mode)}
+                type="button"
+              >
+                {mode === 'auto' ? 'Auto Sun' : mode[0]!.toUpperCase() + mode.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="max-h-[calc(46vh-5.9rem)] space-y-2 overflow-y-auto p-3 md:max-h-[calc(100vh-8.5rem)]">
         {actionError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive text-xs">
             {actionError}
