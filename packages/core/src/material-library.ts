@@ -1007,12 +1007,12 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'metal',
     surfaces: ['wall', 'furniture'],
     description: 'Panel finish',
-    previewThumbnailUrl: '/material/flooring/garage_panel/garage_panel_thumb.webp',
+    previewThumbnailUrl: '/material/flooring/garage_panel/garage_panel_diffuse.jpg',
     preset: {
       maps: {
-        albedoMap: '/material/flooring/garage_panel/garage_panel_basecolor_512.ktx2',
-        aoMap: '/material/flooring/garage_panel/garage_panel_ao_512.ktx2',
-        normalMap: '/material/flooring/garage_panel/garage_panel_normal_512.ktx2',
+        albedoMap: '/material/flooring/garage_panel/garage_panel_diffuse.jpg',
+        aoMap: '/material/flooring/garage_panel/garage_panel_ao.jpg',
+        normalMap: '/material/flooring/garage_panel/garage_panel_normal.jpg',
       },
       mapProperties: {
         color: '#ffffff',
