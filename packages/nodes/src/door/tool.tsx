@@ -16,10 +16,10 @@ import {
   WallNode as WallNodeSchema,
 } from '@pascal-app/core'
 import {
-  isEditableKeyboardEvent,
   calculateItemRotation,
   EDITOR_LAYER,
   getSideFromNormal,
+  isEditableKeyboardEvent,
   isMagneticSnapActive,
   isValidWallSideFace,
   triggerSFX,
