@@ -22,11 +22,11 @@ import {
   WindowNode,
 } from '@pascal-app/core'
 import {
-  isEditableKeyboardEvent,
   calculateItemRotation,
   clearPlacementSurface,
   EDITOR_LAYER,
   getSideFromNormal,
+  isEditableKeyboardEvent,
   isMagneticSnapActive,
   isValidWallSideFace,
   publishPlacementSurface,
