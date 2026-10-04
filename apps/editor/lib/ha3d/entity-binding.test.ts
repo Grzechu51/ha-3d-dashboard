@@ -55,12 +55,10 @@ describe('Home Assistant entity bindings', () => {
     expect(resolveDashboardInteractionAction(light, 'tap')).toBe('toggle')
     expect(resolveDashboardInteractionAction(light, 'hold')).toBe('more-info')
     expect(resolveDashboardInteractionAction(sensor, 'tap')).toBe('more-info')
-    expect(
-      resolveDashboardInteractionAction({ ...light, tapAction: 'more-info' }, 'tap'),
-    ).toBe('more-info')
-    expect(resolveDashboardInteractionAction({ ...light, holdAction: 'none' }, 'hold')).toBe(
-      'none',
+    expect(resolveDashboardInteractionAction({ ...light, tapAction: 'more-info' }, 'tap')).toBe(
+      'more-info',
     )
+    expect(resolveDashboardInteractionAction({ ...light, holdAction: 'none' }, 'hold')).toBe('none')
   })
 
   test('validates custom cover motion', () => {

@@ -31,11 +31,11 @@ import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
+import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import {
   type Ha3dEnvironmentMode,
   Ha3dSunEnvironment,
 } from '../components/ha3d/ha3d-sun-environment'
-import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
 import {
   createHomeAssistantProject,

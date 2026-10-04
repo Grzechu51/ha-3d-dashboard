@@ -1,4 +1,4 @@
-import { isEditableKeyboardEvent, isEditableKeyboardTarget } from './keyboard-target'
+import { isEditableKeyboardEvent } from './keyboard-target'
 
 // WASD navigation shared by the 3D camera and the 2D floor plan, so both views
 // move the same way. Keys match by physical position (`event.code`): the

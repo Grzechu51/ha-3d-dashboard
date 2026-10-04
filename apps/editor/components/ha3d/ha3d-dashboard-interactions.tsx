@@ -10,10 +10,7 @@ import {
   type EntityBinding,
   resolveDashboardInteractionAction,
 } from '../../lib/ha3d/entity-binding'
-import {
-  entityFriendlyName,
-  formatHomeAssistantEntityValue,
-} from '../../lib/ha3d/entity-display'
+import { entityFriendlyName, formatHomeAssistantEntityValue } from '../../lib/ha3d/entity-display'
 import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,

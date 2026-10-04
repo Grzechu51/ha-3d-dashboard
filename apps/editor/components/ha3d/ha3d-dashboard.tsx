@@ -17,10 +17,7 @@ import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from './ha3d-dashboard-interactions'
-import {
-  type Ha3dEnvironmentMode,
-  Ha3dSunEnvironment,
-} from './ha3d-sun-environment'
+import { type Ha3dEnvironmentMode, Ha3dSunEnvironment } from './ha3d-sun-environment'
 
 export interface Ha3dDashboardSceneMeta {
   id: string

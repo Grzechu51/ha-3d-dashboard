@@ -57,11 +57,7 @@ const STAIR_PLACEMENT_PRESETS = [
   { label: 'Spiral', value: 'spiral' },
 ] as const
 
-function WindowPresetIcon({
-  type,
-}: {
-  type: (typeof WINDOW_PLACEMENT_PRESETS)[number]['value']
-}) {
+function WindowPresetIcon({ type }: { type: (typeof WINDOW_PLACEMENT_PRESETS)[number]['value'] }) {
   const splitHorizontal = type === 'single-hung' || type === 'double-hung'
   const splitVertical = type === 'sliding'
   const angled = type === 'casement' || type === 'awning'
@@ -69,9 +65,22 @@ function WindowPresetIcon({
 
   return (
     <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
-      <rect fill="none" height="25" rx="1.5" stroke="currentColor" strokeWidth="1.6" width="32" x="4" y="3.5" />
-      {splitVertical ? <line stroke="currentColor" strokeWidth="1.4" x1="20" x2="20" y1="4.5" y2="27.5" /> : null}
-      {splitHorizontal ? <line stroke="currentColor" strokeWidth="1.4" x1="5" x2="35" y1="16" y2="16" /> : null}
+      <rect
+        fill="none"
+        height="25"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        width="32"
+        x="4"
+        y="3.5"
+      />
+      {splitVertical ? (
+        <line stroke="currentColor" strokeWidth="1.4" x1="20" x2="20" y1="4.5" y2="27.5" />
+      ) : null}
+      {splitHorizontal ? (
+        <line stroke="currentColor" strokeWidth="1.4" x1="5" x2="35" y1="16" y2="16" />
+      ) : null}
       {type === 'double-hung' ? (
         <>
           <path d="M17 12h6l-2-2m2 2-2 2" fill="none" stroke="currentColor" strokeWidth="1.1" />
@@ -95,10 +104,20 @@ function WindowPresetIcon({
       ) : null}
       {type === 'louvered'
         ? [9, 13, 17, 21].map((y) => (
-            <line key={y} stroke="currentColor" strokeWidth="1.2" x1="9" x2="31" y1={y} y2={y - 2} />
+            <line
+              key={y}
+              stroke="currentColor"
+              strokeWidth="1.2"
+              x1="9"
+              x2="31"
+              y1={y}
+              y2={y - 2}
+            />
           ))
         : null}
-      {type === 'fixed' ? <path d="M7 7l26 18M33 7L7 25" opacity=".55" stroke="currentColor" strokeWidth="1" /> : null}
+      {type === 'fixed' ? (
+        <path d="M7 7l26 18M33 7L7 25" opacity=".55" stroke="currentColor" strokeWidth="1" />
+      ) : null}
     </svg>
   )
 }
@@ -107,22 +126,44 @@ function DoorPresetIcon({ type }: { type: (typeof DOOR_PLACEMENT_PRESETS)[number
   const doubleLeaf = type === 'double' || type === 'french' || type === 'sliding'
   return (
     <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
-      <rect fill="none" height="27" rx="1" stroke="currentColor" strokeWidth="1.6" width="22" x="9" y="2.5" />
-      {doubleLeaf ? <line stroke="currentColor" strokeWidth="1.3" x1="20" x2="20" y1="3.5" y2="28.5" /> : null}
+      <rect
+        fill="none"
+        height="27"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        width="22"
+        x="9"
+        y="2.5"
+      />
+      {doubleLeaf ? (
+        <line stroke="currentColor" strokeWidth="1.3" x1="20" x2="20" y1="3.5" y2="28.5" />
+      ) : null}
       {type === 'hinged' || type === 'double' || type === 'french' ? (
-        <path d="M10 29A19 19 0 0 1 29 10" fill="none" opacity=".7" stroke="currentColor" strokeWidth="1.1" />
+        <path
+          d="M10 29A19 19 0 0 1 29 10"
+          fill="none"
+          opacity=".7"
+          stroke="currentColor"
+          strokeWidth="1.1"
+        />
       ) : null}
       {type === 'sliding' || type === 'pocket' || type === 'barn' ? (
         <path d="M7 16h26m-4-3 4 3-4 3" fill="none" stroke="currentColor" strokeWidth="1.2" />
       ) : null}
       {type === 'folding' ? (
-        <path d="M10 4l5 12-5 12m5-24 5 12-5 12m5-24 5 12-5 12m5-24 5 12-5 12" fill="none" stroke="currentColor" strokeWidth="1" />
+        <path
+          d="M10 4l5 12-5 12m5-24 5 12-5 12m5-24 5 12-5 12m5-24 5 12-5 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
       ) : null}
-      {type.startsWith('garage-') ? (
-        [8, 13, 18, 23].map((y) => (
-          <line key={y} stroke="currentColor" strokeWidth="1.1" x1="10" x2="30" y1={y} y2={y} />
-        ))
-      ) : null}
+      {type.startsWith('garage-')
+        ? [8, 13, 18, 23].map((y) => (
+            <line key={y} stroke="currentColor" strokeWidth="1.1" x1="10" x2="30" y1={y} y2={y} />
+          ))
+        : null}
     </svg>
   )
 }
@@ -131,7 +172,12 @@ function StairPresetIcon({ type }: { type: (typeof STAIR_PLACEMENT_PRESETS)[numb
   if (type === 'spiral') {
     return (
       <svg aria-hidden className="h-8 w-10" viewBox="0 0 40 32">
-        <path d="M20 16c0-6 10-6 10 0 0 9-16 11-21 3-5-9 7-18 18-14" fill="none" stroke="currentColor" strokeWidth="1.8" />
+        <path
+          d="M20 16c0-6 10-6 10 0 0 9-16 11-21 3-5-9 7-18 18-14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
         <circle cx="20" cy="16" fill="currentColor" r="1.5" />
       </svg>
     )
@@ -683,7 +729,9 @@ export function BuildTab() {
           <ToolOptionsPanel
             kind={activeTool}
             onSelect={() => {
-              if (!(useEditor.getState().mode === 'build' && useEditor.getState().tool === activeTool)) {
+              if (
+                !(useEditor.getState().mode === 'build' && useEditor.getState().tool === activeTool)
+              ) {
                 activateBuildTool(activeTool)
               }
             }}

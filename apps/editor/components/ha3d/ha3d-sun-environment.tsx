@@ -37,11 +37,7 @@ function solarDirection(azimuthDeg: number, elevationDeg: number): [number, numb
   const elevation = (elevationDeg * Math.PI) / 180
   const horizontal = Math.cos(elevation)
   // Home Assistant: 0° north, 90° east. Pascal world: north = -Z, east = +X.
-  return [
-    Math.sin(azimuth) * horizontal,
-    Math.sin(elevation),
-    -Math.cos(azimuth) * horizontal,
-  ]
+  return [Math.sin(azimuth) * horizontal, Math.sin(elevation), -Math.cos(azimuth) * horizontal]
 }
 
 export function Ha3dSunEnvironment({ mode }: { mode: Ha3dEnvironmentMode }) {

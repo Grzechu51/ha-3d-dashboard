@@ -9,11 +9,11 @@ import {
   numericEntityAttribute,
   stringListEntityAttribute,
 } from '../../lib/ha3d/entity-display'
+import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
 } from '../../lib/ha3d/project-config'
-import { resolveHomeAssistantLightVisualState } from '../../lib/ha3d/light-state'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
@@ -338,7 +338,9 @@ export function Ha3dDashboardControls({
                         onChange={(event) => {
                           const next = hexToRgb(event.target.value)
                           if (!next) return
-                          void callService('light', 'turn_on', binding.entityId, { rgb_color: next })
+                          void callService('light', 'turn_on', binding.entityId, {
+                            rgb_color: next,
+                          })
                         }}
                         type="color"
                         value={lightColor}

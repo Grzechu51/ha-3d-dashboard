@@ -163,8 +163,6 @@ function createDefaultStairNode({
 }) {
   return StairNode.parse({
     stairType: DEFAULT_STAIR_TYPE,
-    fromLevelId: levelId,
-    toLevelId: nextLevelId,
     slabOpeningMode: 'destination',
     openingOffset: DEFAULT_STAIR_OPENING_OFFSET,
     width: DEFAULT_STAIR_WIDTH,
