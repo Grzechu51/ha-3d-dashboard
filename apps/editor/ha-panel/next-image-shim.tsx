@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties, type ImgHTMLAttributes, type SyntheticEvent } from 'react'
+import { type CSSProperties, forwardRef, type ImgHTMLAttributes, type SyntheticEvent } from 'react'
 
 type StaticImageDataLike = Readonly<{
   src: string
