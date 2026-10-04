@@ -220,9 +220,7 @@ export function BuildTab() {
         </div>
       ) : mode === 'build' && activeTool === 'window' ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
-          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">
-            Window type
-          </div>
+          <div className="px-0.5 pt-1 font-medium text-muted-foreground text-xs">Window type</div>
           <div className="grid grid-cols-2 gap-1.5">
             {WINDOW_PLACEMENT_PRESETS.map((preset) => {
               const selected = (windowDefaults?.windowType ?? 'fixed') === preset.value
@@ -257,8 +255,8 @@ export function BuildTab() {
             })}
           </div>
           <p className="px-0.5 text-[11px] text-muted-foreground leading-relaxed">
-            Choose the construction first, then click a wall to place it. Detailed dimensions,
-            shape and operation remain editable after placement.
+            Choose the construction first, then click a wall to place it. Detailed dimensions, shape
+            and operation remain editable after placement.
           </p>
         </div>
       ) : mode === 'build' && activeTool === 'door' ? (
