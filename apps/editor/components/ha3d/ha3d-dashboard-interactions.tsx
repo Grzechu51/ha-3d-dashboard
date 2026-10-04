@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  type AnyNodeId,
-  emitter,
-  type NodeEvent,
-  sceneRegistry,
-} from '@pascal-app/core'
+import { type AnyNodeId, emitter, type NodeEvent, sceneRegistry } from '@pascal-app/core'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
