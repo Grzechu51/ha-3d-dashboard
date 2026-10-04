@@ -7,12 +7,13 @@ import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
-  EdgesGeometry,
+  BackSide,
   Group,
-  LineBasicMaterial,
-  LineSegments,
-  type Mesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
   type Object3D,
+  Vector3,
 } from 'three'
 import {
   type EntityBinding,
@@ -97,10 +98,13 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
   return false
 }
 
-type HighlightEdgeEntry = Readonly<{
-  source: Object3D
-  line: LineSegments
+type HighlightContourEntry = Readonly<{
+  source: Mesh
+  outline: Mesh
+  inflation: Matrix4
 }>
+
+const HIGHLIGHT_INFLATION = 1.025
 
 function isWorldVisible(object: Object3D): boolean {
   let current: Object3D | null = object
@@ -109,6 +113,15 @@ function isWorldVisible(object: Object3D): boolean {
     current = current.parent
   }
   return true
+}
+
+function contourInflation(mesh: Mesh): Matrix4 {
+  mesh.geometry.computeBoundingBox()
+  const center = mesh.geometry.boundingBox?.getCenter(new Vector3()) ?? new Vector3()
+  return new Matrix4()
+    .makeTranslation(center.x, center.y, center.z)
+    .multiply(new Matrix4().makeScale(HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION))
+    .multiply(new Matrix4().makeTranslation(-center.x, -center.y, -center.z))
 }
 
 function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; selected: boolean }) {
@@ -120,73 +133,66 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
     next.layers.set(EDITOR_LAYER)
     return next
   }, [nodeId])
-  const material = useMemo(() => {
-    const next = new LineBasicMaterial({
-      color: selected ? 0xff_ff_ff : 0x22_d3ee,
-      transparent: true,
-      opacity: 0.9,
-      depthTest: false,
-      depthWrite: false,
-      toneMapped: false,
-    })
-    return next
-  }, [selected])
-  const entriesRef = useRef<HighlightEdgeEntry[]>([])
+  const material = useMemo(
+    () =>
+      new MeshBasicMaterial({
+        color: selected ? 0xff_ff_ff : 0x22_d3ee,
+        side: BackSide,
+        transparent: true,
+        opacity: 0.92,
+        depthTest: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [selected],
+  )
+  const entriesRef = useRef<HighlightContourEntry[]>([])
   const builtRootRef = useRef<Object3D | null>(null)
   const builtRevisionRef = useRef(-1)
 
-  const clearEdges = useCallback(() => {
-    for (const entry of entriesRef.current) {
-      entry.line.geometry.dispose()
-      group.remove(entry.line)
-    }
+  const clearContours = useCallback(() => {
+    for (const entry of entriesRef.current) group.remove(entry.outline)
     entriesRef.current = []
     builtRootRef.current = null
   }, [group])
 
-  const rebuildEdges = useCallback(
+  const rebuildContours = useCallback(
     (root: Object3D) => {
-      clearEdges()
+      clearContours()
       root.updateWorldMatrix(true, true)
 
-      const entries: HighlightEdgeEntry[] = []
+      const entries: HighlightContourEntry[] = []
       root.traverse((child) => {
-        const mesh = child as Mesh
-        if (!(mesh.isMesh && mesh.geometry?.getAttribute('position'))) return
+        const source = child as Mesh
+        if (!(source.isMesh && source.geometry?.getAttribute('position'))) return
 
-        const geometry = new EdgesGeometry(mesh.geometry, 32)
-        const positions = geometry.getAttribute('position')
-        if (!positions || positions.count === 0) {
-          geometry.dispose()
-          return
-        }
-
-        const line = new LineSegments(geometry, material)
-        line.name = `ha3d-highlight-edge:${nodeId}`
-        line.matrixAutoUpdate = false
-        line.matrix.copy(mesh.matrixWorld)
-        line.matrixWorldNeedsUpdate = true
-        line.renderOrder = 10_000
-        line.frustumCulled = false
-        line.layers.set(EDITOR_LAYER)
-        line.raycast = () => {}
-        group.add(line)
-        entries.push({ source: mesh, line })
+        const inflation = contourInflation(source)
+        const outline = new Mesh(source.geometry, material)
+        outline.name = `ha3d-highlight-contour:${nodeId}`
+        outline.matrixAutoUpdate = false
+        outline.matrix.copy(source.matrixWorld).multiply(inflation)
+        outline.matrixWorldNeedsUpdate = true
+        outline.renderOrder = 10_000
+        outline.frustumCulled = false
+        outline.layers.set(EDITOR_LAYER)
+        outline.raycast = () => {}
+        group.add(outline)
+        entries.push({ source, outline, inflation })
       })
 
       entriesRef.current = entries
       builtRootRef.current = root
       builtRevisionRef.current = geometryRevision
     },
-    [clearEdges, geometryRevision, group, material, nodeId],
+    [clearContours, geometryRevision, group, material, nodeId],
   )
 
   useEffect(
     () => () => {
-      clearEdges()
+      clearContours()
       material.dispose()
     },
-    [clearEdges, material],
+    [clearContours, material],
   )
 
   useFrame(({ clock }) => {
@@ -198,19 +204,19 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
     }
 
     if (builtRootRef.current !== root || builtRevisionRef.current !== geometryRevision) {
-      rebuildEdges(root)
+      rebuildContours(root)
     }
 
     root.updateWorldMatrix(true, true)
     for (const entry of entriesRef.current) {
-      entry.line.visible = isWorldVisible(entry.source)
-      entry.line.matrix.copy(entry.source.matrixWorld)
-      entry.line.matrixWorldNeedsUpdate = true
+      entry.outline.visible = isWorldVisible(entry.source)
+      entry.outline.matrix.copy(entry.source.matrixWorld).multiply(entry.inflation)
+      entry.outline.matrixWorldNeedsUpdate = true
     }
 
     group.visible = isWorldVisible(root) && entriesRef.current.length > 0
     material.color.setHex(selected ? 0xff_ff_ff : 0x22_d3ee)
-    material.opacity = selected ? 1 : 0.64 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.28
+    material.opacity = selected ? 1 : 0.72 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.2
   })
 
   return <primitive object={group} />
