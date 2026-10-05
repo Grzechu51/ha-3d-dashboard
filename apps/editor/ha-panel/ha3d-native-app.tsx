@@ -590,6 +590,8 @@ function NativeDashboard({
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
+  const [dashboardControlsCollapsed, setDashboardControlsCollapsed] = useState(false)
+  const [dashboardControlsHeight, setDashboardControlsHeight] = useState(0)
   const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
@@ -765,15 +767,23 @@ function NativeDashboard({
         </div>
       </div>
 
-      <Ha3dDashboardNavigation onCameraPreset={requestCameraPreset} scene={scene} />
+      <Ha3dDashboardNavigation
+        controlsCollapsed={dashboardControlsCollapsed}
+        controlsPanelHeight={dashboardControlsHeight}
+        onCameraPreset={requestCameraPreset}
+        scene={scene}
+      />
 
       <Ha3dDashboardControls
+        collapsed={dashboardControlsCollapsed}
         environmentMode={environmentMode}
         highlightsEnabled={interactiveHighlights}
         markersEnabled={interactiveMarkers}
+        onCollapsedChange={setDashboardControlsCollapsed}
         onEnvironmentModeChange={onEnvironmentModeChange}
         onHighlightsEnabledChange={setInteractiveHighlights}
         onMarkersEnabledChange={setInteractiveMarkers}
+        onPanelHeightChange={setDashboardControlsHeight}
         onShowMoreInfo={onShowMoreInfo}
         selectedNodeId={selectedInteractiveNodeId}
       />

@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronRight, Eye, EyeOff, Tags, X } from 'lucide-react'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { entityFriendlyName, formatHomeAssistantEntityValue } from '../../lib/ha3d/entity-display'
 import {
   getHa3dProjectConfigSnapshot,
@@ -29,6 +29,9 @@ export function Ha3dDashboardControls({
   onShowMoreInfo,
   environmentMode = 'auto',
   onEnvironmentModeChange,
+  collapsed: collapsedProp,
+  onCollapsedChange,
+  onPanelHeightChange,
 }: {
   selectedNodeId?: string | null
   expandedNodeId?: string | null
@@ -40,8 +43,18 @@ export function Ha3dDashboardControls({
   onShowMoreInfo?: (entityId: string) => void
   environmentMode?: Ha3dEnvironmentMode
   onEnvironmentModeChange?: (mode: Ha3dEnvironmentMode) => void
+  collapsed?: boolean
+  onCollapsedChange?: (collapsed: boolean) => void
+  onPanelHeightChange?: (height: number) => void
 } = {}) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [internalCollapsed, setInternalCollapsed] = useState(false)
+  const panelRef = useRef<HTMLElement | null>(null)
+  const collapsed = collapsedProp ?? internalCollapsed
+
+  const setCollapsedState = (next: boolean) => {
+    setInternalCollapsed(next)
+    onCollapsedChange?.(next)
+  }
   const [actionError, setActionError] = useState<string | null>(null)
   const runtime = useSyncExternalStore(
     subscribeHomeAssistantRuntime,
@@ -55,8 +68,31 @@ export function Ha3dDashboardControls({
   )
 
   useEffect(() => {
-    if (selectedNodeId || expandedNodeId) setCollapsed(false)
-  }, [expandedNodeId, selectedNodeId])
+    if (!(selectedNodeId || expandedNodeId)) return
+    setInternalCollapsed(false)
+    onCollapsedChange?.(false)
+  }, [expandedNodeId, onCollapsedChange, selectedNodeId])
+
+  useEffect(() => {
+    if (!onPanelHeightChange) return
+    if (collapsed) {
+      onPanelHeightChange(0)
+      return
+    }
+
+    const panel = panelRef.current
+    if (!panel) return
+
+    const reportHeight = () => {
+      onPanelHeightChange(panel.getBoundingClientRect().height)
+    }
+    reportHeight()
+
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(reportHeight)
+    observer.observe(panel)
+    return () => observer.disconnect()
+  }, [collapsed, onPanelHeightChange])
 
   const rows = useMemo(() => {
     const grouped = new Map<
@@ -146,13 +182,16 @@ export function Ha3dDashboardControls({
   const panel = collapsed ? (
     <button
       className="pointer-events-auto absolute right-3 bottom-3 z-40 rounded-full border border-white/10 bg-slate-950/75 px-4 py-2 font-medium text-sm text-white shadow-xl backdrop-blur-xl md:top-3 md:bottom-auto"
-      onClick={() => setCollapsed(false)}
+      onClick={() => setCollapsedState(false)}
       type="button"
     >
       Home Assistant
     </button>
   ) : (
-    <aside className="pointer-events-auto absolute right-3 bottom-3 left-3 z-40 max-h-[48vh] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/78 text-white shadow-2xl backdrop-blur-xl md:top-3 md:bottom-3 md:left-auto md:w-[20rem] md:max-h-none">
+    <aside
+      className="pointer-events-auto absolute right-3 bottom-3 left-3 z-40 max-h-[48vh] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/78 text-white shadow-2xl backdrop-blur-xl md:top-3 md:bottom-3 md:left-auto md:w-[20rem] md:max-h-none"
+      ref={panelRef}
+    >
       <div className="border-white/10 border-b p-3">
         <div className="flex items-center gap-2.5">
           <span
@@ -171,7 +210,7 @@ export function Ha3dDashboardControls({
           <button
             aria-label="Hide Home Assistant controls"
             className="flex h-8 w-8 items-center justify-center rounded-full text-white/55 hover:bg-white/10 hover:text-white"
-            onClick={() => setCollapsed(true)}
+            onClick={() => setCollapsedState(true)}
             type="button"
           >
             <X className="h-4 w-4" />
