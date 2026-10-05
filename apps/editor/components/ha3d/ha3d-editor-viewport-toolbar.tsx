@@ -9,7 +9,7 @@ import {
 } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
-import { Box3, Vector3 } from 'three'
+import { Box3, type Object3D, Vector3 } from 'three'
 import {
   type Ha3dDashboardCameraPreset,
   resolveHa3dDashboardCameraPose,
@@ -31,6 +31,15 @@ const ENVIRONMENT_MODES: readonly { id: Ha3dEnvironmentMode; label: string }[] =
   { id: 'night', label: 'Night' },
 ]
 
+function belongsToSiteSubtree(object: Object3D, siteObjects: ReadonlySet<Object3D>): boolean {
+  let current: Object3D | null = object
+  while (current) {
+    if (siteObjects.has(current)) return true
+    current = current.parent
+  }
+  return false
+}
+
 function resolveEditorBounds(levelId: string | null, solo: boolean): Box3 | null {
   const bounds = new Box3()
 
@@ -38,8 +47,14 @@ function resolveEditorBounds(levelId: string | null, solo: boolean): Box3 | null
     const levelObject = sceneRegistry.nodes.get(levelId)
     if (levelObject) bounds.setFromObject(levelObject, true)
   } else {
-    for (const [nodeId, object] of sceneRegistry.nodes) {
-      if (sceneRegistry.byType.site?.has(nodeId)) continue
+    const siteObjects = new Set<Object3D>()
+    for (const siteId of sceneRegistry.byType.site ?? []) {
+      const siteObject = sceneRegistry.nodes.get(siteId)
+      if (siteObject) siteObjects.add(siteObject)
+    }
+
+    for (const object of sceneRegistry.nodes.values()) {
+      if (belongsToSiteSubtree(object, siteObjects)) continue
       bounds.expandByObject(object, true)
     }
   }
