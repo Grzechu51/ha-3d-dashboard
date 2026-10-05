@@ -18,48 +18,49 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.23 native Lovelace Menu + editor overlay/depth polish**
+**Checkpoint: beta.24 native-only Home Assistant Menu + camera framing**
 
-Status: **v0.3.0-beta.22 is published; beta.23 work is on `feat/lovelace-menu-beta23`**
+Status: **v0.3.0-beta.23 is published; beta.24 work is on `feat/native-ha-menu-beta24`**
 
-The beta.22 real-HA smoke test clarified that the requested custom Menu is not a second simplified
-HA3D tile system. It must be able to host the same Lovelace card configuration used by a normal
-Home Assistant dashboard, including installed custom cards such as Mushroom, nested stacks,
-visibility conditions and each card's native editor/YAML mode.
+The beta.23 real-HA smoke test confirmed that the native Lovelace editor and Mushroom cards render,
+but it also clarified three UX requirements:
 
-Beta.23 keeps the existing Automatic and HA3D-tile modes for compatibility and adds a third
-**HA cards** mode. The project sidecar persists a root Lovelace card configuration. The Pascal
-sidebar now has a dedicated **Menu** tab for this mode, while **Settings → Dashboard menu** keeps
-the source-mode switch. HA3D loads Home Assistant's own Lovelace runtime and native card editor, so
-a vertical stack can add/edit normal HA cards through the normal visual picker or YAML editor. The
-runtime Menu renders the saved config through Home Assistant's `hui-card` wrapper instead of
-reimplementing Lovelace behavior, preserving visibility conditions and custom-card behavior.
+- the temporary **HA3D tiles** implementation should be removed rather than coexist with native HA;
+- **Automatic** should render normal Home Assistant Tile cards for the entities bound to the 3D
+  scene;
+- the Menu editor should not stack its own preview underneath the native HA editor. The preview
+  should be docked on the right side of the 3D editor, matching the final dashboard position.
 
-The raw Home Assistant host object is exposed only through an HA-specific runtime bridge under
-`apps/editor/lib/ha3d`; no Home Assistant state is added to Pascal stores or scene semantics.
-Legacy v1 projects still default to Automatic mode. `dashboardMenu.lovelaceCard` is an additive,
-JSON-safe field validated by both frontend and HA project persistence.
+Beta.24 reduces the Menu model to two user-facing modes: **Automatic HA tiles** and **Custom HA
+cards**. Automatic mode dynamically builds a native Lovelace vertical stack of standard `tile`
+cards from the unique enabled 3D bindings. Custom mode keeps the full native Lovelace/Mushroom card
+tree from beta.23. The beta.22/23 `custom` HA3D-tile data is migrated once into native Tile cards,
+so existing beta projects do not lose their selected entities.
 
-The Pascal camera-control teaching overlay is moved from the arbitrary top-center position to a
-stable top-right dock and gains a real collapse/expand state in addition to the existing permanent
-dismiss action.
+The dedicated **Menu** editor tab now contains only Home Assistant's native card editor. Its live
+preview is a separate right-side 21rem panel over the 3D editor, using the same native card renderer
+as the final dashboard. **Settings → Dashboard menu** only selects Automatic vs Custom and no longer
+embeds a second card editor/preview beneath the first one.
 
-The close-up floor/wall/object artifact from the real editor smoke test is handled at the slab
-renderer boundary: only the horizontal slab surface is rendered 0.5 mm below the authored support
-plane. Slab sides remain at the exact model elevation, while support/collision/elevation logic is
-unchanged. This separates the floor depth surface from coplanar wall bottom caps and floor-placed
-object feet without changing saved geometry or support math.
+The camera preset issue from the real smoke test had two causes. Both Dashboard and Edit previously
+skipped only the Site root object while still including Site descendants such as the large property
+surface/terrain in the fit bounds, and the generic preset distance multiplier was overly
+conservative. Beta.24 excludes the complete Site object subtree from building camera bounds and
+reduces the framing multiplier from 2.2 to 1.45. Level-solo bounds remain unchanged.
+
+The beta.23 slab depth-contact relief remains in place and is not broadened in this checkpoint.
 
 Architecture classification:
 
-- Home Assistant Lovelace bridge/editor/runtime: `apps/editor` — host application integration.
-- Camera teaching overlay: `packages/editor` — generic editor-only UX.
-- Slab contact-depth relief: `packages/nodes/src/slab` — kind-specific geometry rendering.
-- No new core/viewer store fields, node schema changes, renderer dispatch branches or plugin API.
+- Menu modes, native-card runtime and editor preview: `apps/editor` HA host integration.
+- Dashboard/editor camera framing: `apps/editor` presentation/navigation.
+- Legacy HA3D-tile migration: existing HA project sidecar parser/backend normalization.
+- No new Pascal core/viewer store state, scene schema, node kind or plugin API.
 
-The next gate is one normal PR CI run for **v0.3.0-beta.23**, followed by a real Home Assistant
-smoke test using the supplied Mushroom/vertical-stack YAML, Menu card editing/runtime visibility,
-camera-hint collapse and close-up slab/wall/object contacts.
+The next gate is source/architecture review followed by one normal PR CI run for
+**v0.3.0-beta.24**, then a real Home Assistant smoke test of Automatic native Tile cards, the
+right-docked editor preview, custom Mushroom editing and the revised Fit/Iso/Top/Front/Right
+framing.
 
 ## Completed
 
