@@ -93,7 +93,10 @@ export function Ha3dDashboardControls({
   }, [project.bindings, runtime.adapter, runtime.revision, selectedNodeId])
 
   const linkedObjectCount = useMemo(
-    () => new Set(project.bindings.filter((binding) => binding.enabled).map((binding) => binding.nodeId)).size,
+    () =>
+      new Set(
+        project.bindings.filter((binding) => binding.enabled).map((binding) => binding.nodeId),
+      ).size,
     [project.bindings],
   )
 
