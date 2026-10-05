@@ -206,8 +206,8 @@ def validate_material_catalog_assets() -> None:
         if not (PASCAL_MATERIALS_DIR / reference.removeprefix("/material/")).is_file()
     ]
     if missing:
-        rendered = "\\n".join(f"- {reference}" for reference in missing)
-        raise RuntimeError(f"Material catalog references missing runtime assets:\\n{rendered}")
+        rendered = "\n".join(f"- {reference}" for reference in missing)
+        raise RuntimeError(f"Material catalog references missing runtime assets:\n{rendered}")
 
 
 def material_asset_files() -> list[Path]:
