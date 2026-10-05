@@ -59,7 +59,7 @@ describe('buildSlabGeometry', () => {
     }
   })
 
-  test('solid slab meshes stay at the level plane; recessed meshes sink to the elevation', () => {
+  test('relieves only the visible floor surface below the support plane', () => {
     const polygon: Array<[number, number]> = [
       [0, 0],
       [2, 0],
@@ -69,11 +69,14 @@ describe('buildSlabGeometry', () => {
 
     const solid = SlabNode.parse({ elevation: 0.3, thickness: 0.1, polygon })
     const solidGroup = buildSlabGeometry(solid, undefined, 'solid', false)
-    for (const mesh of solidGroup.children.filter(
+    const solidMeshes = solidGroup.children.filter(
       (child): child is Mesh => child instanceof Mesh,
-    )) {
-      expect(mesh.position.y).toBe(0)
-    }
+    )
+    const solidSurface = solidMeshes.find((mesh) => mesh.userData.slotId === 'surface')!
+    const solidSide = solidMeshes.find((mesh) => mesh.userData.slotId === 'side')!
+
+    expect(solidSurface.position.y).toBeCloseTo(-0.0005)
+    expect(solidSide.position.y).toBe(0)
 
     const recessed = SlabNode.parse({
       elevation: 0.45,
@@ -85,14 +88,13 @@ describe('buildSlabGeometry', () => {
     const recessedMeshes = recessedGroup.children.filter(
       (child): child is Mesh => child instanceof Mesh,
     )
-    expect(recessedMeshes.length).toBeGreaterThan(0)
-    let localTop = Number.NEGATIVE_INFINITY
-    for (const mesh of recessedMeshes) {
-      expect(mesh.position.y).toBeCloseTo(0.45)
-      mesh.geometry.computeBoundingBox()
-      localTop = Math.max(localTop, mesh.geometry.boundingBox?.max.y ?? Number.NEGATIVE_INFINITY)
-    }
-    expect(localTop).toBeCloseTo(0.15)
+    const recessedSurface = recessedMeshes.find((mesh) => mesh.userData.slotId === 'surface')!
+    const recessedSide = recessedMeshes.find((mesh) => mesh.userData.slotId === 'side')!
+
+    expect(recessedSurface.position.y).toBeCloseTo(0.4495)
+    expect(recessedSide.position.y).toBeCloseTo(0.45)
+    recessedSurface.geometry.computeBoundingBox()
+    expect(recessedSurface.geometry.boundingBox?.max.y).toBeCloseTo(0.15)
   })
 
   test('adds a terrain-following perimeter below the fixed slab underside', () => {
