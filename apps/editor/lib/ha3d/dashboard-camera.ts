@@ -17,7 +17,7 @@ export function resolveHa3dDashboardCameraPose(
   const [cx, cy, cz] = bounds.center
   const [sx, sy, sz] = bounds.size
   const maxDimension = Math.max(sx, sy, sz, 1)
-  const distance = Math.max(maxDimension * 2.2, 8)
+  const distance = Math.max(maxDimension * 1.45, 8)
   const eyeLevel = cy + Math.max(sy * 0.12, 0.8)
   const target: readonly [number, number, number] = [cx, cy, cz]
 
