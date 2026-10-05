@@ -246,6 +246,24 @@ class ProjectCollectionTests(unittest.TestCase):
                 },
             )
 
+        for malformed_menu in (
+            {"mode": [], "items": []},
+            {
+                "mode": "custom",
+                "items": [{"entityId": "light.salon", "span": []}],
+            },
+        ):
+            with self.assertRaises(InvalidProjectError):
+                collection.create(
+                    project_id=f"bad_menu_{len(collection.list_metadata())}",
+                    name="Bad menu",
+                    ha_config={
+                        "version": 1,
+                        "bindings": [],
+                        "dashboardMenu": malformed_menu,
+                    },
+                )
+
     def test_legacy_config_save_preserves_existing_dashboard_menu(self) -> None:
         collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
         collection.create(
