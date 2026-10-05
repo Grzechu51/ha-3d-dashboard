@@ -37,7 +37,12 @@ class ProjectCollectionTests(unittest.TestCase):
             created["ha_config"]["structureMappings"], {"floors": [], "areas": []}
         )
         self.assertEqual(
-            created["ha_config"]["dashboardMenu"], {"mode": "auto", "items": []}
+            created["ha_config"]["dashboardMenu"],
+            {
+                "mode": "auto",
+                "items": [],
+                "lovelaceCard": {"type": "vertical-stack", "cards": []},
+            },
         )
         self.assertEqual(collection.list_metadata()[0]["id"], "main_house")
 
@@ -261,6 +266,59 @@ class ProjectCollectionTests(unittest.TestCase):
                         "version": 1,
                         "bindings": [],
                         "dashboardMenu": malformed_menu,
+                    },
+                )
+
+    def test_lovelace_dashboard_menu_persists_and_validates(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        created = collection.create(
+            project_id="lovelace_menu",
+            name="Lovelace menu",
+            ha_config={
+                "version": 1,
+                "bindings": [],
+                "dashboardMenu": {
+                    "mode": "lovelace",
+                    "items": [],
+                    "lovelaceCard": {
+                        "type": "vertical-stack",
+                        "cards": [
+                            {
+                                "type": "custom:mushroom-light-card",
+                                "entity": "light.cct",
+                                "show_brightness_control": True,
+                            }
+                        ],
+                        "visibility": [
+                            {
+                                "condition": "state",
+                                "entity": "input_select.urzadzenia",
+                                "state": "Oświetlenie",
+                            }
+                        ],
+                    },
+                },
+            },
+        )
+
+        self.assertEqual(
+            created["ha_config"]["dashboardMenu"]["lovelaceCard"]["cards"][0]["type"],
+            "custom:mushroom-light-card",
+        )
+
+        for lovelace_card in ([], {}, {"cards": []}):
+            with self.assertRaises(InvalidProjectError):
+                collection.create(
+                    project_id=f"bad_lovelace_{len(collection.list_metadata())}",
+                    name="Bad Lovelace",
+                    ha_config={
+                        "version": 1,
+                        "bindings": [],
+                        "dashboardMenu": {
+                            "mode": "lovelace",
+                            "items": [],
+                            "lovelaceCard": lovelace_card,
+                        },
                     },
                 )
 
