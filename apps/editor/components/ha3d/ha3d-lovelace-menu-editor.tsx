@@ -52,18 +52,18 @@ export function Ha3dLovelaceMenuEditor({
   configRef.current = config
   onChangeRef.current = onChange
 
+  const connected = hass !== null
+
   useEffect(() => {
     if (!hass || !editorRef.current) return
     editorRef.current.hass = hass
-  }, [connected])
+  }, [hass])
 
   useEffect(() => {
     if (!editorRef.current) return
     editorRef.current.value = config
     editorRef.current.showVisibilityTab = config.type !== 'conditional'
   }, [config])
-
-  const connected = hass !== null
 
   useEffect(() => {
     if (!connected) return
@@ -82,7 +82,7 @@ export function Ha3dLovelaceMenuEditor({
 
         const editor = document.createElement('hui-card-element-editor') as CardEditorElement
         const initialConfig = configRef.current
-        editor.hass = host
+        editor.hass = hassRef.current ?? host
         editor.lovelace = createLovelaceEditorContext()
         editor.value = initialConfig
         editor.showVisibilityTab = initialConfig.type !== 'conditional'
@@ -112,7 +112,7 @@ export function Ha3dLovelaceMenuEditor({
       editorRef.current = null
       mount.replaceChildren()
     }
-  }, [hass])
+  }, [connected])
 
   if (!hass) {
     return (
