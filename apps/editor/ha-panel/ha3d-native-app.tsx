@@ -77,6 +77,7 @@ export type NativeHomeAssistant = HomeAssistantHassLike &
 type PanelMode = 'dashboard' | 'edit'
 
 type Ha3dNativeAppProps = Readonly<{
+  buildVersion?: string | null
   hass: NativeHomeAssistant | null
   narrow: boolean
   onShowMoreInfo: (entityId: string) => void
@@ -576,6 +577,7 @@ function NativeDashboard({
   onShowMoreInfo,
   environmentMode,
   onEnvironmentModeChange,
+  buildVersion,
 }: Readonly<{
   projectName: string
   session: HomeAssistantProjectSession
@@ -584,6 +586,7 @@ function NativeDashboard({
   onShowMoreInfo: (entityId: string) => void
   environmentMode: Ha3dEnvironmentMode
   onEnvironmentModeChange: (mode: Ha3dEnvironmentMode) => void
+  buildVersion?: string | null
 }>) {
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
@@ -751,6 +754,7 @@ function NativeDashboard({
           <div className="truncate font-semibold text-sm">{projectName}</div>
           <div className="text-[10px] text-[var(--ha3d-dashboard-muted)]">
             Dashboard · rev {session.getSnapshot().revision ?? '—'}
+            {buildVersion ? ` · ${buildVersion}` : ''}
           </div>
         </div>
         <div className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1 shadow-xl backdrop-blur-xl">
@@ -818,6 +822,7 @@ function NativeProject({
   onModeChange,
   onProjects,
   onShowMoreInfo,
+  buildVersion,
 }: Readonly<{
   metadata: Ha3dProjectMetadata
   session: HomeAssistantProjectSession
@@ -830,6 +835,7 @@ function NativeProject({
   onModeChange: (mode: PanelMode) => void
   onProjects: () => Promise<void>
   onShowMoreInfo: (entityId: string) => void
+  buildVersion?: string | null
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [editorEpoch, setEditorEpoch] = useState(0)
@@ -881,6 +887,7 @@ function NativeProject({
         onProjects={() => {
           void onProjects()
         }}
+        buildVersion={buildVersion}
         environmentMode={environmentMode}
         onEnvironmentModeChange={setEnvironmentMode}
         projectName={metadata.name}
@@ -1011,7 +1018,7 @@ function NativeProject({
   )
 }
 
-export function Ha3dNativeApp({ hass, narrow, onShowMoreInfo }: Ha3dNativeAppProps) {
+export function Ha3dNativeApp({ buildVersion, hass, narrow, onShowMoreInfo }: Ha3dNativeAppProps) {
   const hassRef = useRef(hass)
   hassRef.current = hass
 
@@ -1276,6 +1283,7 @@ export function Ha3dNativeApp({ hass, narrow, onShowMoreInfo }: Ha3dNativeAppPro
     >
       <NativeProject
         key={selectedProjectId}
+        buildVersion={buildVersion}
         canManageProjects={canManageProjects}
         host={api}
         leavingProject={leavingProject}

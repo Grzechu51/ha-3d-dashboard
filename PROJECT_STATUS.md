@@ -18,40 +18,34 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.20 Home Assistant theme + dashboard chrome polish**
+**Checkpoint: beta.21 versioned frontend delivery**
 
-Status: **v0.3.0-beta.20 is published from merged PR #40 and ready for real Home Assistant smoke testing**
+Status: **v0.3.0-beta.20 is published; beta.21 work is on `fix/versioned-panel-assets-beta21`**
 
-The beta.19 real-HA smoke test confirmed that the mobile floor/camera bar now drops to the bottom
-correctly when the controls are collapsed and that the renderer-independent Highlight fallback no
-longer fills linked objects. The next visual pass comes directly from that phone/desktop test:
+The beta.20 source and generated release frontend were re-inspected after the real HA retest still
+showed the beta.19 UI. The published beta.20 generated bundle is correct: it contains the new
+`Open menu` / `Close menu` strings and Home Assistant theme mapping, and it no longer contains
+the old `linked objects` dashboard header. The device therefore is not rendering the frontend
+contained in the beta.20 release even after an HA restart and app restart.
 
-- the standalone collapsed **Home Assistant** pill looks detached from the floor/camera controls;
-- the top **Projects / Edit** buttons still look like older debug chrome rather than the rest of the
-  dashboard;
-- dashboard chrome uses hard-coded slate/cyan colors instead of following the active Home Assistant
-  theme.
+The existing custom panel URL changes only by query string
+(`/ha3d_static/ha3d-panel.js?v=<version>`) while the static directory is registered with cache
+headers enabled. Beta.21 removes that weak cache boundary for the panel entry assets without
+disabling caching for the much larger runtime asset directory.
 
-Beta.20 integrates the collapsed control into the navigation bar as a persistent **Menu** button.
-The separate bottom pill is removed, the expanded panel is also titled **Menu**, and the entity /
-linked-object count line is removed. With the menu collapsed, navigation can now sit directly above
-the device safe area instead of reserving space for a second floating button.
+Each integration version now registers an additional immutable static alias:
 
-The project header and **Projects / Edit** actions are now one consistent glass control group with
-icons. On desktop, both the header and floor/camera bar reclaim the right side when the Menu panel is
-collapsed.
+`/ha3d_static_build/<version>/`
 
-Dashboard chrome now consumes Home Assistant's inherited CSS theme variables rather than a fixed
-dark palette. The mapping uses the normal HA surface/text/divider/primary variables, plus existing
-state/theme variables such as `--state-light-active-color`, `--warning-color`, `--success-color`
-and `--error-color`, with safe fallbacks for standalone development. Because these remain CSS
-variables inside the HA custom-panel shadow tree, changing the Home Assistant theme can update the
-dashboard presentation without copying theme state into project data.
+The custom-panel module URL and its stylesheet use that versioned path. A new release therefore has
+a genuinely different request path, not only a query parameter, while icons/materials can keep using
+the stable cached `/ha3d_static/` path. The backend also passes the loaded integration version into
+the panel; the dashboard project badge renders it beside the project revision so a real HA screenshot
+can prove which frontend is executing.
 
-PR #40 passed the normal CI gate and the automatic **HA Release #37** published
-**v0.3.0-beta.20** as a prerelease. The next gate is a real HA smoke test in at least the current
-dark theme and one visibly different Home Assistant theme, with special attention to the integrated
-Menu button, desktop width reclaim and semantic light-active color.
+Beta.21 keeps the beta.20 Menu/chrome/theme changes unchanged. The next gate is one normal PR CI run
+and release, followed by a real HA update/restart. The expected verification marker is
+`Dashboard · rev <n> · 0.3.0-beta.21` together with the integrated **Menu** control.
 
 ## Completed
 
