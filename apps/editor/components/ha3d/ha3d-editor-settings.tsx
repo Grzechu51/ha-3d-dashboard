@@ -3,8 +3,15 @@
 import { useScene } from '@pascal-app/core'
 import { useEditor } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
-import { Box, Download, PackagePlus, RefreshCw } from 'lucide-react'
+import { Box, Download, PackagePlus, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { type ReactNode, useState, useSyncExternalStore } from 'react'
+import {
+  getHa3dDashboardAppearanceServerSnapshot,
+  getHa3dDashboardAppearanceSnapshot,
+  resetHa3dDashboardAppearance,
+  subscribeHa3dDashboardAppearance,
+  updateHa3dDashboardAppearance,
+} from '../../lib/ha3d/dashboard-appearance'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
@@ -70,6 +77,11 @@ export function Ha3dEditorSettings() {
     subscribeHomeAssistantRuntime,
     getHomeAssistantRuntimeSnapshot,
     getHomeAssistantRuntimeSnapshot,
+  )
+  const dashboardAppearance = useSyncExternalStore(
+    subscribeHa3dDashboardAppearance,
+    getHa3dDashboardAppearanceSnapshot,
+    getHa3dDashboardAppearanceServerSnapshot,
   )
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState<string | null>(null)
@@ -186,6 +198,71 @@ export function Ha3dEditorSettings() {
             </ToggleButton>
           </div>
         </div>
+      </section>
+
+      <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-cyan-300" />
+            <div className="font-medium text-sm">Dashboard labels</div>
+          </div>
+          <button
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-muted-foreground text-xs hover:bg-accent hover:text-foreground"
+            onClick={resetHa3dDashboardAppearance}
+            type="button"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset
+          </button>
+        </div>
+        <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+          Tune the floating Home Assistant labels shown over linked 3D objects.
+        </p>
+
+        <label className="mt-3 block">
+          <span className="flex items-center justify-between gap-3 text-xs">
+            <span>Background opacity</span>
+            <span className="text-muted-foreground">
+              {Math.round(dashboardAppearance.labelOpacity * 100)}%
+            </span>
+          </span>
+          <input
+            className="mt-2 w-full accent-cyan-400"
+            max="0.95"
+            min="0.35"
+            onChange={(event) =>
+              updateHa3dDashboardAppearance({ labelOpacity: Number(event.currentTarget.value) })
+            }
+            step="0.05"
+            type="range"
+            value={dashboardAppearance.labelOpacity}
+          />
+        </label>
+
+        <label className="mt-3 block">
+          <span className="flex items-center justify-between gap-3 text-xs">
+            <span>Corner radius</span>
+            <span className="text-muted-foreground">
+              {dashboardAppearance.labelRadiusPx}px
+            </span>
+          </span>
+          <input
+            className="mt-2 w-full accent-cyan-400"
+            max="24"
+            min="4"
+            onChange={(event) =>
+              updateHa3dDashboardAppearance({ labelRadiusPx: Number(event.currentTarget.value) })
+            }
+            step="1"
+            type="range"
+            value={dashboardAppearance.labelRadiusPx}
+          />
+        </label>
+
+        <p className="mt-2 text-muted-foreground text-[10px] leading-relaxed">
+          These display preferences are stored locally in this browser and do not alter the shared
+          HA project.
+        </p>
       </section>
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
