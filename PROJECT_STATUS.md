@@ -28,12 +28,12 @@ Home Assistant dashboard, including installed custom cards such as Mushroom, nes
 visibility conditions and each card's native editor/YAML mode.
 
 Beta.23 keeps the existing Automatic and HA3D-tile modes for compatibility and adds a third
-**HA cards** mode. The project sidecar persists a root Lovelace card configuration. Inside
-**Edit → Settings → Dashboard menu**, HA3D loads Home Assistant's own Lovelace runtime and native
-card editor, so a vertical stack can add/edit normal HA cards through the normal visual picker or
-YAML editor. The runtime Menu renders the saved config through Home Assistant's `hui-card`
-wrapper instead of reimplementing Lovelace behavior, preserving visibility conditions and custom
-card behavior.
+**HA cards** mode. The project sidecar persists a root Lovelace card configuration. The Pascal
+sidebar now has a dedicated **Menu** tab for this mode, while **Settings → Dashboard menu** keeps
+the source-mode switch. HA3D loads Home Assistant's own Lovelace runtime and native card editor, so
+a vertical stack can add/edit normal HA cards through the normal visual picker or YAML editor. The
+runtime Menu renders the saved config through Home Assistant's `hui-card` wrapper instead of
+reimplementing Lovelace behavior, preserving visibility conditions and custom-card behavior.
 
 The raw Home Assistant host object is exposed only through an HA-specific runtime bridge under
 `apps/editor/lib/ha3d`; no Home Assistant state is added to Pascal stores or scene semantics.
