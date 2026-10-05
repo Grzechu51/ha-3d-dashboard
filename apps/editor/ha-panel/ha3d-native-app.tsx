@@ -48,6 +48,7 @@ import {
   Ha3dSunEnvironment,
 } from '../components/ha3d/ha3d-sun-environment'
 import type { HomeAssistantHassLike } from '../lib/ha3d/hass-adapter'
+import { setHomeAssistantLovelaceHost } from '../lib/ha3d/lovelace-host'
 import {
   createHomeAssistantProject,
   deleteHomeAssistantProject,
@@ -1072,6 +1073,17 @@ export function Ha3dNativeApp({ buildVersion, hass, narrow, onShowMoreInfo }: Ha
   }, [api])
 
   const connected = hass !== null
+
+  useEffect(() => {
+    setHomeAssistantLovelaceHost(hass)
+  }, [hass])
+
+  useEffect(
+    () => () => {
+      setHomeAssistantLovelaceHost(null)
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!connected) return
