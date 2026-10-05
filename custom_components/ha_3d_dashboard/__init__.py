@@ -13,6 +13,7 @@ from .const import (
     DATA_PROJECT_STORE,
     DATA_WEBSOCKET_REGISTERED,
     DOMAIN,
+    PANEL_ASSET_URL_PATH,
     PANEL_COMPONENT_NAME,
     PANEL_ICON,
     PANEL_MODULE_URL,
@@ -48,7 +49,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                     STATIC_URL_PATH,
                     str(_FRONTEND_DIR),
                     cache_headers=True,
-                )
+                ),
+                StaticPathConfig(
+                    PANEL_ASSET_URL_PATH,
+                    str(_FRONTEND_DIR),
+                    cache_headers=True,
+                ),
             ]
         )
         domain_data[_DATA_STATIC_REGISTERED] = True
@@ -69,6 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         sidebar_icon=PANEL_ICON,
         module_url=PANEL_MODULE_URL,
         config={
+            "asset_url": PANEL_ASSET_URL_PATH,
             "domain": DOMAIN,
             "version": VERSION,
         },
