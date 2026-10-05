@@ -155,7 +155,6 @@ export function Ha3dLovelaceMenuEditor({
         className="min-h-28 rounded-2xl border border-border bg-background/45 p-3 [&>hui-card-element-editor]:w-full"
         ref={mountRef}
       />
-
     </div>
   )
 }

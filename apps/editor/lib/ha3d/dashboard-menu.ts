@@ -102,9 +102,7 @@ export function cloneHa3dLovelaceCardConfig(
   return parseHa3dLovelaceCardConfig(config)
 }
 
-export function buildAutomaticDashboardCard(
-  entityIds: readonly string[],
-): Ha3dLovelaceCardConfig {
+export function buildAutomaticDashboardCard(entityIds: readonly string[]): Ha3dLovelaceCardConfig {
   const seen = new Set<string>()
   const cards: Ha3dJsonObject[] = []
 

@@ -185,8 +185,8 @@ export function Ha3dEditorSettings() {
           <div className="font-medium text-sm">Dashboard menu</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-          Automatic uses native Home Assistant Tile cards for entities linked to the 3D scene.
-          HA cards uses your own Lovelace card tree. Edit custom cards in the dedicated Menu tab.
+          Automatic uses native Home Assistant Tile cards for entities linked to the 3D scene. HA
+          cards uses your own Lovelace card tree. Edit custom cards in the dedicated Menu tab.
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-2">

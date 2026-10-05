@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import {
-  DEFAULT_HA3D_DASHBOARD_MENU,
   buildAutomaticDashboardCard,
+  DEFAULT_HA3D_DASHBOARD_MENU,
   dashboardMenuEqual,
   parseHa3dDashboardMenu,
 } from './dashboard-menu'
@@ -12,9 +12,7 @@ describe('HA 3D dashboard menu config', () => {
   })
 
   test('builds one native Tile card per unique bound entity', () => {
-    expect(
-      buildAutomaticDashboardCard(['light.salon', 'sensor.co2', 'light.salon']),
-    ).toEqual({
+    expect(buildAutomaticDashboardCard(['light.salon', 'sensor.co2', 'light.salon'])).toEqual({
       type: 'vertical-stack',
       cards: [
         { type: 'tile', entity: 'light.salon' },
