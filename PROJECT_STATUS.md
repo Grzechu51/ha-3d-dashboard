@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: beta.19 mobile dashboard polish**
 
-Status: **v0.3.0-beta.18 is published; beta.19 work is on `fix/mobile-dashboard-visuals-beta19`**
+Status: **v0.3.0-beta.19 is published from merged PR #39 and ready for real Home Assistant smoke testing**
 
 The beta.18 real-HA mobile smoke test confirmed that entity grouping, floating labels and
 renderer-independent Highlights are visible in the native Home Assistant panel. It also exposed
@@ -45,8 +45,10 @@ Floating entity labels now use a translucent glass background. **Settings → Da
 exposes background opacity and corner radius controls plus reset. These are per-browser display
 preferences stored locally and do not change shared Home Assistant project data.
 
-The next gate is one normal PR CI run for **v0.3.0-beta.19**, followed by an iPhone/desktop smoke
-test of responsive navigation, outline-only Highlights and label appearance controls.
+The PR #39 gate completed successfully and the automatic **HA Release #36** published
+**v0.3.0-beta.19** as a prerelease. The next gate is a real iPhone/desktop Home Assistant smoke
+test of responsive navigation, outline-only Highlights and label appearance controls. Source work
+for the next beta should remain on a separate branch until that smoke test confirms this checkpoint.
 
 ## Completed
 
