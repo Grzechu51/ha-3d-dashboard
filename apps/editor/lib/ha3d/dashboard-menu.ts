@@ -57,10 +57,11 @@ export function parseHa3dDashboardMenu(raw: unknown): Ha3dDashboardMenuConfig {
     }
     seen.add(entityId)
 
-    const span = item.span === undefined ? 2 : item.span
-    if (span !== 1 && span !== 2) {
+    const rawSpan = item.span
+    if (rawSpan !== undefined && rawSpan !== 1 && rawSpan !== 2) {
       throw new Error('[ha3d] dashboard menu item span must be 1 or 2')
     }
+    const span: Ha3dDashboardMenuSpan = rawSpan === 1 ? 1 : 2
 
     return { entityId, span }
   })
