@@ -4,7 +4,7 @@ import { getLevelDisplayName, type LevelNode } from '@pascal-app/core'
 import type { SceneGraph } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
 import { Camera, Layers } from 'lucide-react'
-import { useMemo } from 'react'
+import { type CSSProperties, useMemo } from 'react'
 import type { Ha3dDashboardCameraPreset } from '../../lib/ha3d/dashboard-camera'
 
 function isLevelNode(node: unknown): node is LevelNode {
@@ -27,9 +27,13 @@ const CAMERA_PRESETS: readonly { id: Ha3dDashboardCameraPreset; label: string }[
 export function Ha3dDashboardNavigation({
   scene,
   onCameraPreset,
+  controlsCollapsed = false,
+  controlsPanelHeight = 0,
 }: {
   scene: SceneGraph
   onCameraPreset: (preset: Ha3dDashboardCameraPreset) => void
+  controlsCollapsed?: boolean
+  controlsPanelHeight?: number
 }) {
   const selection = useViewer((state) => state.selection)
   const levelMode = useViewer((state) => state.levelMode)
@@ -40,6 +44,13 @@ export function Ha3dDashboardNavigation({
         .sort((left, right) => right.level - left.level),
     [scene.nodes],
   )
+
+  const mobileBottom = controlsCollapsed
+    ? '4.75rem'
+    : `${Math.max(Math.ceil(controlsPanelHeight) + 12, 76)}px`
+  const navigationStyle = {
+    '--ha3d-dashboard-nav-bottom': mobileBottom,
+  } as CSSProperties
 
   const showAllFloors = () => {
     const viewer = useViewer.getState()
@@ -64,7 +75,10 @@ export function Ha3dDashboardNavigation({
   }
 
   return (
-    <div className="pointer-events-none absolute right-3 bottom-[calc(46vh+1.5rem)] left-3 z-40 flex justify-center md:right-[22rem] md:bottom-3">
+    <div
+      className="pointer-events-none absolute right-3 bottom-[var(--ha3d-dashboard-nav-bottom)] left-3 z-40 flex justify-center transition-[bottom] duration-200 md:right-[22rem] md:bottom-3"
+      style={navigationStyle}
+    >
       <div className="pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/75 p-1.5 text-white shadow-2xl backdrop-blur-xl">
         <div className="flex shrink-0 items-center gap-1">
           <span className="flex h-8 w-8 items-center justify-center text-white/60">
