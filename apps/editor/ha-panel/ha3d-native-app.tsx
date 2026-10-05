@@ -36,7 +36,10 @@ import {
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
-import { HA3D_DASHBOARD_THEME_STYLE } from '../components/ha3d/ha3d-dashboard-theme'
+import {
+  HA3D_DASHBOARD_THEME_STYLE,
+  HA3D_EDITOR_THEME_STYLE,
+} from '../components/ha3d/ha3d-dashboard-theme'
 import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import { Ha3dEditorViewportToolbar } from '../components/ha3d/ha3d-editor-viewport-toolbar'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
@@ -757,9 +760,9 @@ function NativeDashboard({
             {buildVersion ? ` · ${buildVersion}` : ''}
           </div>
         </div>
-        <div className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1 shadow-xl backdrop-blur-xl">
+        <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1 shadow-xl backdrop-blur-xl">
           <button
-            className="flex h-9 items-center gap-1.5 rounded-xl px-2.5 font-medium text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
+            className="flex h-9 items-center gap-1.5 rounded-full px-3 font-medium text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
             onClick={onProjects}
             type="button"
           >
@@ -768,7 +771,7 @@ function NativeDashboard({
           </button>
           {onEdit ? (
             <button
-              className="flex h-9 items-center gap-1.5 rounded-xl bg-[var(--ha3d-dashboard-primary-soft)] px-2.5 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)] hover:brightness-110"
+              className="flex h-9 items-center gap-1.5 rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-3 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)] hover:brightness-110"
               onClick={onEdit}
               type="button"
             >
@@ -898,7 +901,10 @@ function NativeProject({
   }
 
   return (
-    <main className="dark relative h-full w-full min-w-0 overflow-hidden bg-background text-foreground">
+    <main
+      className="dark relative h-full w-full min-w-0 overflow-hidden bg-background text-foreground"
+      style={HA3D_EDITOR_THEME_STYLE}
+    >
       <EditorCrashBoundary
         key={`editor-boundary:${editorEpoch}`}
         onProjects={() => {
@@ -911,15 +917,15 @@ function NativeProject({
           layoutVersion="v2"
           manageDocumentDarkClass={false}
           navbarSlot={
-            <div className="flex min-h-11 items-center justify-between gap-3 border-white/10 border-b bg-slate-950/82 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-xl">
+            <div className="flex min-h-12 items-center justify-between gap-3 border-[var(--ha3d-dashboard-border)] border-b bg-[var(--ha3d-dashboard-surface)] px-3 py-2 text-xs text-[var(--ha3d-dashboard-text)] shadow-sm backdrop-blur-xl">
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="max-w-56 truncate font-semibold">{metadata.name}</span>
-                <span className="text-white/15">/</span>
+                <span className="text-[var(--ha3d-dashboard-muted)]/40">/</span>
                 <SessionStatus saveStatus={saveStatus} session={session} />
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 <button
-                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-hover)] px-3 py-1.5 text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-primary-soft)] hover:text-[var(--ha3d-dashboard-primary)] disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={!editorReady || sceneSaveBlocked || leavingProject}
                   onClick={() => setStructureOpen(true)}
                   title={editorReady ? undefined : 'Wait for the scene to finish loading'}
@@ -928,7 +934,7 @@ function NativeProject({
                   HA structure
                 </button>
                 <button
-                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-hover)] px-3 py-1.5 text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-primary-soft)] hover:text-[var(--ha3d-dashboard-primary)] disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={sceneSaveBlocked || leavingProject}
                   onClick={() => {
                     setStructureOpen(false)
@@ -939,7 +945,7 @@ function NativeProject({
                   Dashboard
                 </button>
                 <button
-                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-hover)] px-3 py-1.5 text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-primary-soft)] hover:text-[var(--ha3d-dashboard-primary)] disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={sceneSaveBlocked || leavingProject}
                   onClick={() => {
                     setStructureOpen(false)
