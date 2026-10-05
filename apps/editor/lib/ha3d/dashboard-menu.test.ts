@@ -1,35 +1,49 @@
 import { describe, expect, test } from 'bun:test'
 import {
   DEFAULT_HA3D_DASHBOARD_MENU,
+  buildAutomaticDashboardCard,
   dashboardMenuEqual,
   parseHa3dDashboardMenu,
 } from './dashboard-menu'
 
 describe('HA 3D dashboard menu config', () => {
-  test('uses automatic bound-entity mode for legacy projects', () => {
+  test('uses automatic native HA tiles for legacy projects', () => {
     expect(parseHa3dDashboardMenu(undefined)).toEqual(DEFAULT_HA3D_DASHBOARD_MENU)
   })
 
-  test('normalizes custom menu items and defaults old items to full width', () => {
+  test('builds one native Tile card per unique bound entity', () => {
+    expect(
+      buildAutomaticDashboardCard(['light.salon', 'sensor.co2', 'light.salon']),
+    ).toEqual({
+      type: 'vertical-stack',
+      cards: [
+        { type: 'tile', entity: 'light.salon' },
+        { type: 'tile', entity: 'sensor.co2' },
+      ],
+    })
+  })
+
+  test('migrates legacy HA3D custom tiles to native Home Assistant Tile cards', () => {
     expect(
       parseHa3dDashboardMenu({
         mode: 'custom',
         items: [{ entityId: ' light.salon ' }, { entityId: 'sensor.co2', span: 1 }],
       }),
     ).toEqual({
-      mode: 'custom',
-      items: [
-        { entityId: 'light.salon', span: 2 },
-        { entityId: 'sensor.co2', span: 1 },
-      ],
-      lovelaceCard: { type: 'vertical-stack', cards: [] },
+      mode: 'lovelace',
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          { type: 'tile', entity: 'light.salon' },
+          { type: 'tile', entity: 'sensor.co2' },
+        ],
+      },
     })
   })
 
   test('round-trips a native Lovelace card tree', () => {
     const menu = parseHa3dDashboardMenu({
       mode: 'lovelace',
-      items: [],
       lovelaceCard: {
         type: 'vertical-stack',
         cards: [
@@ -58,7 +72,6 @@ describe('HA 3D dashboard menu config', () => {
 
     expect(menu).toEqual({
       mode: 'lovelace',
-      items: [],
       lovelaceCard: {
         type: 'vertical-stack',
         cards: [
@@ -90,7 +103,6 @@ describe('HA 3D dashboard menu config', () => {
     expect(() =>
       parseHa3dDashboardMenu({
         mode: 'lovelace',
-        items: [],
         lovelaceCard: { cards: [] },
       }),
     ).toThrow('card type')
@@ -98,42 +110,37 @@ describe('HA 3D dashboard menu config', () => {
     expect(() =>
       parseHa3dDashboardMenu({
         mode: 'lovelace',
-        items: [],
         lovelaceCard: { type: 'markdown', content: new Date() },
       }),
     ).toThrow('plain YAML/JSON')
   })
 
-  test('rejects duplicate and malformed entities', () => {
+  test('rejects duplicate and malformed legacy custom entities', () => {
     expect(() =>
       parseHa3dDashboardMenu({
         mode: 'custom',
-        items: [
-          { entityId: 'light.salon', span: 1 },
-          { entityId: 'light.salon', span: 2 },
-        ],
+        items: [{ entityId: 'light.salon' }, { entityId: 'light.salon' }],
       }),
     ).toThrow('unique')
 
     expect(() =>
       parseHa3dDashboardMenu({
         mode: 'custom',
-        items: [{ entityId: 'invalid', span: 1 }],
+        items: [{ entityId: 'invalid' }],
       }),
     ).toThrow('invalid')
   })
 
-  test('compares menu order and width', () => {
+  test('compares native menu mode and card config', () => {
     const menu = parseHa3dDashboardMenu({
-      mode: 'custom',
-      items: [{ entityId: 'light.salon', span: 1 }],
+      mode: 'lovelace',
+      lovelaceCard: { type: 'tile', entity: 'light.salon' },
     })
     expect(dashboardMenuEqual(menu, menu)).toBe(true)
     expect(
       dashboardMenuEqual(menu, {
-        mode: 'custom',
-        items: [{ entityId: 'light.salon', span: 2 }],
-        lovelaceCard: { type: 'vertical-stack', cards: [] },
+        mode: 'auto',
+        lovelaceCard: { type: 'tile', entity: 'light.salon' },
       }),
     ).toBe(false)
   })
