@@ -18,49 +18,45 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.24 native-only Home Assistant Menu + camera framing**
+**Checkpoint: beta.25 real-HA editor UX + material asset repair**
 
-Status: **v0.3.0-beta.24 is published from merged PR #44 and ready for real Home Assistant smoke testing**
+Status: **v0.3.0-beta.24 is published; beta.25 work is on `feat/editor-ux-assets-beta25`**
 
-The beta.23 real-HA smoke test confirmed that the native Lovelace editor and Mushroom cards render,
-but it also clarified three UX requirements:
+The beta.24 real Home Assistant smoke test confirmed that the revised camera framing and most native
+dashboard/editor behavior work, and exposed the remaining editor-host integration issues:
 
-- the temporary **HA3D tiles** implementation should be removed rather than coexist with native HA;
-- **Automatic** should render normal Home Assistant Tile cards for the entities bound to the 3D
-  scene;
-- the Menu editor should not stack its own preview underneath the native HA editor. The preview
-  should be docked on the right side of the 3D editor, matching the final dashboard position.
+- an underlying Pascal sidebar surface can still appear behind an HA host panel;
+- the HA cards editor/preview needs to remain visible and editable inside the viewer layout;
+- the detached level selector should be grouped with the main editor action controls near a corner;
+- the level `...` actions must render as a normal vertical popover;
+- material thumbnails and maps are broken for many catalog entries even though the release ZIP ships
+  the material directories.
 
-Beta.24 reduces the Menu model to two user-facing modes: **Automatic HA tiles** and **Custom HA
-cards**. Automatic mode dynamically builds a native Lovelace vertical stack of standard `tile`
-cards from the unique enabled 3D bindings. Custom mode keeps the full native Lovelace/Mushroom card
-tree from beta.23. The beta.22/23 `custom` HA3D-tile data is migrated once into native Tile cards,
-so existing beta projects do not lose their selected entities.
+Beta.25 makes explicit HA sidebar tabs override Pascal built-ins, scopes the native HA cards preview
+to the viewer overlay, seeds an empty HA cards configuration from the currently bound entities, and
+removes the remaining user-facing "Custom HA cards" wording.
 
-The dedicated **Menu** editor tab now contains only Home Assistant's native card editor. Its live
-preview is a separate right-side 21rem panel over the 3D editor, using the same native card renderer
-as the final dashboard. **Settings → Dashboard menu** only selects Automatic vs Custom and no longer
-embeds a second card editor/preview beneath the first one.
+For the HA embed only, the level selector and editor action menu are grouped into one bottom-left
+control dock while standalone Pascal keeps its existing layout. The level action popover is forced
+to a vertical menu.
 
-The camera preset issue from the real smoke test had two causes. Both Dashboard and Edit previously
-expanded fit bounds from almost the whole scene registry, so the large Site/property geometry could
-dominate the framing, and the generic preset distance multiplier was overly conservative. Beta.24
-now derives all-level framing from registered Building roots (with the old non-Site scan only as a
-fallback) and reduces the framing multiplier from 2.2 to 1.45. Level-solo bounds remain unchanged.
-
-The beta.23 slab depth-contact relief remains in place and is not broadened in this checkpoint.
+The material failure was traced to catalog drift rather than incomplete packaging. The release
+builder already recursively ships the Pascal icon and material directories, but the material
+catalog contained hundreds of stale `/material/...` URLs for old thumbnail/KTX2 filenames. The
+catalog now points at the files that actually exist under `apps/editor/public/material`, and the HA
+package builder rejects any future catalog URL that does not resolve to a packaged material asset.
 
 Architecture classification:
 
-- Menu modes, native-card runtime and editor preview: `apps/editor` HA host integration.
-- Dashboard/editor camera framing: `apps/editor` presentation/navigation.
-- Legacy HA3D-tile migration: existing HA project sidecar parser/backend normalization.
-- No new Pascal core/viewer store state, scene schema, node kind or plugin API.
+- HA cards editor/preview/sidebar behavior: `apps/editor` host integration;
+- compact level/action dock: opt-in `packages/editor` presentation API used only by the HA host;
+- material URL correction: `packages/core` catalog data only, no renderer/system semantics;
+- release validation: packaging script only;
+- no viewer store, node schema, renderer dispatch, tool semantics or plugin API changes.
 
-PR #44 passed the normal CI gate and the automatic **HA Release #41** published
-**v0.3.0-beta.24** as a prerelease. The next gate is a real Home Assistant smoke test of Automatic
-native Tile cards, the right-docked editor preview, custom Mushroom editing and the revised
-Fit/Iso/Top/Front/Right framing.
+The next gate is source/architecture review followed by one normal PR CI run for
+**v0.3.0-beta.25**, then a real Home Assistant smoke test of the Menu editor/preview, compact
+bottom-left controls, level actions and the full material picker.
 
 ## Completed
 
