@@ -48,7 +48,9 @@ function resolveEditorBounds(levelId: string | null, solo: boolean): Box3 | null
 }
 
 function levelBuildingId(level: LevelNode, nodes: ReturnType<typeof useScene.getState>['nodes']) {
-  const parent = level.parentId ? nodes[level.parentId] : null
+  const parent = level.parentId
+    ? Object.values(nodes).find((node) => node.id === level.parentId)
+    : undefined
   return parent?.type === 'building' ? parent.id : null
 }
 
