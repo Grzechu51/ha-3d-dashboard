@@ -49,7 +49,7 @@ export function Ha3dDashboardMenuPreview() {
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto p-2.5">
         {lovelaceHost ? (
-          <Ha3dLovelaceCard config={card} hass={lovelaceHost} preview />
+          <Ha3dLovelaceCard config={card} hass={lovelaceHost} />
         ) : (
           <div className="rounded-2xl border border-dashed border-[var(--ha3d-dashboard-border)] px-3 py-5 text-center text-[var(--ha3d-dashboard-muted)] text-xs">
             Home Assistant card runtime is not connected.
