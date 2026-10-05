@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: beta.21 versioned frontend delivery**
 
-Status: **v0.3.0-beta.20 is published; beta.21 work is on `fix/versioned-panel-assets-beta21`**
+Status: **v0.3.0-beta.21 is published from merged PR #41 and ready for real Home Assistant delivery verification**
 
 The beta.20 source and generated release frontend were re-inspected after the real HA retest still
 showed the beta.19 UI. The published beta.20 generated bundle is correct: it contains the new
@@ -43,9 +43,12 @@ the stable cached `/ha3d_static/` path. The backend also passes the loaded integ
 the panel; the dashboard project badge renders it beside the project revision so a real HA screenshot
 can prove which frontend is executing.
 
-Beta.21 keeps the beta.20 Menu/chrome/theme changes unchanged. The next gate is one normal PR CI run
-and release, followed by a real HA update/restart. The expected verification marker is
-`Dashboard · rev <n> · 0.3.0-beta.21` together with the integrated **Menu** control.
+PR #41 passed the normal CI gate and the automatic **HA Release #38** published
+**v0.3.0-beta.21** as a prerelease. The next gate is a real HA update/restart. The expected
+verification marker is `Dashboard · rev <n> · 0.3.0-beta.21` together with the integrated
+**Menu** control. If that marker still does not appear, the remaining issue is outside the committed
+frontend bundle itself and the installed integration files / Home Assistant panel registration must
+be inspected directly on the test instance.
 
 ## Completed
 
