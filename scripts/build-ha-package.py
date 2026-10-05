@@ -22,6 +22,7 @@ CONST_PATH = COMPONENT_DIR / "const.py"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "dist"
 PASCAL_ICONS_DIR = REPO_ROOT / "apps/editor/public/icons"
 PASCAL_MATERIALS_DIR = REPO_ROOT / "apps/editor/public/material"
+MATERIAL_LIBRARY_PATH = REPO_ROOT / "packages/core/src/material-library.ts"
 
 EXCLUDED_PARTS = {"tests", "__pycache__"}
 EXCLUDED_SUFFIXES = {".pyc", ".pyo"}
@@ -195,11 +196,26 @@ def icon_archive_name(path: Path, layout: str) -> str:
     return (COMPONENT_RELATIVE / target).as_posix()
 
 
+def validate_material_catalog_assets() -> None:
+    """Ensure every static material URL used by the catalog ships in the HA package."""
+    source = MATERIAL_LIBRARY_PATH.read_text(encoding="utf-8")
+    references = sorted(set(re.findall(r'["\\'](/material/[^"\\']+)["\\']', source)))
+    missing = [
+        reference
+        for reference in references
+        if not (PASCAL_MATERIALS_DIR / reference.removeprefix("/material/")).is_file()
+    ]
+    if missing:
+        rendered = "\\n".join(f"- {reference}" for reference in missing)
+        raise RuntimeError(f"Material catalog references missing runtime assets:\\n{rendered}")
+
+
 def material_asset_files() -> list[Path]:
     if not PASCAL_MATERIALS_DIR.is_dir():
         raise RuntimeError(
             f"Pascal material asset directory is missing: {PASCAL_MATERIALS_DIR.relative_to(REPO_ROOT)}"
         )
+    validate_material_catalog_assets()
     return sorted(path for path in PASCAL_MATERIALS_DIR.rglob("*") if path.is_file())
 
 
