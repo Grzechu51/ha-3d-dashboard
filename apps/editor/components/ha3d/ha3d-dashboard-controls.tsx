@@ -242,7 +242,7 @@ export function Ha3dDashboardControls({
                 aria-pressed={environmentMode === mode}
                 className={
                   environmentMode === mode
-                    ? 'rounded-lg bg-[var(--ha3d-dashboard-warning-soft)] px-1.5 py-1.5 font-medium text-[10px] text-[var(--ha3d-dashboard-warning)] ring-1 ring-[var(--ha3d-dashboard-warning)]/20'
+                    ? 'rounded-lg bg-[var(--ha3d-dashboard-warning-soft)] px-1.5 py-1.5 font-medium text-[10px] text-[var(--ha3d-dashboard-warning)] ring-1 ring-[var(--ha3d-dashboard-warning-ring)]'
                     : 'rounded-lg px-1.5 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
                 }
                 key={mode}
@@ -262,7 +262,7 @@ export function Ha3dDashboardControls({
 
       <div className="max-h-[calc(48vh-8.5rem)] overflow-y-auto p-2 md:max-h-[calc(100vh-11.5rem)]">
         {actionError ? (
-          <div className="mb-2 rounded-xl border border-[var(--ha3d-dashboard-error)]/30 bg-[var(--ha3d-dashboard-error-soft)] px-3 py-2 text-[var(--ha3d-dashboard-error)] text-xs">
+          <div className="mb-2 rounded-xl border border-[var(--ha3d-dashboard-error-ring)] bg-[var(--ha3d-dashboard-error-soft)] px-3 py-2 text-[var(--ha3d-dashboard-error)] text-xs">
             {actionError}
           </div>
         ) : null}
@@ -282,6 +282,7 @@ export function Ha3dDashboardControls({
                 binding.domain === 'switch' ||
                 binding.domain === 'input_boolean' ||
                 binding.domain === 'cover'
+              const activeLight = binding.domain === 'light' && row.entity?.state === 'on'
 
               return (
                 <div
@@ -313,7 +314,11 @@ export function Ha3dDashboardControls({
 
                   {hasQuickAction && row.entity ? (
                     <button
-                      className="min-w-9 rounded-lg bg-[var(--ha3d-dashboard-hover)] px-2 py-1.5 text-[10px] text-[var(--ha3d-dashboard-text)] hover:bg-[var(--ha3d-dashboard-primary-soft)] hover:text-[var(--ha3d-dashboard-primary)]"
+                      className={
+                        activeLight
+                          ? 'min-w-9 rounded-lg bg-[var(--ha3d-dashboard-light-active-soft)] px-2 py-1.5 text-[10px] text-[var(--ha3d-dashboard-light-active)] ring-1 ring-[var(--ha3d-dashboard-light-active-ring)]'
+                          : 'min-w-9 rounded-lg bg-[var(--ha3d-dashboard-hover)] px-2 py-1.5 text-[10px] text-[var(--ha3d-dashboard-text)] hover:bg-[var(--ha3d-dashboard-primary-soft)] hover:text-[var(--ha3d-dashboard-primary)]'
+                      }
                       onClick={() => void quickAction(row)}
                       type="button"
                     >
