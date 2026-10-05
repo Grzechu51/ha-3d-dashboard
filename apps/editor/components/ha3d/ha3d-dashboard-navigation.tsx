@@ -47,7 +47,7 @@ export function Ha3dDashboardNavigation({
 
   const mobileBottom = controlsCollapsed
     ? '4.75rem'
-    : `${Math.max(Math.ceil(controlsPanelHeight) + 12, 76)}px`
+    : `${Math.max(Math.ceil(controlsPanelHeight) + 24, 88)}px`
   const navigationStyle = {
     '--ha3d-dashboard-nav-bottom': mobileBottom,
   } as CSSProperties
