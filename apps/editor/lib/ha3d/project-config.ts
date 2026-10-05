@@ -1,5 +1,12 @@
 import type { ViewerPresentationConfiguration } from '@pascal-app/viewer'
 import {
+  dashboardMenuEqual,
+  DEFAULT_HA3D_DASHBOARD_MENU,
+  type Ha3dDashboardMenuConfig,
+  type Ha3dDashboardMenuItem,
+  parseHa3dDashboardMenu,
+} from './dashboard-menu'
+import {
   createEntityBinding,
   type EntityBinding,
   entityDomain,
@@ -19,6 +26,7 @@ export type Ha3dProjectConfig = Readonly<{
   version: typeof HA3D_PROJECT_CONFIG_VERSION
   bindings: readonly EntityBinding[]
   structureMappings: Ha3dStructureMappings
+  dashboardMenu: Ha3dDashboardMenuConfig
 }>
 
 const listeners = new Set<() => void>()
@@ -27,6 +35,7 @@ let snapshot: Ha3dProjectConfig = {
   version: HA3D_PROJECT_CONFIG_VERSION,
   bindings: [],
   structureMappings: { floors: [], areas: [] },
+  dashboardMenu: DEFAULT_HA3D_DASHBOARD_MENU,
 }
 
 function bindingKey(binding: Pick<EntityBinding, 'nodeId' | 'domain'>): string {
@@ -63,6 +72,13 @@ function cloneBinding(binding: EntityBinding): EntityBinding {
         coverMotion: { ...binding.coverMotion },
       }
     : { ...binding }
+}
+
+function cloneDashboardMenu(menu: Ha3dDashboardMenuConfig): Ha3dDashboardMenuConfig {
+  return {
+    mode: menu.mode,
+    items: menu.items.map((item) => ({ ...item })),
+  }
 }
 
 function sortBindings(bindings: readonly EntityBinding[]): EntityBinding[] {
@@ -141,11 +157,13 @@ function parseStructureMappings(raw: unknown): Ha3dStructureMappings {
 function publish(
   bindings: readonly EntityBinding[],
   structureMappings: Ha3dStructureMappings = snapshot.structureMappings,
+  dashboardMenu: Ha3dDashboardMenuConfig = snapshot.dashboardMenu,
 ): void {
   snapshot = {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(bindings).map(cloneBinding),
     structureMappings,
+    dashboardMenu: cloneDashboardMenu(dashboardMenu),
   }
   for (const listener of listeners) listener()
 }
@@ -196,6 +214,7 @@ export function parseHa3dProjectConfig(raw: unknown): Ha3dProjectConfig {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: sortBindings(Array.from(byKey.values())),
     structureMappings: parseStructureMappings(record.structureMappings),
+    dashboardMenu: parseHa3dDashboardMenu(record.dashboardMenu),
   }
 }
 
@@ -224,6 +243,63 @@ export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssista
   )
   if (next.length === snapshot.bindings.length) return
   publish(next)
+}
+
+export function setDashboardMenuMode(mode: Ha3dDashboardMenuConfig['mode']): void {
+  if (snapshot.dashboardMenu.mode === mode) return
+  publish(snapshot.bindings, snapshot.structureMappings, {
+    ...snapshot.dashboardMenu,
+    mode,
+  })
+}
+
+export function addDashboardMenuItem(entityId: string): void {
+  const trimmed = entityId.trim()
+  if (snapshot.dashboardMenu.items.some((item) => item.entityId === trimmed)) return
+  const next = parseHa3dDashboardMenu({
+    mode: 'custom',
+    items: [...snapshot.dashboardMenu.items, { entityId: trimmed, span: 2 }],
+  })
+  publish(snapshot.bindings, snapshot.structureMappings, next)
+}
+
+export function updateDashboardMenuItem(
+  entityId: string,
+  patch: Partial<Pick<Ha3dDashboardMenuItem, 'span'>>,
+): void {
+  const index = snapshot.dashboardMenu.items.findIndex((item) => item.entityId === entityId)
+  if (index < 0) return
+
+  const items = snapshot.dashboardMenu.items.map((item, itemIndex) =>
+    itemIndex === index ? { ...item, ...patch } : item,
+  )
+  const next = parseHa3dDashboardMenu({ mode: 'custom', items })
+  if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
+  publish(snapshot.bindings, snapshot.structureMappings, next)
+}
+
+export function moveDashboardMenuItem(entityId: string, offset: -1 | 1): void {
+  const index = snapshot.dashboardMenu.items.findIndex((item) => item.entityId === entityId)
+  const target = index + offset
+  if (index < 0 || target < 0 || target >= snapshot.dashboardMenu.items.length) return
+
+  const items = [...snapshot.dashboardMenu.items]
+  const [item] = items.splice(index, 1)
+  if (!item) return
+  items.splice(target, 0, item)
+  publish(snapshot.bindings, snapshot.structureMappings, {
+    mode: 'custom',
+    items,
+  })
+}
+
+export function removeDashboardMenuItem(entityId: string): void {
+  const items = snapshot.dashboardMenu.items.filter((item) => item.entityId !== entityId)
+  if (items.length === snapshot.dashboardMenu.items.length) return
+  publish(snapshot.bindings, snapshot.structureMappings, {
+    mode: 'custom',
+    items,
+  })
 }
 
 export function upsertFloorStructureMapping(floorId: string, levelNodeId: string): void {
@@ -268,11 +344,12 @@ export function resetHa3dProjectConfig(): void {
   if (
     snapshot.bindings.length === 0 &&
     snapshot.structureMappings.floors.length === 0 &&
-    snapshot.structureMappings.areas.length === 0
+    snapshot.structureMappings.areas.length === 0 &&
+    dashboardMenuEqual(snapshot.dashboardMenu, DEFAULT_HA3D_DASHBOARD_MENU)
   ) {
     return
   }
-  publish([], { floors: [], areas: [] })
+  publish([], { floors: [], areas: [] }, DEFAULT_HA3D_DASHBOARD_MENU)
 }
 
 export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
@@ -280,10 +357,11 @@ export const ha3dProjectConfiguration: ViewerPresentationConfiguration = {
     version: HA3D_PROJECT_CONFIG_VERSION,
     bindings: snapshot.bindings.map(cloneBinding),
     structureMappings: snapshot.structureMappings,
+    dashboardMenu: cloneDashboardMenu(snapshot.dashboardMenu),
   }),
   restore: (raw) => {
     const restored = parseHa3dProjectConfig(raw)
-    publish(restored.bindings, restored.structureMappings)
+    publish(restored.bindings, restored.structureMappings, restored.dashboardMenu)
   },
   reset: resetHa3dProjectConfig,
   subscribe: subscribeHa3dProjectConfig,
