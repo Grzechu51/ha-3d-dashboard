@@ -3,10 +3,6 @@ import type { CSSProperties } from 'react'
 export const HA3D_DASHBOARD_THEME_STYLE = {
   '--ha3d-dashboard-surface':
     'color-mix(in srgb, var(--ha-card-background, var(--card-background-color, #0f172a)) 88%, transparent)',
-  '--ha3d-dashboard-surface-solid':
-    'var(--ha-card-background, var(--card-background-color, #0f172a))',
-  '--ha3d-dashboard-surface-muted':
-    'color-mix(in srgb, var(--ha-card-background, var(--card-background-color, #0f172a)) 72%, transparent)',
   '--ha3d-dashboard-border': 'var(--divider-color, rgba(255, 255, 255, 0.12))',
   '--ha3d-dashboard-text': 'var(--primary-text-color, #f8fafc)',
   '--ha3d-dashboard-muted': 'var(--secondary-text-color, #94a3b8)',
