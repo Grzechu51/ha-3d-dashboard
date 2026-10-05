@@ -10,7 +10,7 @@ import {
   useScene,
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
-import { FolderOpen, Hammer, Layers, Package, Pencil, Settings } from 'lucide-react'
+import { FolderOpen, Hammer, Layers, Package, PanelsTopLeft, Pencil, Settings } from 'lucide-react'
 import {
   Component,
   type ComponentType,
@@ -35,6 +35,7 @@ import {
   HA3D_INTERACTIVE_HOVER_STYLES,
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
+import { Ha3dDashboardMenuPanel } from '../components/ha3d/ha3d-dashboard-menu-panel'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
 import {
   HA3D_DASHBOARD_THEME_STYLE,
@@ -123,6 +124,14 @@ const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
     mobileDefaultSnap: 0.5,
     mobileIcon: <Package className="h-5 w-5" />,
     icon: <Package className="h-5 w-5" />,
+  },
+  {
+    id: 'ha-menu',
+    label: 'Menu',
+    component: Ha3dDashboardMenuPanel,
+    mobileDefaultSnap: 0.7,
+    mobileIcon: <PanelsTopLeft className="h-5 w-5" />,
+    icon: <PanelsTopLeft className="h-5 w-5" />,
   },
   {
     id: 'ha-settings',
