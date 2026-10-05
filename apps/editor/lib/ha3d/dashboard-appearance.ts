@@ -5,7 +5,7 @@ export type Ha3dDashboardAppearance = Readonly<{
 
 export const DEFAULT_HA3D_DASHBOARD_APPEARANCE: Ha3dDashboardAppearance = {
   labelOpacity: 0.68,
-  labelRadiusPx: 10,
+  labelRadiusPx: 14,
 }
 
 const STORAGE_KEY = 'ha3d:dashboard-appearance:v1'
