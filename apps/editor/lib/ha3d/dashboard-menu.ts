@@ -10,13 +10,7 @@ export interface Ha3dJsonObject {
   readonly [key: string]: Ha3dJsonValue
 }
 
-export type Ha3dJsonValue =
-  | null
-  | boolean
-  | number
-  | string
-  | Ha3dJsonValue[]
-  | Ha3dJsonObject
+export type Ha3dJsonValue = null | boolean | number | string | Ha3dJsonValue[] | Ha3dJsonObject
 
 export type Ha3dLovelaceCardConfig = Ha3dJsonObject
 
