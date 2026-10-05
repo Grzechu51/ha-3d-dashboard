@@ -58,6 +58,13 @@ type SlabMaterial = Material & {
   transparent: boolean
 }
 
+// The slab support plane and wall/item bases intentionally coincide. Rendering the
+// horizontal surface a fraction below that support plane prevents coplanar bottom
+// caps/feet from fighting the floor depth buffer while the vertical slab side stays
+// exactly on the authored boundary/elevation. 0.5 mm is below normal modelling
+// tolerances and is not used by any support/collision calculation.
+const SLAB_SURFACE_CONTACT_EPSILON = 0.0005
+
 const slabMaterialCache = new Map<string, Material>()
 registerMaterialCacheCleanup(() => {
   const previous = [...slabMaterialCache.values()]
@@ -318,6 +325,7 @@ export function buildSlabGeometry(
     // recessed shells are authored from floor to rim and translated so the
     // floor sits at `elevation`.
     if (node.recessed) mesh.position.y = elevation
+    if (slotId === 'surface') mesh.position.y -= SLAB_SURFACE_CONTACT_EPSILON
     group.add(mesh)
   }
 

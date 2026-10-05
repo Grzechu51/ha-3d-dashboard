@@ -21,6 +21,10 @@ import { entityDomain } from '../../lib/ha3d/entity-binding'
 import { entityFriendlyName, formatHomeAssistantEntityValue } from '../../lib/ha3d/entity-display'
 import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
+  getHomeAssistantLovelaceHostSnapshot,
+  subscribeHomeAssistantLovelaceHost,
+} from '../../lib/ha3d/lovelace-host'
+import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
 } from '../../lib/ha3d/project-config'
@@ -28,6 +32,7 @@ import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
+import { Ha3dLovelaceCard } from './ha3d-lovelace-card'
 import { Ha3dMoreInfoPopup } from './ha3d-more-info-popup'
 import type { Ha3dEnvironmentMode } from './ha3d-sun-environment'
 
@@ -169,6 +174,11 @@ export function Ha3dDashboardControls({
     subscribeHomeAssistantRuntime,
     getHomeAssistantRuntimeSnapshot,
     getHomeAssistantRuntimeSnapshot,
+  )
+  const lovelaceHost = useSyncExternalStore(
+    subscribeHomeAssistantLovelaceHost,
+    getHomeAssistantLovelaceHostSnapshot,
+    getHomeAssistantLovelaceHostSnapshot,
   )
   const project = useSyncExternalStore(
     subscribeHa3dProjectConfig,
@@ -422,7 +432,15 @@ export function Ha3dDashboardControls({
           </div>
         ) : null}
 
-        {rows.length === 0 ? (
+        {project.dashboardMenu.mode === 'lovelace' ? (
+          lovelaceHost ? (
+            <Ha3dLovelaceCard config={project.dashboardMenu.lovelaceCard} hass={lovelaceHost} />
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[var(--ha3d-dashboard-border)] px-3 py-5 text-center text-[var(--ha3d-dashboard-muted)] text-xs">
+              Home Assistant card runtime is not connected.
+            </div>
+          )
+        ) : rows.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-[var(--ha3d-dashboard-border)] px-3 py-5 text-center text-[var(--ha3d-dashboard-muted)] text-xs">
             {project.dashboardMenu.mode === 'custom'
               ? 'No custom Menu tiles yet. Add them in Edit → Settings → Dashboard menu.'

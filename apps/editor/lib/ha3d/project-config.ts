@@ -1,10 +1,13 @@
 import type { ViewerPresentationConfiguration } from '@pascal-app/viewer'
 import {
+  cloneHa3dLovelaceCardConfig,
   DEFAULT_HA3D_DASHBOARD_MENU,
   dashboardMenuEqual,
   type Ha3dDashboardMenuConfig,
   type Ha3dDashboardMenuItem,
+  type Ha3dLovelaceCardConfig,
   parseHa3dDashboardMenu,
+  parseHa3dLovelaceCardConfig,
 } from './dashboard-menu'
 import {
   createEntityBinding,
@@ -78,6 +81,7 @@ function cloneDashboardMenu(menu: Ha3dDashboardMenuConfig): Ha3dDashboardMenuCon
   return {
     mode: menu.mode,
     items: menu.items.map((item) => ({ ...item })),
+    lovelaceCard: cloneHa3dLovelaceCardConfig(menu.lovelaceCard),
   }
 }
 
@@ -253,10 +257,22 @@ export function setDashboardMenuMode(mode: Ha3dDashboardMenuConfig['mode']): voi
   })
 }
 
+export function setDashboardLovelaceCard(config: Ha3dLovelaceCardConfig): void {
+  const lovelaceCard = parseHa3dLovelaceCardConfig(config)
+  const next: Ha3dDashboardMenuConfig = {
+    ...snapshot.dashboardMenu,
+    mode: 'lovelace',
+    lovelaceCard,
+  }
+  if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
+  publish(snapshot.bindings, snapshot.structureMappings, next)
+}
+
 export function addDashboardMenuItem(entityId: string): void {
   const trimmed = entityId.trim()
   if (snapshot.dashboardMenu.items.some((item) => item.entityId === trimmed)) return
   const next = parseHa3dDashboardMenu({
+    ...snapshot.dashboardMenu,
     mode: 'custom',
     items: [...snapshot.dashboardMenu.items, { entityId: trimmed, span: 2 }],
   })
@@ -273,7 +289,11 @@ export function updateDashboardMenuItem(
   const items = snapshot.dashboardMenu.items.map((item, itemIndex) =>
     itemIndex === index ? { ...item, ...patch } : item,
   )
-  const next = parseHa3dDashboardMenu({ mode: 'custom', items })
+  const next = parseHa3dDashboardMenu({
+    ...snapshot.dashboardMenu,
+    mode: 'custom',
+    items,
+  })
   if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
   publish(snapshot.bindings, snapshot.structureMappings, next)
 }
@@ -288,6 +308,7 @@ export function moveDashboardMenuItem(entityId: string, offset: -1 | 1): void {
   if (!item) return
   items.splice(target, 0, item)
   publish(snapshot.bindings, snapshot.structureMappings, {
+    ...snapshot.dashboardMenu,
     mode: 'custom',
     items,
   })
@@ -297,6 +318,7 @@ export function removeDashboardMenuItem(entityId: string): void {
   const items = snapshot.dashboardMenu.items.filter((item) => item.entityId !== entityId)
   if (items.length === snapshot.dashboardMenu.items.length) return
   publish(snapshot.bindings, snapshot.structureMappings, {
+    ...snapshot.dashboardMenu,
     mode: 'custom',
     items,
   })

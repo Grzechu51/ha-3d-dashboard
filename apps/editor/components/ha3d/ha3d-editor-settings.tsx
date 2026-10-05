@@ -31,6 +31,7 @@ import {
   getHa3dProjectConfigSnapshot,
   moveDashboardMenuItem,
   removeDashboardMenuItem,
+  setDashboardLovelaceCard,
   setDashboardMenuMode,
   subscribeHa3dProjectConfig,
   updateDashboardMenuItem,
@@ -39,6 +40,7 @@ import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
+import { Ha3dLovelaceMenuEditor } from './ha3d-lovelace-menu-editor'
 
 function ToggleButton({
   active,
@@ -211,12 +213,12 @@ export function Ha3dEditorSettings() {
           <div className="font-medium text-sm">Dashboard menu</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-          Automatic mode lists entities bound to 3D objects. Custom mode builds a Home
-          Assistant-style tile grid from any live HA entities, even when they are not linked to a 3D
-          object.
+          Choose the automatic 3D bindings, the lightweight HA3D tile grid, or native Home Assistant
+          cards. Native cards use the same Lovelace visual/YAML editor and installed custom cards as
+          a normal HA dashboard.
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-3 grid grid-cols-3 gap-2">
           <ToggleButton
             active={projectConfig.dashboardMenu.mode === 'auto'}
             onClick={() => setDashboardMenuMode('auto')}
@@ -227,7 +229,13 @@ export function Ha3dEditorSettings() {
             active={projectConfig.dashboardMenu.mode === 'custom'}
             onClick={() => setDashboardMenuMode('custom')}
           >
-            Custom tiles
+            HA3D tiles
+          </ToggleButton>
+          <ToggleButton
+            active={projectConfig.dashboardMenu.mode === 'lovelace'}
+            onClick={() => setDashboardMenuMode('lovelace')}
+          >
+            HA cards
           </ToggleButton>
         </div>
 
@@ -357,6 +365,15 @@ export function Ha3dEditorSettings() {
               where the entity supports them.
             </p>
           </>
+        ) : null}
+
+        {projectConfig.dashboardMenu.mode === 'lovelace' ? (
+          <div className="mt-3">
+            <Ha3dLovelaceMenuEditor
+              config={projectConfig.dashboardMenu.lovelaceCard}
+              onChange={setDashboardLovelaceCard}
+            />
+          </div>
         ) : null}
       </section>
 

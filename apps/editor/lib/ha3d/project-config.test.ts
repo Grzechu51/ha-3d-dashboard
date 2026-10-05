@@ -10,6 +10,7 @@ import {
   removeEntityBinding,
   removeFloorStructureMapping,
   resetHa3dProjectConfig,
+  setDashboardLovelaceCard,
   setDashboardMenuMode,
   updateDashboardMenuItem,
   upsertAreaStructureMapping,
@@ -147,6 +148,7 @@ describe('HA 3D project configuration', () => {
     expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
       mode: 'auto',
       items: [],
+      lovelaceCard: { type: 'vertical-stack', cards: [] },
     })
   })
 
@@ -166,6 +168,7 @@ describe('HA 3D project configuration', () => {
         { entityId: 'sensor.temperature', span: 2 },
         { entityId: 'light.salon', span: 1 },
       ],
+      lovelaceCard: { type: 'vertical-stack', cards: [] },
     })
 
     removeDashboardMenuItem('sensor.temperature')
@@ -173,6 +176,62 @@ describe('HA 3D project configuration', () => {
     expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
       mode: 'auto',
       items: [{ entityId: 'light.salon', span: 1 }],
+      lovelaceCard: { type: 'vertical-stack', cards: [] },
+    })
+  })
+
+  test('keeps native Lovelace config while editing HA3D tiles', () => {
+    setDashboardLovelaceCard({
+      type: 'custom:mushroom-light-card',
+      entity: 'light.cct',
+      show_brightness_control: true,
+    })
+
+    addDashboardMenuItem('light.salon')
+    addDashboardMenuItem('sensor.temperature')
+    updateDashboardMenuItem('light.salon', { span: 1 })
+    moveDashboardMenuItem('sensor.temperature', -1)
+    removeDashboardMenuItem('sensor.temperature')
+
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
+      mode: 'custom',
+      items: [{ entityId: 'light.salon', span: 1 }],
+      lovelaceCard: {
+        type: 'custom:mushroom-light-card',
+        entity: 'light.cct',
+        show_brightness_control: true,
+      },
+    })
+  })
+
+  test('persists a native Lovelace dashboard Menu card tree', () => {
+    setDashboardLovelaceCard({
+      type: 'vertical-stack',
+      cards: [
+        {
+          type: 'custom:mushroom-light-card',
+          entity: 'light.cct',
+          show_brightness_control: true,
+        },
+      ],
+    })
+
+    const persisted = ha3dProjectConfiguration.getSnapshot()
+    resetHa3dProjectConfig()
+    ha3dProjectConfiguration.restore(persisted)
+
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toMatchObject({
+      mode: 'lovelace',
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          {
+            type: 'custom:mushroom-light-card',
+            entity: 'light.cct',
+            show_brightness_control: true,
+          },
+        ],
+      },
     })
   })
 

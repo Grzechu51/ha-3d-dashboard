@@ -22,7 +22,86 @@ describe('HA 3D dashboard menu config', () => {
         { entityId: 'light.salon', span: 2 },
         { entityId: 'sensor.co2', span: 1 },
       ],
+      lovelaceCard: { type: 'vertical-stack', cards: [] },
     })
+  })
+
+  test('round-trips a native Lovelace card tree', () => {
+    const menu = parseHa3dDashboardMenu({
+      mode: 'lovelace',
+      items: [],
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          {
+            type: 'custom:mushroom-light-card',
+            entity: 'light.cct',
+            show_brightness_control: true,
+          },
+          {
+            type: 'horizontal-stack',
+            cards: [
+              { type: 'tile', entity: 'switch.adaptive_lighting_cct_adaptive' },
+              { type: 'tile', entity: 'switch.adaptive_lighting_wled_parapet' },
+            ],
+          },
+        ],
+        visibility: [
+          {
+            condition: 'state',
+            entity: 'input_select.urzadzenia',
+            state: 'Oświetlenie',
+          },
+        ],
+      },
+    })
+
+    expect(menu).toEqual({
+      mode: 'lovelace',
+      items: [],
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          {
+            type: 'custom:mushroom-light-card',
+            entity: 'light.cct',
+            show_brightness_control: true,
+          },
+          {
+            type: 'horizontal-stack',
+            cards: [
+              { type: 'tile', entity: 'switch.adaptive_lighting_cct_adaptive' },
+              { type: 'tile', entity: 'switch.adaptive_lighting_wled_parapet' },
+            ],
+          },
+        ],
+        visibility: [
+          {
+            condition: 'state',
+            entity: 'input_select.urzadzenia',
+            state: 'Oświetlenie',
+          },
+        ],
+      },
+    })
+  })
+
+  test('rejects non-persistable Lovelace values and missing card type', () => {
+    expect(() =>
+      parseHa3dDashboardMenu({
+        mode: 'lovelace',
+        items: [],
+        lovelaceCard: { cards: [] },
+      }),
+    ).toThrow('card type')
+
+    expect(() =>
+      parseHa3dDashboardMenu({
+        mode: 'lovelace',
+        items: [],
+        lovelaceCard: { type: 'markdown', content: new Date() },
+      }),
+    ).toThrow('plain YAML/JSON')
   })
 
   test('rejects duplicate and malformed entities', () => {
@@ -54,6 +133,7 @@ describe('HA 3D dashboard menu config', () => {
       dashboardMenuEqual(menu, {
         mode: 'custom',
         items: [{ entityId: 'light.salon', span: 2 }],
+        lovelaceCard: { type: 'vertical-stack', cards: [] },
       }),
     ).toBe(false)
   })

@@ -18,53 +18,48 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.22 customizable dashboard Menu + editor visual alignment**
+**Checkpoint: beta.23 native Lovelace Menu + editor overlay/depth polish**
 
-Status: **v0.3.0-beta.22 is published as a GitHub prerelease from `main`**
+Status: **v0.3.0-beta.22 is published; beta.23 work is on `feat/lovelace-menu-beta23`**
 
-The beta.21 delivery fix is confirmed by the real Home Assistant screenshots: the running panel now
-shows the integrated **Menu** control and the loaded beta.21 frontend. The next real-world pass
-focuses on operator customization and consistency between Dashboard and Edit.
+The beta.22 real-HA smoke test clarified that the requested custom Menu is not a second simplified
+HA3D tile system. It must be able to host the same Lovelace card configuration used by a normal
+Home Assistant dashboard, including installed custom cards such as Mushroom, nested stacks,
+visibility conditions and each card's native editor/YAML mode.
 
-Beta.22 adds a project-persisted **Dashboard menu** model. Existing projects stay in **Automatic**
-mode, which continues to show entities bound to 3D objects. **Custom tiles** mode can instead contain
-any live Home Assistant entity, including entities that are not bound to scene geometry. The layout
-editor lives under **Edit → Settings → Dashboard menu** and supports:
+Beta.23 keeps the existing Automatic and HA3D-tile modes for compatibility and adds a third
+**HA cards** mode. The project sidecar persists a root Lovelace card configuration. The Pascal
+sidebar now has a dedicated **Menu** tab for this mode, while **Settings → Dashboard menu** keeps
+the source-mode switch. HA3D loads Home Assistant's own Lovelace runtime and native card editor, so
+a vertical stack can add/edit normal HA cards through the normal visual picker or YAML editor. The
+runtime Menu renders the saved config through Home Assistant's `hui-card` wrapper instead of
+reimplementing Lovelace behavior, preserving visibility conditions and custom-card behavior.
 
-- adding any current HA entity;
-- half-width or full-width tiles;
-- explicit ordering;
-- removal;
-- switching back to the automatic bound-entity list.
+The raw Home Assistant host object is exposed only through an HA-specific runtime bridge under
+`apps/editor/lib/ha3d`; no Home Assistant state is added to Pascal stores or scene semantics.
+Legacy v1 projects still default to Automatic mode. `dashboardMenu.lovelaceCard` is an additive,
+JSON-safe field validated by both frontend and HA project persistence.
 
-The runtime Menu now renders the configured entities as a two-column, HA-style tile grid. Common
-domains get direct controls: lights/switches/input booleans keep quick power actions, covers keep
-open/close, and full-width lights/covers/number helpers expose inline range controls when Home
-Assistant provides the required attributes. The tile body still opens native HA more-info, so less
-common domains remain useful without duplicating every Lovelace card implementation.
+The Pascal camera-control teaching overlay is moved from the arbitrary top-center position to a
+stable top-right dock and gains a real collapse/expand state in addition to the existing permanent
+dismiss action.
 
-Dashboard active controls have been normalized to rounded pill geometry, including the top
-**Projects / Edit** control group, the bottom Menu/floor/camera navigation and active Menu toggles.
-This removes the square-looking highlighted **Edit** state seen in the beta.21 desktop smoke test.
+The close-up floor/wall/object artifact from the real editor smoke test is handled at the slab
+renderer boundary: only the horizontal slab surface is rendered 0.5 mm below the authored support
+plane. Slab sides remain at the exact model elevation, while support/collision/elevation logic is
+unchanged. This separates the floor depth surface from coplanar wall bottom caps and floor-placed
+object feet without changing saved geometry or support math.
 
-The embedded Pascal editor now inherits Home Assistant theme variables through its host CSS-variable
-surface instead of being visually isolated behind a fixed dark palette. Its HA navbar, viewport
-toolbar and HA-specific Settings accents use the same surface, divider, primary, warning and text
-colors as Dashboard. The editor remains Pascal's existing v2 layout; this pass changes host
-presentation, not editor/core semantics.
+Architecture classification:
 
-The HA project sidecar remains version 1. `dashboardMenu` is an optional additive field so legacy
-projects load as Automatic mode. The Home Assistant backend validates the custom menu and preserves
-an existing menu when an older client saves a v1 sidecar without that field.
+- Home Assistant Lovelace bridge/editor/runtime: `apps/editor` — host application integration.
+- Camera teaching overlay: `packages/editor` — generic editor-only UX.
+- Slab contact-depth relief: `packages/nodes/src/slab` — kind-specific geometry rendering.
+- No new core/viewer store fields, node schema changes, renderer dispatch branches or plugin API.
 
-PR #42 passed the full PR gate before merge: **quality = success** and
-**cli-smoke = success**. The automatic HA Release run then published
-**v0.3.0-beta.22** with both installation ZIP layouts and `SHA256SUMS`.
-
-The next gate is a real desktop/mobile Home Assistant smoke test. Verify Custom Menu persistence,
-mixed half/full-width tiles, inline light/cover/number controls, native more-info for an unbound
-entity, rounded selected states, and editor/theme consistency. Do not open the next source branch
-until that smoke test produces a concrete defect or follow-up requirement.
+The next gate is one normal PR CI run for **v0.3.0-beta.23**, followed by a real Home Assistant
+smoke test using the supplied Mushroom/vertical-stack YAML, Menu card editing/runtime visibility,
+camera-hint collapse and close-up slab/wall/object contacts.
 
 ## Completed
 
