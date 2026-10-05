@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: beta.22 customizable dashboard Menu + editor visual alignment**
 
-Status: **v0.3.0-beta.21 is published; beta.22 work is on `feat/custom-dashboard-menu-beta22`**
+Status: **v0.3.0-beta.22 is published as a GitHub prerelease from `main`**
 
 The beta.21 delivery fix is confirmed by the real Home Assistant screenshots: the running panel now
 shows the integrated **Menu** control and the loaded beta.21 frontend. The next real-world pass
@@ -57,9 +57,14 @@ The HA project sidecar remains version 1. `dashboardMenu` is an optional additiv
 projects load as Automatic mode. The Home Assistant backend validates the custom menu and preserves
 an existing menu when an older client saves a v1 sidecar without that field.
 
-The next gate is source/architecture review followed by one normal PR CI run for
-**v0.3.0-beta.22**, then a real desktop/mobile smoke test of custom Menu tiles and editor theme
-alignment.
+PR #42 passed the full PR gate before merge: **quality = success** and
+**cli-smoke = success**. The automatic HA Release run then published
+**v0.3.0-beta.22** with both installation ZIP layouts and `SHA256SUMS`.
+
+The next gate is a real desktop/mobile Home Assistant smoke test. Verify Custom Menu persistence,
+mixed half/full-width tiles, inline light/cover/number controls, native more-info for an unbound
+entity, rounded selected states, and editor/theme consistency. Do not open the next source branch
+until that smoke test produces a concrete defect or follow-up requirement.
 
 ## Completed
 

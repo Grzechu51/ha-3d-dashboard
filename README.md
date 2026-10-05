@@ -7,18 +7,16 @@ The target is an installable Home Assistant custom integration with a **3D Home*
 panel where the user can build/edit a house, bind Home Assistant entities directly
 to 3D objects, visualize live states and control the home from the model.
 
-> **Public beta status:** `v0.3.0-beta.1` proved the HACS/backend install path.
-> `v0.3.0-beta.2` fixed the panel host sizing but exposed a browser-runtime
-> `process is not defined` crash in bundled Pascal/Next-compatible code.
-> PR #20 is merged with the browser compatibility fix and `v0.3.0-beta.3`
-> renders the native HA 3D project shell correctly in a real Home Assistant
-> HACS install. Project creation and browser-refresh persistence are verified.
-> The next beta target is `v0.3.0-beta.4`, moving the HA embed from the legacy
-> Pascal v1 editor shell to the current v2 shell after a React #130 crash was
-> reproduced during **Build in editor**. While `BETA_RELEASE_LOCK` exists, HA releases
-> must use a beta version and the GitHub Release must be marked as a prerelease.
-> This is not a stable or production release.
->
+> **Public beta status:** `v0.3.0-beta.22` is the current prerelease.
+> Real Home Assistant testing has verified the native panel/update delivery path through beta.21.
+> Beta.22 adds a project-persisted customizable **Menu**: Automatic mode keeps the bound-entity
+> list, while Custom tiles can contain any live HA entity with user-defined order and half/full
+> widths. Common light, cover and number helpers expose inline controls, and the tile body keeps
+> native HA more-info available. Dashboard selected states now use consistent rounded pill
+> geometry, and the embedded Pascal editor maps its HA host chrome to Home Assistant theme variables.
+> The next gate is real desktop/mobile HA smoke testing of those beta.22 changes.
+> While `BETA_RELEASE_LOCK` exists, HA releases must use a beta version and the GitHub Release
+> must be marked as a prerelease. This is not a stable or production release.
 > **Licensing:** Pascal Editor-derived code remains under its upstream MIT
 > license. HA 3D Dashboard-specific code is source-available for evaluation and
 > testing under [HA3D_EVALUATION_LICENSE.md](HA3D_EVALUATION_LICENSE.md).
@@ -73,10 +71,10 @@ archive root for HACS release installation. The repository includes `hacs.json`,
 local Home Assistant brand icons, an on-demand HACS validation workflow and a
 separate **HA Release** workflow with dry-run enabled by default.
 
-The repository is now public for custom-repository HACS beta testing. No stable
-HA release is permitted while `BETA_RELEASE_LOCK` exists. `v0.3.0-beta.1`
-validated HACS installation and backend/config-flow registration; the next
-prerelease is `v0.3.0-beta.2` with the native-panel sizing fix.
+The repository is public for custom-repository HACS beta testing. No stable
+HA release is permitted while `BETA_RELEASE_LOCK` exists. The current prerelease is
+`v0.3.0-beta.22`; release packages are produced by the gated **HA Release** workflow after a
+version-changing merge to `main`.
 
 See [HACS and GitHub Release](docs/ha3d/hacs-release.md) for the publication
 checklist and release procedure.
