@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: beta.20 Home Assistant theme + dashboard chrome polish**
 
-Status: **v0.3.0-beta.19 is published; beta.20 work is on `feat/dashboard-ha-theme-beta20`**
+Status: **v0.3.0-beta.20 is published from merged PR #40 and ready for real Home Assistant smoke testing**
 
 The beta.19 real-HA smoke test confirmed that the mobile floor/camera bar now drops to the bottom
 correctly when the controls are collapsed and that the renderer-independent Highlight fallback no
@@ -48,9 +48,10 @@ and `--error-color`, with safe fallbacks for standalone development. Because the
 variables inside the HA custom-panel shadow tree, changing the Home Assistant theme can update the
 dashboard presentation without copying theme state into project data.
 
-The next gate is source/architecture review followed by one normal PR CI run for
-**v0.3.0-beta.20**, then a real HA smoke test in at least the current dark theme and one visibly
-different Home Assistant theme.
+PR #40 passed the normal CI gate and the automatic **HA Release #37** published
+**v0.3.0-beta.20** as a prerelease. The next gate is a real HA smoke test in at least the current
+dark theme and one visibly different Home Assistant theme, with special attention to the integrated
+Menu button, desktop width reclaim and semantic light-active color.
 
 ## Completed
 
