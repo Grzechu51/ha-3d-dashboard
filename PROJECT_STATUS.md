@@ -18,37 +18,39 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.19 mobile dashboard polish**
+**Checkpoint: beta.20 Home Assistant theme + dashboard chrome polish**
 
-Status: **v0.3.0-beta.19 is published from merged PR #39 and ready for real Home Assistant smoke testing**
+Status: **v0.3.0-beta.19 is published; beta.20 work is on `feat/dashboard-ha-theme-beta20`**
 
-The beta.18 real-HA mobile smoke test confirmed that entity grouping, floating labels and
-renderer-independent Highlights are visible in the native Home Assistant panel. It also exposed
-three presentation issues before broader testing:
+The beta.19 real-HA smoke test confirmed that the mobile floor/camera bar now drops to the bottom
+correctly when the controls are collapsed and that the renderer-independent Highlight fallback no
+longer fills linked objects. The next visual pass comes directly from that phone/desktop test:
 
-- the floor/camera navigation bar used a viewport-height estimate for the bottom HA controls,
-  leaving it stranded near the middle of a phone and still too high after the panel was collapsed;
-- floating labels need a softer translucent presentation with user-adjustable opacity and corner
-  radius;
-- the fallback Highlight shell reads as a filled cyan object instead of a clean object outline.
+- the standalone collapsed **Home Assistant** pill looks detached from the floor/camera controls;
+- the top **Projects / Edit** buttons still look like older debug chrome rather than the rest of the
+  dashboard;
+- dashboard chrome uses hard-coded slate/cyan colors instead of following the active Home Assistant
+  theme.
 
-The beta.19 branch now measures the real Home Assistant controls panel and anchors the mobile
-navigation bar directly above it. When the controls collapse, navigation drops to a compact bottom
-position above the Home Assistant pill. The desktop right-side controls and bottom navigation
-layout remain unchanged.
+Beta.20 integrates the collapsed control into the navigation bar as a persistent **Menu** button.
+The separate bottom pill is removed, the expanded panel is also titled **Menu**, and the entity /
+linked-object count line is removed. With the menu collapsed, navigation can now sit directly above
+the device safe area instead of reserving space for a second floating button.
 
-Renderer-independent Highlights now use edge-only line geometry instead of an inflated back-face
-mesh. Pascal's screen-space outline remains available when supported, while the fallback no longer
-paints the linked object's surfaces.
+The project header and **Projects / Edit** actions are now one consistent glass control group with
+icons. On desktop, both the header and floor/camera bar reclaim the right side when the Menu panel is
+collapsed.
 
-Floating entity labels now use a translucent glass background. **Settings → Dashboard labels**
-exposes background opacity and corner radius controls plus reset. These are per-browser display
-preferences stored locally and do not change shared Home Assistant project data.
+Dashboard chrome now consumes Home Assistant's inherited CSS theme variables rather than a fixed
+dark palette. The mapping uses the normal HA surface/text/divider/primary variables, plus existing
+state/theme variables such as `--state-light-active-color`, `--warning-color`, `--success-color`
+and `--error-color`, with safe fallbacks for standalone development. Because these remain CSS
+variables inside the HA custom-panel shadow tree, changing the Home Assistant theme can update the
+dashboard presentation without copying theme state into project data.
 
-The PR #39 gate completed successfully and the automatic **HA Release #36** published
-**v0.3.0-beta.19** as a prerelease. The next gate is a real iPhone/desktop Home Assistant smoke
-test of responsive navigation, outline-only Highlights and label appearance controls. Source work
-for the next beta should remain on a separate branch until that smoke test confirms this checkpoint.
+The next gate is source/architecture review followed by one normal PR CI run for
+**v0.3.0-beta.20**, then a real HA smoke test in at least the current dark theme and one visibly
+different Home Assistant theme.
 
 ## Completed
 
