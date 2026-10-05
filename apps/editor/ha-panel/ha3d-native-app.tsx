@@ -10,7 +10,7 @@ import {
   useScene,
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
-import { Hammer, Layers, Package, Settings } from 'lucide-react'
+import { FolderOpen, Hammer, Layers, Package, Pencil, Settings } from 'lucide-react'
 import {
   Component,
   type ComponentType,
@@ -36,6 +36,7 @@ import {
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
+import { HA3D_DASHBOARD_THEME_STYLE } from '../components/ha3d/ha3d-dashboard-theme'
 import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import { Ha3dEditorViewportToolbar } from '../components/ha3d/ha3d-editor-viewport-toolbar'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
@@ -718,7 +719,10 @@ function NativeDashboard({
   }
 
   return (
-    <main className="dark relative h-full w-full min-w-0 overflow-hidden bg-background text-foreground">
+    <main
+      className="dark relative h-full w-full min-w-0 overflow-hidden bg-background text-foreground"
+      style={HA3D_DASHBOARD_THEME_STYLE}
+    >
       <Viewer
         defaultRender={{ shading: 'solid' }}
         hoverStyles={HA3D_INTERACTIVE_HOVER_STYLES}
@@ -740,27 +744,31 @@ function NativeDashboard({
         />
       </Viewer>
 
-      <div className="pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 md:right-[22rem]">
-        <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 text-white shadow-xl backdrop-blur-xl">
+      <div
+        className={`pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 ${dashboardControlsCollapsed ? 'md:right-3' : 'md:right-[22rem]'}`}
+      >
+        <div className="min-w-0 rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] px-3.5 py-2.5 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl">
           <div className="truncate font-semibold text-sm">{projectName}</div>
-          <div className="text-[10px] text-white/40">
+          <div className="text-[10px] text-[var(--ha3d-dashboard-muted)]">
             Dashboard · rev {session.getSnapshot().revision ?? '—'}
           </div>
         </div>
-        <div className="pointer-events-auto flex gap-2">
+        <div className="pointer-events-auto flex items-center gap-1 rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1 shadow-xl backdrop-blur-xl">
           <button
-            className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 font-medium text-white/70 text-xs shadow-xl backdrop-blur-xl hover:bg-slate-900/90 hover:text-white"
+            className="flex h-9 items-center gap-1.5 rounded-xl px-2.5 font-medium text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
             onClick={onProjects}
             type="button"
           >
+            <FolderOpen className="h-3.5 w-3.5" />
             Projects
           </button>
           {onEdit ? (
             <button
-              className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 font-medium text-white/70 text-xs shadow-xl backdrop-blur-xl hover:bg-slate-900/90 hover:text-white"
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-[var(--ha3d-dashboard-primary-soft)] px-2.5 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)] hover:brightness-110"
               onClick={onEdit}
               type="button"
             >
+              <Pencil className="h-3.5 w-3.5" />
               Edit
             </button>
           ) : null}
@@ -771,6 +779,7 @@ function NativeDashboard({
         controlsCollapsed={dashboardControlsCollapsed}
         controlsPanelHeight={dashboardControlsHeight}
         onCameraPreset={requestCameraPreset}
+        onControlsCollapsedChange={setDashboardControlsCollapsed}
         scene={scene}
       />
 
