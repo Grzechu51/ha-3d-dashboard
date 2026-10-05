@@ -1,10 +1,13 @@
 import type { ViewerPresentationConfiguration } from '@pascal-app/viewer'
 import {
+  cloneHa3dLovelaceCardConfig,
   DEFAULT_HA3D_DASHBOARD_MENU,
   dashboardMenuEqual,
   type Ha3dDashboardMenuConfig,
   type Ha3dDashboardMenuItem,
+  type Ha3dLovelaceCardConfig,
   parseHa3dDashboardMenu,
+  parseHa3dLovelaceCardConfig,
 } from './dashboard-menu'
 import {
   createEntityBinding,
@@ -78,6 +81,7 @@ function cloneDashboardMenu(menu: Ha3dDashboardMenuConfig): Ha3dDashboardMenuCon
   return {
     mode: menu.mode,
     items: menu.items.map((item) => ({ ...item })),
+    lovelaceCard: cloneHa3dLovelaceCardConfig(menu.lovelaceCard),
   }
 }
 
@@ -251,6 +255,17 @@ export function setDashboardMenuMode(mode: Ha3dDashboardMenuConfig['mode']): voi
     ...snapshot.dashboardMenu,
     mode,
   })
+}
+
+export function setDashboardLovelaceCard(config: Ha3dLovelaceCardConfig): void {
+  const lovelaceCard = parseHa3dLovelaceCardConfig(config)
+  const next: Ha3dDashboardMenuConfig = {
+    ...snapshot.dashboardMenu,
+    mode: 'lovelace',
+    lovelaceCard,
+  }
+  if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
+  publish(snapshot.bindings, snapshot.structureMappings, next)
 }
 
 export function addDashboardMenuItem(entityId: string): void {
