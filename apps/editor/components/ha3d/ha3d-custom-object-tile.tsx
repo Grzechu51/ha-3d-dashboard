@@ -1,6 +1,6 @@
 'use client'
 
-import { saveAsset, type AssetInput } from '@pascal-app/core'
+import { type AssetInput, saveAsset } from '@pascal-app/core'
 import { activateCatalogItem } from '@pascal-app/editor'
 import { Upload } from 'lucide-react'
 import { useRef, useState } from 'react'
