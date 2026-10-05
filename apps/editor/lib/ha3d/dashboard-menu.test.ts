@@ -56,10 +56,33 @@ describe('HA 3D dashboard menu config', () => {
       },
     })
 
-    expect(menu.mode).toBe('lovelace')
-    expect(menu.lovelaceCard).toMatchObject({
-      type: 'vertical-stack',
-      cards: [{ type: 'custom:mushroom-light-card', entity: 'light.cct' }],
+    expect(menu).toEqual({
+      mode: 'lovelace',
+      items: [],
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          {
+            type: 'custom:mushroom-light-card',
+            entity: 'light.cct',
+            show_brightness_control: true,
+          },
+          {
+            type: 'horizontal-stack',
+            cards: [
+              { type: 'tile', entity: 'switch.adaptive_lighting_cct_adaptive' },
+              { type: 'tile', entity: 'switch.adaptive_lighting_wled_parapet' },
+            ],
+          },
+        ],
+        visibility: [
+          {
+            condition: 'state',
+            entity: 'input_select.urzadzenia',
+            state: 'Oświetlenie',
+          },
+        ],
+      },
     })
   })
 
