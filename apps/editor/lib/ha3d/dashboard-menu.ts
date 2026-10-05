@@ -15,7 +15,7 @@ export type Ha3dJsonValue =
   | boolean
   | number
   | string
-  | readonly Ha3dJsonValue[]
+  | Ha3dJsonValue[]
   | Ha3dJsonObject
 
 export type Ha3dLovelaceCardConfig = Ha3dJsonObject
