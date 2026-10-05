@@ -54,8 +54,8 @@ function ToggleButton({
       aria-pressed={active}
       className={
         active
-          ? 'rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-left text-primary text-sm'
-          : 'rounded-lg border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
+          ? 'rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-primary text-sm'
+          : 'rounded-xl border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
       }
       onClick={onClick}
       type="button"
@@ -234,24 +234,33 @@ export function Ha3dEditorSettings() {
         {projectConfig.dashboardMenu.mode === 'custom' ? (
           <>
             <div className="mt-3 flex gap-2">
-              <select
-                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2.5 py-2 text-xs"
-                onChange={(event) => setMenuEntityId(event.currentTarget.value)}
-                value={menuEntityId}
-              >
-                <option value="">Choose Home Assistant entity…</option>
-                {availableMenuEntities.map((entity) => (
-                  <option key={entity.entityId} value={entity.entityId}>
-                    {entityFriendlyName(entity)} · {entity.entityId}
-                  </option>
-                ))}
-              </select>
+              <div className="min-w-0 flex-1">
+                <input
+                  className="w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary/60"
+                  list="ha3d-dashboard-menu-entities"
+                  onChange={(event) => setMenuEntityId(event.currentTarget.value)}
+                  placeholder="Search entity by name or entity id…"
+                  value={menuEntityId}
+                />
+                <datalist id="ha3d-dashboard-menu-entities">
+                  {availableMenuEntities.map((entity) => (
+                    <option
+                      key={entity.entityId}
+                      label={entityFriendlyName(entity)}
+                      value={entity.entityId}
+                    />
+                  ))}
+                </datalist>
+              </div>
               <button
-                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground text-xs disabled:opacity-40"
-                disabled={!menuEntityId}
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 py-2 font-medium text-primary-foreground text-xs disabled:opacity-40"
+                disabled={
+                  !availableMenuEntities.some((entity) => entity.entityId === menuEntityId.trim())
+                }
                 onClick={() => {
-                  if (!menuEntityId) return
-                  addDashboardMenuItem(menuEntityId)
+                  const entityId = menuEntityId.trim()
+                  if (!availableMenuEntities.some((entity) => entity.entityId === entityId)) return
+                  addDashboardMenuItem(entityId)
                   setMenuEntityId('')
                 }}
                 type="button"
