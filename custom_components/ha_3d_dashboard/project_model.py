@@ -76,7 +76,11 @@ def default_ha_config() -> dict[str, Any]:
         "version": 1,
         "bindings": [],
         "structureMappings": {"floors": [], "areas": []},
-        "dashboardMenu": {"mode": "auto", "items": []},
+        "dashboardMenu": {
+            "mode": "auto",
+            "items": [],
+            "lovelaceCard": {"type": "vertical-stack", "cards": []},
+        },
     }
 
 
@@ -218,12 +222,26 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
             raise InvalidProjectError("ha_config dashboardMenu must be an object")
         mode = dashboard_menu.get("mode")
         items = dashboard_menu.get("items")
-        if not isinstance(mode, str) or mode not in {"auto", "custom"}:
-            raise InvalidProjectError("ha_config dashboardMenu mode must be auto or custom")
+        if not isinstance(mode, str) or mode not in {"auto", "custom", "lovelace"}:
+            raise InvalidProjectError(
+                "ha_config dashboardMenu mode must be auto, custom or lovelace"
+            )
         if not isinstance(items, list):
             raise InvalidProjectError("ha_config dashboardMenu items must be an array")
         if len(items) > 48:
             raise InvalidProjectError("ha_config dashboardMenu supports at most 48 items")
+
+        lovelace_card = dashboard_menu.get("lovelaceCard", MISSING)
+        if lovelace_card is not MISSING:
+            if not isinstance(lovelace_card, dict):
+                raise InvalidProjectError(
+                    "ha_config dashboardMenu lovelaceCard must be an object"
+                )
+            card_type = lovelace_card.get("type")
+            if not isinstance(card_type, str) or not card_type.strip():
+                raise InvalidProjectError(
+                    "ha_config dashboardMenu lovelaceCard requires a card type"
+                )
 
         seen_menu_entities: set[str] = set()
         for item in items:
