@@ -924,6 +924,7 @@ function NativeProject({
         onRetry={reloadEditor}
       >
         <Editor
+          compactOverlayControls
           key={editorEpoch}
           layoutVersion="v2"
           manageDocumentDarkClass={false}

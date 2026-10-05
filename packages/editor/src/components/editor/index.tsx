@@ -36,6 +36,7 @@ import {
 import { ViewerOverlay } from '../../components/viewer-overlay'
 import { ViewerZoneSystem } from '../../components/viewer-zone-system'
 import { type SaveStatus, useAutoSave } from '../../hooks/use-auto-save'
+import { useIsMobile } from '../../hooks/use-mobile'
 import { useKeyboard } from '../../hooks/use-keyboard'
 import { useSaveShortcut } from '../../hooks/use-save-shortcut'
 import {
@@ -177,6 +178,8 @@ export interface EditorProps {
   sidebarTabs?: (SidebarTab & { component: React.ComponentType })[]
   viewerToolbarLeft?: ReactNode
   viewerToolbarRight?: ReactNode
+  /** Group the level selector and action menu into one compact viewer dock. */
+  compactOverlayControls?: boolean
   /**
    * Full-bleed surface swapped in over the 3D canvas (v2) — e.g. the studio
    * gallery. The canvas stays mounted underneath (no WebGL re-init) and the
@@ -1325,6 +1328,7 @@ function EditorContent({
   sidebarTabs,
   viewerToolbarLeft,
   viewerToolbarRight,
+  compactOverlayControls = false,
   stageOverlay,
   inspectorFooter,
   multiSelectionFooter,
@@ -1354,6 +1358,7 @@ function EditorContent({
 }: EditorProps) {
   const isFirstPersonMode = useEditor((s) => s.isFirstPersonMode)
   const isStudioMode = useEditor((s) => s.workspaceMode === 'studio')
+  const isMobile = useIsMobile()
   const presentationProjectId = projectId ?? null
   const presentationPersistenceRef = useRef<LocalProjectPresentationPersistence | null>(null)
   const [restoredPresentationProjectId, setRestoredPresentationProjectId] = useState<
@@ -1697,6 +1702,11 @@ function EditorContent({
       })),
     ]
 
+    const showCompactControlDock =
+      compactOverlayControls &&
+      !isMobile &&
+      !(isVersionPreviewMode || isCaptureMode || isStudioMode || stageOverlay)
+
     return (
       <>
         <FloorplanModeCoordinator />
@@ -1724,12 +1734,22 @@ function EditorContent({
               navbarSlot={navbarSlot}
               overlays={
                 <>
-                  {!(isCaptureMode || stageOverlay) && <FloatingLevelSelector />}
-                  {!(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
+                  {showCompactControlDock ? (
+                    <div className="pointer-events-auto absolute bottom-3 left-3 z-50 flex items-end gap-1 rounded-2xl border border-border bg-background/90 p-1 shadow-2xl backdrop-blur-md">
+                      <FloatingLevelSelector embedded />
+                      <div className="mx-0.5 h-7 w-px self-end bg-border/70" />
+                      <ActionMenu embedded />
+                    </div>
+                  ) : null}
+                  {!showCompactControlDock && !(isCaptureMode || stageOverlay) ? (
+                    <FloatingLevelSelector />
+                  ) : null}
+                  {!showCompactControlDock &&
+                  !(isVersionPreviewMode || isCaptureMode || isStudioMode) ? (
                     <div className="pointer-events-auto">
                       <ActionMenu />
                     </div>
-                  )}
+                  ) : null}
                   {!(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
                     <div className="pointer-events-auto">
                       <PanelManager

@@ -292,7 +292,12 @@ function LevelRow({
                 <MoreVertical className="h-3 w-3" />
               </button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-44 p-1" side="right" sideOffset={8}>
+            <PopoverContent
+              align="start"
+              className="flex w-52 flex-col gap-0.5 p-1"
+              side="right"
+              sideOffset={8}
+            >
               <button
                 className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-muted-foreground text-xs transition-colors hover:bg-white/10 hover:text-foreground"
                 onClick={(e) => {
@@ -447,7 +452,7 @@ function UnitFocusChip() {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export function FloatingLevelSelector() {
+export function FloatingLevelSelector({ embedded = false }: { embedded?: boolean } = {}) {
   const selectedBuildingId = useViewer((s) => s.selection.buildingId)
   const levelId = useViewer((s) => s.selection.levelId)
   const setSelection = useViewer((s) => s.setSelection)
@@ -641,7 +646,12 @@ export function FloatingLevelSelector() {
 
   return (
     <>
-      <div className="pointer-events-auto absolute top-14 left-3 z-20">
+      <div
+        className={cn(
+          'pointer-events-auto z-20',
+          embedded ? 'relative' : 'absolute top-14 left-3',
+        )}
+      >
         <div className="relative">
           {/* Floating + at top edge */}
           {!draggingLevelId && (
@@ -679,7 +689,13 @@ export function FloatingLevelSelector() {
             sensors={sensors}
           >
             <SortableContext items={sortableLevelIds} strategy={verticalListSortingStrategy}>
-              <div className="flex flex-col gap-0.5 rounded-xl border border-border bg-background/90 p-1 shadow-2xl backdrop-blur-md">
+              <div
+                className={cn(
+                  'flex flex-col gap-0.5 p-1',
+                  !embedded &&
+                    'rounded-xl border border-border bg-background/90 shadow-2xl backdrop-blur-md',
+                )}
+              >
                 {reversedLevels.map((level, i) => {
                   const isSelected = level.id === levelId
                   const sortedIndex = levels.indexOf(level)
