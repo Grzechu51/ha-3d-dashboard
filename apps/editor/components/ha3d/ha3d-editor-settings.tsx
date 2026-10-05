@@ -3,8 +3,31 @@
 import { useScene } from '@pascal-app/core'
 import { useEditor } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
-import { Box, Download, PackagePlus, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useState, useSyncExternalStore } from 'react'
+import {
+  ArrowDown,
+  ArrowUp,
+  Box,
+  Columns2,
+  Download,
+  LayoutGrid,
+  PackagePlus,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  SlidersHorizontal,
+  Trash2,
+} from 'lucide-react'
+import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
+import { entityFriendlyName } from '../../lib/ha3d/entity-display'
+import {
+  addDashboardMenuItem,
+  getHa3dProjectConfigSnapshot,
+  moveDashboardMenuItem,
+  removeDashboardMenuItem,
+  setDashboardMenuMode,
+  subscribeHa3dProjectConfig,
+  updateDashboardMenuItem,
+} from '../../lib/ha3d/project-config'
 import {
   getHa3dDashboardAppearanceServerSnapshot,
   getHa3dDashboardAppearanceSnapshot,
@@ -83,12 +106,33 @@ export function Ha3dEditorSettings() {
     getHa3dDashboardAppearanceSnapshot,
     getHa3dDashboardAppearanceServerSnapshot,
   )
+  const projectConfig = useSyncExternalStore(
+    subscribeHa3dProjectConfig,
+    getHa3dProjectConfigSnapshot,
+    getHa3dProjectConfigSnapshot,
+  )
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [menuEntityId, setMenuEntityId] = useState('')
 
-  const entityCount = runtime.adapter?.listEntities().length ?? 0
+  const entities = useMemo(
+    () =>
+      [...(runtime.adapter?.listEntities() ?? [])].sort((left, right) =>
+        entityFriendlyName(left).localeCompare(entityFriendlyName(right)),
+      ),
+    [runtime.adapter, runtime.revision],
+  )
+  const entityCount = entities.length
+  const menuEntityIds = useMemo(
+    () => new Set(projectConfig.dashboardMenu.items.map((item) => item.entityId)),
+    [projectConfig.dashboardMenu.items],
+  )
+  const availableMenuEntities = useMemo(
+    () => entities.filter((entity) => !menuEntityIds.has(entity.entityId)),
+    [entities, menuEntityIds],
+  )
 
   const refreshEntities = async () => {
     const refresh = runtime.adapter?.refreshEntities
@@ -159,6 +203,152 @@ export function Ha3dEditorSettings() {
           helpers and integrations.
         </p>
         {refreshError ? <p className="mt-2 text-destructive text-xs">{refreshError}</p> : null}
+      </section>
+
+      <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
+        <div className="flex items-center gap-2">
+          <LayoutGrid className="h-4 w-4 text-cyan-300" />
+          <div className="font-medium text-sm">Dashboard menu</div>
+        </div>
+        <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+          Automatic mode lists entities bound to 3D objects. Custom mode builds a Home
+          Assistant-style tile grid from any live HA entities, even when they are not linked to a
+          3D object.
+        </p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <ToggleButton
+            active={projectConfig.dashboardMenu.mode === 'auto'}
+            onClick={() => setDashboardMenuMode('auto')}
+          >
+            Automatic
+          </ToggleButton>
+          <ToggleButton
+            active={projectConfig.dashboardMenu.mode === 'custom'}
+            onClick={() => setDashboardMenuMode('custom')}
+          >
+            Custom tiles
+          </ToggleButton>
+        </div>
+
+        {projectConfig.dashboardMenu.mode === 'custom' ? (
+          <>
+            <div className="mt-3 flex gap-2">
+              <select
+                className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2.5 py-2 text-xs"
+                onChange={(event) => setMenuEntityId(event.currentTarget.value)}
+                value={menuEntityId}
+              >
+                <option value="">Choose Home Assistant entity…</option>
+                {availableMenuEntities.map((entity) => (
+                  <option key={entity.entityId} value={entity.entityId}>
+                    {entityFriendlyName(entity)} · {entity.entityId}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-2 font-medium text-primary-foreground text-xs disabled:opacity-40"
+                disabled={!menuEntityId}
+                onClick={() => {
+                  if (!menuEntityId) return
+                  addDashboardMenuItem(menuEntityId)
+                  setMenuEntityId('')
+                }}
+                type="button"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add
+              </button>
+            </div>
+
+            {projectConfig.dashboardMenu.items.length === 0 ? (
+              <div className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-muted-foreground text-xs">
+                Add entities to build the Menu tile layout.
+              </div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {projectConfig.dashboardMenu.items.map((item, index) => {
+                  const entity = runtime.adapter?.getEntity(item.entityId)
+                  return (
+                    <div
+                      className="flex items-center gap-2 rounded-xl border border-border bg-background/60 p-2"
+                      key={item.entityId}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-xs">
+                          {entity ? entityFriendlyName(entity) : item.entityId}
+                        </div>
+                        <div className="truncate text-[10px] text-muted-foreground">
+                          {item.entityId}
+                        </div>
+                      </div>
+
+                      <button
+                        aria-label="Use half width tile"
+                        aria-pressed={item.span === 1}
+                        className={
+                          item.span === 1
+                            ? 'flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25'
+                            : 'flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }
+                        onClick={() => updateDashboardMenuItem(item.entityId, { span: 1 })}
+                        title="Half width"
+                        type="button"
+                      >
+                        <Columns2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label="Use full width tile"
+                        aria-pressed={item.span === 2}
+                        className={
+                          item.span === 2
+                            ? 'flex h-8 min-w-8 items-center justify-center rounded-lg bg-primary/15 px-2 text-primary ring-1 ring-primary/25'
+                            : 'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }
+                        onClick={() => updateDashboardMenuItem(item.entityId, { span: 2 })}
+                        title="Full width"
+                        type="button"
+                      >
+                        2
+                      </button>
+                      <button
+                        aria-label="Move tile up"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-25"
+                        disabled={index === 0}
+                        onClick={() => moveDashboardMenuItem(item.entityId, -1)}
+                        type="button"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label="Move tile down"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-25"
+                        disabled={index === projectConfig.dashboardMenu.items.length - 1}
+                        onClick={() => moveDashboardMenuItem(item.entityId, 1)}
+                        type="button"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label="Remove tile"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removeDashboardMenuItem(item.entityId)}
+                        type="button"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <p className="mt-3 text-muted-foreground text-[10px] leading-relaxed">
+              Half-width tiles can sit side by side. Full-width tiles expose richer inline controls
+              where the entity supports them.
+            </p>
+          </>
+        ) : null}
       </section>
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
