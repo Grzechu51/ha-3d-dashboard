@@ -6,7 +6,21 @@ import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { BackSide, Group, Matrix4, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three'
+import {
+  EdgesGeometry,
+  Group,
+  LineBasicMaterial,
+  LineSegments,
+  Matrix4,
+  Mesh,
+  type Object3D,
+  Vector3,
+} from 'three'
+import {
+  getHa3dDashboardAppearanceServerSnapshot,
+  getHa3dDashboardAppearanceSnapshot,
+  subscribeHa3dDashboardAppearance,
+} from '../../lib/ha3d/dashboard-appearance'
 import {
   type EntityBinding,
   resolveDashboardInteractionAction,
@@ -92,11 +106,13 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
 
 type HighlightContourEntry = Readonly<{
   source: Mesh
-  outline: Mesh
+  outline: LineSegments
+  edgeGeometry: EdgesGeometry
   inflation: Matrix4
 }>
 
-const HIGHLIGHT_INFLATION = 1.025
+const HIGHLIGHT_INFLATION = 1.008
+const HIGHLIGHT_EDGE_THRESHOLD_DEGREES = 24
 
 function isWorldVisible(object: Object3D): boolean {
   let current: Object3D | null = object
@@ -129,9 +145,8 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
   }, [nodeId])
   const material = useMemo(
     () =>
-      new MeshBasicMaterial({
+      new LineBasicMaterial({
         color: selected ? 0xff_ff_ff : 0x22_d3ee,
-        side: BackSide,
         transparent: true,
         opacity: 0.92,
         depthTest: true,
@@ -145,7 +160,10 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
   const builtRevisionRef = useRef(-1)
 
   const clearContours = useCallback(() => {
-    for (const entry of entriesRef.current) group.remove(entry.outline)
+    for (const entry of entriesRef.current) {
+      group.remove(entry.outline)
+      entry.edgeGeometry.dispose()
+    }
     entriesRef.current = []
     builtRootRef.current = null
   }, [group])
@@ -161,7 +179,11 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
         if (!(source.isMesh && source.geometry?.getAttribute('position'))) return
 
         const inflation = contourInflation(source)
-        const outline = new Mesh(source.geometry, material)
+        const edgeGeometry = new EdgesGeometry(
+          source.geometry,
+          HIGHLIGHT_EDGE_THRESHOLD_DEGREES,
+        )
+        const outline = new LineSegments(edgeGeometry, material)
         outline.name = `ha3d-highlight-contour:${nodeId}`
         outline.matrixAutoUpdate = false
         outline.matrix.copy(source.matrixWorld).multiply(inflation)
@@ -171,7 +193,7 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
         outline.layers.set(EDITOR_LAYER)
         outline.raycast = () => {}
         group.add(outline)
-        entries.push({ source, outline, inflation })
+        entries.push({ source, outline, edgeGeometry, inflation })
       })
 
       entriesRef.current = entries
@@ -230,6 +252,11 @@ function InteractiveEntityMarker({
     getHomeAssistantRuntimeSnapshot,
     getHomeAssistantRuntimeSnapshot,
   )
+  const appearance = useSyncExternalStore(
+    subscribeHa3dDashboardAppearance,
+    getHa3dDashboardAppearanceSnapshot,
+    getHa3dDashboardAppearanceServerSnapshot,
+  )
   const entity = runtime.adapter?.getEntity(binding.entityId)
 
   useFrame(() => {
@@ -256,9 +283,15 @@ function InteractiveEntityMarker({
         <div
           className={
             selected
-              ? 'relative whitespace-nowrap rounded-xl border border-cyan-300/90 bg-slate-950/90 px-3 py-2 text-white shadow-2xl ring-1 ring-cyan-300/35 backdrop-blur-md'
-              : 'relative whitespace-nowrap rounded-xl border border-white/15 bg-black/75 px-3 py-2 text-white shadow-xl backdrop-blur-md'
+              ? 'relative whitespace-nowrap border border-cyan-300/90 px-3 py-2 text-white shadow-2xl ring-1 ring-cyan-300/35 backdrop-blur-md'
+              : 'relative whitespace-nowrap border border-white/15 px-3 py-2 text-white shadow-xl backdrop-blur-md'
           }
+          style={{
+            borderRadius: `${appearance.labelRadiusPx}px`,
+            backgroundColor: selected
+              ? `rgba(8, 47, 73, ${Math.min(0.95, appearance.labelOpacity + 0.08)})`
+              : `rgba(2, 6, 23, ${appearance.labelOpacity})`,
+          }}
         >
           <div className="max-w-44 truncate font-medium text-[11px] leading-none">
             {entityFriendlyName(entity)}
