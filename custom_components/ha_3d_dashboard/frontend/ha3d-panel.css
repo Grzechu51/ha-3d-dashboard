@@ -1045,6 +1045,9 @@
   .min-h-20 {
     min-height: calc(var(--spacing) * 20);
   }
+  .min-h-28 {
+    min-height: calc(var(--spacing) * 28);
+  }
   .min-h-40 {
     min-height: calc(var(--spacing) * 40);
   }
@@ -1239,6 +1242,9 @@
   }
   .max-w-\[430px\] {
     max-width: 430px;
+  }
+  .max-w-\[calc\(100\%-1\.5rem\)\] {
+    max-width: calc(100% - 1.5rem);
   }
   .max-w-\[calc\(100\%-2rem\)\] {
     max-width: calc(100% - 2rem);
@@ -2471,6 +2477,12 @@
     background-color: var(--background);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--background) 40%, transparent);
+    }
+  }
+  .bg-background\/45 {
+    background-color: var(--background);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--background) 45%, transparent);
     }
   }
   .bg-background\/50 {
@@ -8038,6 +8050,21 @@
   .\[\&\>button\]\:hidden {
     &>button {
       display: none;
+    }
+  }
+  .\[\&\>hui-card\]\:block {
+    &>hui-card {
+      display: block;
+    }
+  }
+  .\[\&\>hui-card\]\:w-full {
+    &>hui-card {
+      width: 100%;
+    }
+  }
+  .\[\&\>hui-card-element-editor\]\:w-full {
+    &>hui-card-element-editor {
+      width: 100%;
     }
   }
   .\[\&\>span\:last-child\]\:truncate {
