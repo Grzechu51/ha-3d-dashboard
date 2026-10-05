@@ -6,15 +6,7 @@ import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import {
-  BackSide,
-  Group,
-  Matrix4,
-  Mesh,
-  MeshBasicMaterial,
-  type Object3D,
-  Vector3,
-} from 'three'
+import { BackSide, Group, Matrix4, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three'
 import {
   type EntityBinding,
   resolveDashboardInteractionAction,
@@ -120,7 +112,9 @@ function contourInflation(mesh: Mesh): Matrix4 {
   const center = mesh.geometry.boundingBox?.getCenter(new Vector3()) ?? new Vector3()
   return new Matrix4()
     .makeTranslation(center.x, center.y, center.z)
-    .multiply(new Matrix4().makeScale(HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION))
+    .multiply(
+      new Matrix4().makeScale(HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION),
+    )
     .multiply(new Matrix4().makeTranslation(-center.x, -center.y, -center.z))
 }
 
