@@ -1,10 +1,4 @@
-export type Ha3dDashboardMenuMode = 'auto' | 'custom' | 'lovelace'
-export type Ha3dDashboardMenuSpan = 1 | 2
-
-export type Ha3dDashboardMenuItem = Readonly<{
-  entityId: string
-  span: Ha3dDashboardMenuSpan
-}>
+export type Ha3dDashboardMenuMode = 'auto' | 'lovelace'
 
 export interface Ha3dJsonObject {
   readonly [key: string]: Ha3dJsonValue
@@ -16,7 +10,6 @@ export type Ha3dLovelaceCardConfig = Ha3dJsonObject
 
 export type Ha3dDashboardMenuConfig = Readonly<{
   mode: Ha3dDashboardMenuMode
-  items: readonly Ha3dDashboardMenuItem[]
   lovelaceCard: Ha3dLovelaceCardConfig
 }>
 
@@ -27,7 +20,6 @@ export const DEFAULT_HA3D_LOVELACE_CARD: Ha3dLovelaceCardConfig = {
 
 export const DEFAULT_HA3D_DASHBOARD_MENU: Ha3dDashboardMenuConfig = {
   mode: 'auto',
-  items: [],
   lovelaceCard: DEFAULT_HA3D_LOVELACE_CARD,
 }
 
@@ -39,6 +31,25 @@ function parseEntityId(value: unknown): string {
     throw new Error('[ha3d] dashboard menu entityId is invalid')
   }
   return entityId
+}
+
+function parseLegacyItems(raw: unknown): string[] {
+  if (raw === undefined) return []
+  if (!Array.isArray(raw)) throw new Error('[ha3d] dashboardMenu items must be an array')
+  if (raw.length > 48) throw new Error('[ha3d] dashboardMenu supports at most 48 items')
+
+  const seen = new Set<string>()
+  const entityIds: string[] = []
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      throw new Error('[ha3d] dashboard menu item must be an object')
+    }
+    const entityId = parseEntityId((entry as Record<string, unknown>).entityId)
+    if (seen.has(entityId)) throw new Error('[ha3d] dashboard menu entity ids must be unique')
+    seen.add(entityId)
+    entityIds.push(entityId)
+  }
+  return entityIds
 }
 
 function parseJsonValue(value: unknown, path: string): Ha3dJsonValue {
@@ -91,6 +102,28 @@ export function cloneHa3dLovelaceCardConfig(
   return parseHa3dLovelaceCardConfig(config)
 }
 
+export function buildAutomaticDashboardCard(
+  entityIds: readonly string[],
+): Ha3dLovelaceCardConfig {
+  const seen = new Set<string>()
+  const cards: Ha3dJsonObject[] = []
+
+  for (const rawEntityId of entityIds) {
+    const entityId = parseEntityId(rawEntityId)
+    if (seen.has(entityId)) continue
+    seen.add(entityId)
+    cards.push({
+      type: 'tile',
+      entity: entityId,
+    })
+  }
+
+  return {
+    type: 'vertical-stack',
+    cards,
+  }
+}
+
 export function parseHa3dDashboardMenu(raw: unknown): Ha3dDashboardMenuConfig {
   if (raw === undefined) return DEFAULT_HA3D_DASHBOARD_MENU
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
@@ -98,45 +131,27 @@ export function parseHa3dDashboardMenu(raw: unknown): Ha3dDashboardMenuConfig {
   }
 
   const value = raw as Record<string, unknown>
-  const mode = value.mode
-  if (mode !== 'auto' && mode !== 'custom' && mode !== 'lovelace') {
-    throw new Error('[ha3d] dashboardMenu mode must be auto, custom or lovelace')
+  const rawMode = value.mode
+  if (rawMode !== 'auto' && rawMode !== 'custom' && rawMode !== 'lovelace') {
+    throw new Error('[ha3d] dashboardMenu mode must be auto or lovelace')
   }
-  if (!Array.isArray(value.items)) {
-    throw new Error('[ha3d] dashboardMenu items must be an array')
-  }
-  if (value.items.length > 48) {
-    throw new Error('[ha3d] dashboardMenu supports at most 48 items')
-  }
-
-  const seen = new Set<string>()
-  const items = value.items.map((entry) => {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      throw new Error('[ha3d] dashboard menu item must be an object')
-    }
-
-    const item = entry as Record<string, unknown>
-    const entityId = parseEntityId(item.entityId)
-    if (seen.has(entityId)) {
-      throw new Error('[ha3d] dashboard menu entity ids must be unique')
-    }
-    seen.add(entityId)
-
-    const rawSpan = item.span
-    if (rawSpan !== undefined && rawSpan !== 1 && rawSpan !== 2) {
-      throw new Error('[ha3d] dashboard menu item span must be 1 or 2')
-    }
-    const span: Ha3dDashboardMenuSpan = rawSpan === 1 ? 1 : 2
-
-    return { entityId, span }
-  })
 
   const lovelaceCard =
     value.lovelaceCard === undefined
       ? cloneHa3dLovelaceCardConfig(DEFAULT_HA3D_LOVELACE_CARD)
       : parseHa3dLovelaceCardConfig(value.lovelaceCard)
 
-  return { mode, items, lovelaceCard }
+  if (rawMode === 'custom') {
+    return {
+      mode: 'lovelace',
+      lovelaceCard: buildAutomaticDashboardCard(parseLegacyItems(value.items)),
+    }
+  }
+
+  return {
+    mode: rawMode,
+    lovelaceCard,
+  }
 }
 
 function jsonValueEqual(left: Ha3dJsonValue, right: Ha3dJsonValue): boolean {
@@ -162,14 +177,5 @@ export function dashboardMenuEqual(
   left: Ha3dDashboardMenuConfig,
   right: Ha3dDashboardMenuConfig,
 ): boolean {
-  if (left.mode !== right.mode || left.items.length !== right.items.length) return false
-  if (
-    !left.items.every(
-      (item, index) =>
-        item.entityId === right.items[index]?.entityId && item.span === right.items[index]?.span,
-    )
-  ) {
-    return false
-  }
-  return jsonValueEqual(left.lovelaceCard, right.lovelaceCard)
+  return left.mode === right.mode && jsonValueEqual(left.lovelaceCard, right.lovelaceCard)
 }
