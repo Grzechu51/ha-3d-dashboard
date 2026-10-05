@@ -4,20 +4,15 @@ import { useScene } from '@pascal-app/core'
 import { useEditor } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
 import {
-  ArrowDown,
-  ArrowUp,
   Box,
-  Columns2,
   Download,
   LayoutGrid,
   PackagePlus,
-  Plus,
   RefreshCw,
   RotateCcw,
   SlidersHorizontal,
-  Trash2,
 } from 'lucide-react'
-import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
+import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import {
   getHa3dDashboardAppearanceServerSnapshot,
   getHa3dDashboardAppearanceSnapshot,
@@ -25,22 +20,15 @@ import {
   subscribeHa3dDashboardAppearance,
   updateHa3dDashboardAppearance,
 } from '../../lib/ha3d/dashboard-appearance'
-import { entityFriendlyName } from '../../lib/ha3d/entity-display'
 import {
-  addDashboardMenuItem,
   getHa3dProjectConfigSnapshot,
-  moveDashboardMenuItem,
-  removeDashboardMenuItem,
-  setDashboardLovelaceCard,
   setDashboardMenuMode,
   subscribeHa3dProjectConfig,
-  updateDashboardMenuItem,
 } from '../../lib/ha3d/project-config'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
-import { Ha3dLovelaceMenuEditor } from './ha3d-lovelace-menu-editor'
 
 function ToggleButton({
   active,
@@ -117,24 +105,8 @@ export function Ha3dEditorSettings() {
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
-  const [menuEntityId, setMenuEntityId] = useState('')
 
-  const entities = useMemo(
-    () =>
-      [...(runtime.adapter?.listEntities() ?? [])].sort((left, right) =>
-        entityFriendlyName(left).localeCompare(entityFriendlyName(right)),
-      ),
-    [runtime.adapter, runtime.revision],
-  )
-  const entityCount = entities.length
-  const menuEntityIds = useMemo(
-    () => new Set(projectConfig.dashboardMenu.items.map((item) => item.entityId)),
-    [projectConfig.dashboardMenu.items],
-  )
-  const availableMenuEntities = useMemo(
-    () => entities.filter((entity) => !menuEntityIds.has(entity.entityId)),
-    [entities, menuEntityIds],
-  )
+  const entityCount = runtime.adapter?.listEntities().length ?? 0
 
   const refreshEntities = async () => {
     const refresh = runtime.adapter?.refreshEntities
@@ -213,168 +185,24 @@ export function Ha3dEditorSettings() {
           <div className="font-medium text-sm">Dashboard menu</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-          Choose the automatic 3D bindings, the lightweight HA3D tile grid, or native Home Assistant
-          cards. Native cards use the same Lovelace visual/YAML editor and installed custom cards as
-          a normal HA dashboard.
+          Automatic uses native Home Assistant Tile cards for entities linked to the 3D scene. HA
+          cards uses your own Lovelace card tree. Edit custom cards in the dedicated Menu tab.
         </p>
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <ToggleButton
             active={projectConfig.dashboardMenu.mode === 'auto'}
             onClick={() => setDashboardMenuMode('auto')}
           >
-            Automatic
-          </ToggleButton>
-          <ToggleButton
-            active={projectConfig.dashboardMenu.mode === 'custom'}
-            onClick={() => setDashboardMenuMode('custom')}
-          >
-            HA3D tiles
+            Automatic HA tiles
           </ToggleButton>
           <ToggleButton
             active={projectConfig.dashboardMenu.mode === 'lovelace'}
             onClick={() => setDashboardMenuMode('lovelace')}
           >
-            HA cards
+            Custom HA cards
           </ToggleButton>
         </div>
-
-        {projectConfig.dashboardMenu.mode === 'custom' ? (
-          <>
-            <div className="mt-3 flex gap-2">
-              <div className="min-w-0 flex-1">
-                <input
-                  className="w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary/60"
-                  list="ha3d-dashboard-menu-entities"
-                  onChange={(event) => setMenuEntityId(event.currentTarget.value)}
-                  placeholder="Search entity by name or entity id…"
-                  value={menuEntityId}
-                />
-                <datalist id="ha3d-dashboard-menu-entities">
-                  {availableMenuEntities.map((entity) => (
-                    <option
-                      key={entity.entityId}
-                      label={entityFriendlyName(entity)}
-                      value={entity.entityId}
-                    />
-                  ))}
-                </datalist>
-              </div>
-              <button
-                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 py-2 font-medium text-primary-foreground text-xs disabled:opacity-40"
-                disabled={
-                  !availableMenuEntities.some((entity) => entity.entityId === menuEntityId.trim())
-                }
-                onClick={() => {
-                  const entityId = menuEntityId.trim()
-                  if (!availableMenuEntities.some((entity) => entity.entityId === entityId)) return
-                  addDashboardMenuItem(entityId)
-                  setMenuEntityId('')
-                }}
-                type="button"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add
-              </button>
-            </div>
-
-            {projectConfig.dashboardMenu.items.length === 0 ? (
-              <div className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-muted-foreground text-xs">
-                Add entities to build the Menu tile layout.
-              </div>
-            ) : (
-              <div className="mt-3 space-y-2">
-                {projectConfig.dashboardMenu.items.map((item, index) => {
-                  const entity = runtime.adapter?.getEntity(item.entityId)
-                  return (
-                    <div
-                      className="flex items-center gap-2 rounded-xl border border-border bg-background/60 p-2"
-                      key={item.entityId}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium text-xs">
-                          {entity ? entityFriendlyName(entity) : item.entityId}
-                        </div>
-                        <div className="truncate text-[10px] text-muted-foreground">
-                          {item.entityId}
-                        </div>
-                      </div>
-
-                      <button
-                        aria-label="Use half width tile"
-                        aria-pressed={item.span === 1}
-                        className={
-                          item.span === 1
-                            ? 'flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25'
-                            : 'flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground'
-                        }
-                        onClick={() => updateDashboardMenuItem(item.entityId, { span: 1 })}
-                        title="Half width"
-                        type="button"
-                      >
-                        <Columns2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        aria-label="Use full width tile"
-                        aria-pressed={item.span === 2}
-                        className={
-                          item.span === 2
-                            ? 'flex h-8 min-w-8 items-center justify-center rounded-lg bg-primary/15 px-2 text-primary ring-1 ring-primary/25'
-                            : 'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-muted-foreground hover:bg-accent hover:text-foreground'
-                        }
-                        onClick={() => updateDashboardMenuItem(item.entityId, { span: 2 })}
-                        title="Full width"
-                        type="button"
-                      >
-                        2
-                      </button>
-                      <button
-                        aria-label="Move tile up"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-25"
-                        disabled={index === 0}
-                        onClick={() => moveDashboardMenuItem(item.entityId, -1)}
-                        type="button"
-                      >
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        aria-label="Move tile down"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-25"
-                        disabled={index === projectConfig.dashboardMenu.items.length - 1}
-                        onClick={() => moveDashboardMenuItem(item.entityId, 1)}
-                        type="button"
-                      >
-                        <ArrowDown className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        aria-label="Remove tile"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => removeDashboardMenuItem(item.entityId)}
-                        type="button"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            <p className="mt-3 text-muted-foreground text-[10px] leading-relaxed">
-              Half-width tiles can sit side by side. Full-width tiles expose richer inline controls
-              where the entity supports them.
-            </p>
-          </>
-        ) : null}
-
-        {projectConfig.dashboardMenu.mode === 'lovelace' ? (
-          <div className="mt-3">
-            <Ha3dLovelaceMenuEditor
-              config={projectConfig.dashboardMenu.lovelaceCard}
-              onChange={setDashboardLovelaceCard}
-            />
-          </div>
-        ) : null}
       </section>
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">

@@ -4,7 +4,6 @@ import {
   DEFAULT_HA3D_DASHBOARD_MENU,
   dashboardMenuEqual,
   type Ha3dDashboardMenuConfig,
-  type Ha3dDashboardMenuItem,
   type Ha3dLovelaceCardConfig,
   parseHa3dDashboardMenu,
   parseHa3dLovelaceCardConfig,
@@ -80,7 +79,6 @@ function cloneBinding(binding: EntityBinding): EntityBinding {
 function cloneDashboardMenu(menu: Ha3dDashboardMenuConfig): Ha3dDashboardMenuConfig {
   return {
     mode: menu.mode,
-    items: menu.items.map((item) => ({ ...item })),
     lovelaceCard: cloneHa3dLovelaceCardConfig(menu.lovelaceCard),
   }
 }
@@ -266,62 +264,6 @@ export function setDashboardLovelaceCard(config: Ha3dLovelaceCardConfig): void {
   }
   if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
   publish(snapshot.bindings, snapshot.structureMappings, next)
-}
-
-export function addDashboardMenuItem(entityId: string): void {
-  const trimmed = entityId.trim()
-  if (snapshot.dashboardMenu.items.some((item) => item.entityId === trimmed)) return
-  const next = parseHa3dDashboardMenu({
-    ...snapshot.dashboardMenu,
-    mode: 'custom',
-    items: [...snapshot.dashboardMenu.items, { entityId: trimmed, span: 2 }],
-  })
-  publish(snapshot.bindings, snapshot.structureMappings, next)
-}
-
-export function updateDashboardMenuItem(
-  entityId: string,
-  patch: Partial<Pick<Ha3dDashboardMenuItem, 'span'>>,
-): void {
-  const index = snapshot.dashboardMenu.items.findIndex((item) => item.entityId === entityId)
-  if (index < 0) return
-
-  const items = snapshot.dashboardMenu.items.map((item, itemIndex) =>
-    itemIndex === index ? { ...item, ...patch } : item,
-  )
-  const next = parseHa3dDashboardMenu({
-    ...snapshot.dashboardMenu,
-    mode: 'custom',
-    items,
-  })
-  if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
-  publish(snapshot.bindings, snapshot.structureMappings, next)
-}
-
-export function moveDashboardMenuItem(entityId: string, offset: -1 | 1): void {
-  const index = snapshot.dashboardMenu.items.findIndex((item) => item.entityId === entityId)
-  const target = index + offset
-  if (index < 0 || target < 0 || target >= snapshot.dashboardMenu.items.length) return
-
-  const items = [...snapshot.dashboardMenu.items]
-  const [item] = items.splice(index, 1)
-  if (!item) return
-  items.splice(target, 0, item)
-  publish(snapshot.bindings, snapshot.structureMappings, {
-    ...snapshot.dashboardMenu,
-    mode: 'custom',
-    items,
-  })
-}
-
-export function removeDashboardMenuItem(entityId: string): void {
-  const items = snapshot.dashboardMenu.items.filter((item) => item.entityId !== entityId)
-  if (items.length === snapshot.dashboardMenu.items.length) return
-  publish(snapshot.bindings, snapshot.structureMappings, {
-    ...snapshot.dashboardMenu,
-    mode: 'custom',
-    items,
-  })
 }
 
 export function upsertFloorStructureMapping(floorId: string, levelNodeId: string): void {

@@ -575,9 +575,6 @@
   .z-\[200\] {
     z-index: 200;
   }
-  .col-span-1 {
-    grid-column: span 1 / span 1;
-  }
   .col-span-2 {
     grid-column: span 2 / span 2;
   }
@@ -667,9 +664,6 @@
   }
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
-  }
-  .mt-2\.5 {
-    margin-top: calc(var(--spacing) * 2.5);
   }
   .mt-3 {
     margin-top: calc(var(--spacing) * 3);
@@ -1162,6 +1156,9 @@
   .w-\[18px\] {
     width: 18px;
   }
+  .w-\[21rem\] {
+    width: 21rem;
+  }
   .w-\[22rem\] {
     width: 22rem;
   }
@@ -1287,12 +1284,6 @@
   }
   .min-w-7 {
     min-width: calc(var(--spacing) * 7);
-  }
-  .min-w-8 {
-    min-width: calc(var(--spacing) * 8);
-  }
-  .min-w-10 {
-    min-width: calc(var(--spacing) * 10);
   }
   .min-w-14 {
     min-width: calc(var(--spacing) * 14);
@@ -1945,9 +1936,6 @@
   .border-\[var\(--ha3d-dashboard-error-ring\)\] {
     border-color: var(--ha3d-dashboard-error-ring);
   }
-  .border-\[var\(--ha3d-dashboard-primary-ring\)\] {
-    border-color: var(--ha3d-dashboard-primary-ring);
-  }
   .border-accent {
     border-color: var(--accent);
   }
@@ -2397,9 +2385,6 @@
   }
   .bg-\[var\(--ha3d-dashboard-hover\)\] {
     background-color: var(--ha3d-dashboard-hover);
-  }
-  .bg-\[var\(--ha3d-dashboard-light-active-soft\)\] {
-    background-color: var(--ha3d-dashboard-light-active-soft);
   }
   .bg-\[var\(--ha3d-dashboard-primary-soft\)\] {
     background-color: var(--ha3d-dashboard-primary-soft);
@@ -3572,9 +3557,6 @@
   .text-\[var\(--ha3d-dashboard-error\)\] {
     color: var(--ha3d-dashboard-error);
   }
-  .text-\[var\(--ha3d-dashboard-light-active\)\] {
-    color: var(--ha3d-dashboard-light-active);
-  }
   .text-\[var\(--ha3d-dashboard-muted\)\] {
     color: var(--ha3d-dashboard-muted);
   }
@@ -4027,9 +4009,6 @@
   .underline-offset-4 {
     text-underline-offset: 4px;
   }
-  .accent-\[var\(--ha3d-dashboard-primary\)\] {
-    accent-color: var(--ha3d-dashboard-primary);
-  }
   .accent-current {
     accent-color: currentcolor;
   }
@@ -4179,9 +4158,6 @@
       --tw-shadow-color: color-mix(in oklab, color-mix(in oklab, var(--color-black) 10%, transparent) var(--tw-shadow-alpha), transparent);
     }
   }
-  .ring-\[var\(--ha3d-dashboard-light-active-ring\)\] {
-    --tw-ring-color: var(--ha3d-dashboard-light-active-ring);
-  }
   .ring-\[var\(--ha3d-dashboard-primary-ring\)\] {
     --tw-ring-color: var(--ha3d-dashboard-primary-ring);
   }
@@ -4232,12 +4208,6 @@
   }
   .ring-primary-foreground {
     --tw-ring-color: var(--primary-foreground);
-  }
-  .ring-primary\/25 {
-    --tw-ring-color: var(--primary);
-    @supports (color: color-mix(in lab, red, red)) {
-      --tw-ring-color: color-mix(in oklab, var(--primary) 25%, transparent);
-    }
   }
   .ring-primary\/30 {
     --tw-ring-color: var(--primary);
@@ -5268,13 +5238,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--ha3d-dashboard-primary-soft);
-      }
-    }
-  }
-  .hover\:bg-\[var\(--ha3d-dashboard-surface\)\] {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--ha3d-dashboard-surface);
       }
     }
   }
@@ -6585,11 +6548,6 @@
       cursor: wait;
     }
   }
-  .disabled\:opacity-25 {
-    &:disabled {
-      opacity: 25%;
-    }
-  }
   .disabled\:opacity-30 {
     &:disabled {
       opacity: 30%;
@@ -7346,9 +7304,19 @@
       }
     }
   }
+  .lg\:flex {
+    @media (width >= 64rem) {
+      display: flex;
+    }
+  }
   .lg\:grid-cols-3 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .lg\:flex-col {
+    @media (width >= 64rem) {
+      flex-direction: column;
     }
   }
   .\@sm\:grid-cols-2 {

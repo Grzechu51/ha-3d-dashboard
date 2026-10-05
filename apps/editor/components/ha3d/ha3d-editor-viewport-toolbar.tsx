@@ -38,9 +38,16 @@ function resolveEditorBounds(levelId: string | null, solo: boolean): Box3 | null
     const levelObject = sceneRegistry.nodes.get(levelId)
     if (levelObject) bounds.setFromObject(levelObject, true)
   } else {
-    for (const [nodeId, object] of sceneRegistry.nodes) {
-      if (sceneRegistry.byType.site?.has(nodeId)) continue
-      bounds.expandByObject(object, true)
+    for (const buildingId of sceneRegistry.byType.building ?? []) {
+      const buildingObject = sceneRegistry.nodes.get(buildingId)
+      if (buildingObject) bounds.expandByObject(buildingObject, true)
+    }
+
+    if (bounds.isEmpty()) {
+      for (const [nodeId, object] of sceneRegistry.nodes) {
+        if (sceneRegistry.byType.site?.has(nodeId)) continue
+        bounds.expandByObject(object, true)
+      }
     }
   }
 

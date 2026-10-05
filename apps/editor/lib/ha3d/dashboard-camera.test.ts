@@ -23,6 +23,17 @@ describe('HA 3D dashboard camera presets', () => {
     expect(right.position[2]).toBe(-3)
   })
 
+  test('fit preset stays close enough for a building-scale dashboard view', () => {
+    const fit = resolveHa3dDashboardCameraPose(bounds, 'fit')
+    const dx = fit.position[0] - bounds.center[0]
+    const dy = fit.position[1] - bounds.center[1]
+    const dz = fit.position[2] - bounds.center[2]
+    const distance = Math.hypot(dx, dy, dz)
+
+    expect(distance).toBeGreaterThan(10)
+    expect(distance).toBeLessThan(22)
+  })
+
   test('top preset stays almost directly above the target', () => {
     const top = resolveHa3dDashboardCameraPose(bounds, 'top')
 

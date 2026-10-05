@@ -26,9 +26,16 @@ function resolveDashboardBounds(levelId: string | null, solo: boolean): Box3 | n
     const levelObject = sceneRegistry.nodes.get(levelId)
     if (levelObject) dashboardBounds.setFromObject(levelObject)
   } else {
-    for (const [nodeId, object] of sceneRegistry.nodes) {
-      if (sceneRegistry.byType.site?.has(nodeId)) continue
-      dashboardBounds.expandByObject(object)
+    for (const buildingId of sceneRegistry.byType.building ?? []) {
+      const buildingObject = sceneRegistry.nodes.get(buildingId)
+      if (buildingObject) dashboardBounds.expandByObject(buildingObject)
+    }
+
+    if (dashboardBounds.isEmpty()) {
+      for (const [nodeId, object] of sceneRegistry.nodes) {
+        if (sceneRegistry.byType.site?.has(nodeId)) continue
+        dashboardBounds.expandByObject(object)
+      }
     }
   }
 

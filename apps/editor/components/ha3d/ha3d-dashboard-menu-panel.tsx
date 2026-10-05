@@ -16,7 +16,7 @@ export function Ha3dDashboardMenuPanel() {
     getHa3dProjectConfigSnapshot,
     getHa3dProjectConfigSnapshot,
   )
-  const active = projectConfig.dashboardMenu.mode === 'lovelace'
+  const custom = projectConfig.dashboardMenu.mode === 'lovelace'
 
   return (
     <div className="flex h-full flex-col overflow-y-auto p-4">
@@ -25,41 +25,57 @@ export function Ha3dDashboardMenuPanel() {
         <div>
           <h2 className="font-semibold text-base">Menu</h2>
           <p className="mt-0.5 text-muted-foreground text-xs">
-            Edit the operator panel with normal Home Assistant cards.
+            Build the operator panel with normal Home Assistant cards.
           </p>
         </div>
       </div>
 
-      {!active ? (
-        <div className="mt-4 rounded-2xl border border-border bg-card/70 p-4">
-          <div className="flex items-start gap-3">
-            <LayoutDashboard className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <div className="min-w-0 flex-1">
-              <div className="font-medium text-sm">Use native HA cards</div>
-              <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-                The current Menu uses{' '}
-                {projectConfig.dashboardMenu.mode === 'auto'
-                  ? 'automatic 3D bindings'
-                  : 'HA3D tiles'}
-                . Switch to native Lovelace cards to add Mushroom, Tile, stacks and other installed
-                Home Assistant cards.
-              </p>
-              <button
-                className="mt-3 rounded-full bg-primary px-3 py-2 font-medium text-primary-foreground text-xs"
-                onClick={() => setDashboardMenuMode('lovelace')}
-                type="button"
-              >
-                Use HA cards
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <button
+          aria-pressed={!custom}
+          className={
+            custom
+              ? 'rounded-xl border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
+              : 'rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-primary text-sm'
+          }
+          onClick={() => setDashboardMenuMode('auto')}
+          type="button"
+        >
+          Automatic HA tiles
+        </button>
+        <button
+          aria-pressed={custom}
+          className={
+            custom
+              ? 'rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-primary text-sm'
+              : 'rounded-xl border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
+          }
+          onClick={() => setDashboardMenuMode('lovelace')}
+          type="button"
+        >
+          Custom HA cards
+        </button>
+      </div>
+
+      {custom ? (
         <div className="mt-4">
           <Ha3dLovelaceMenuEditor
             config={projectConfig.dashboardMenu.lovelaceCard}
             onChange={setDashboardLovelaceCard}
           />
+        </div>
+      ) : (
+        <div className="mt-4 rounded-2xl border border-border bg-card/70 p-4">
+          <div className="flex items-start gap-3">
+            <LayoutDashboard className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-sm">Automatic native Home Assistant tiles</div>
+              <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+                Every unique Home Assistant entity linked to the 3D scene is rendered as a native
+                Tile card. The live preview is docked on the right side of the editor.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

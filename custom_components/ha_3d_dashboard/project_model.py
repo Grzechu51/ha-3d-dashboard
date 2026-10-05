@@ -78,7 +78,6 @@ def default_ha_config() -> dict[str, Any]:
         "structureMappings": {"floors": [], "areas": []},
         "dashboardMenu": {
             "mode": "auto",
-            "items": [],
             "lovelaceCard": {"type": "vertical-stack", "cards": []},
         },
     }
@@ -220,16 +219,12 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
     if dashboard_menu is not MISSING:
         if not isinstance(dashboard_menu, dict):
             raise InvalidProjectError("ha_config dashboardMenu must be an object")
+
         mode = dashboard_menu.get("mode")
-        items = dashboard_menu.get("items")
         if not isinstance(mode, str) or mode not in {"auto", "custom", "lovelace"}:
             raise InvalidProjectError(
-                "ha_config dashboardMenu mode must be auto, custom or lovelace"
+                "ha_config dashboardMenu mode must be auto or lovelace"
             )
-        if not isinstance(items, list):
-            raise InvalidProjectError("ha_config dashboardMenu items must be an array")
-        if len(items) > 48:
-            raise InvalidProjectError("ha_config dashboardMenu supports at most 48 items")
 
         lovelace_card = dashboard_menu.get("lovelaceCard", MISSING)
         if lovelace_card is not MISSING:
@@ -243,31 +238,65 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
                     "ha_config dashboardMenu lovelaceCard requires a card type"
                 )
 
-        seen_menu_entities: set[str] = set()
-        for item in items:
-            if not isinstance(item, dict):
-                raise InvalidProjectError("ha_config dashboardMenu item must be an object")
-            entity_id = item.get("entityId")
-            span = item.get("span", 2)
-            if not isinstance(entity_id, str) or not entity_id.strip():
+        if mode == "custom":
+            items = dashboard_menu.get("items")
+            if not isinstance(items, list):
+                raise InvalidProjectError("ha_config dashboardMenu items must be an array")
+            if len(items) > 48:
                 raise InvalidProjectError(
-                    "ha_config dashboardMenu entityId must be a non-empty string"
+                    "ha_config dashboardMenu supports at most 48 items"
                 )
-            normalized_entity_id = entity_id.strip()
-            separator = normalized_entity_id.find(".")
-            if separator <= 0 or separator == len(normalized_entity_id) - 1:
-                raise InvalidProjectError("ha_config dashboardMenu entityId is invalid")
-            if normalized_entity_id in seen_menu_entities:
+
+            seen_menu_entities: set[str] = set()
+            cards: list[dict[str, str]] = []
+            for item in items:
+                if not isinstance(item, dict):
+                    raise InvalidProjectError(
+                        "ha_config dashboardMenu item must be an object"
+                    )
+                entity_id = item.get("entityId")
+                if not isinstance(entity_id, str) or not entity_id.strip():
+                    raise InvalidProjectError(
+                        "ha_config dashboardMenu entityId must be a non-empty string"
+                    )
+                normalized_entity_id = entity_id.strip()
+                separator = normalized_entity_id.find(".")
+                if separator <= 0 or separator == len(normalized_entity_id) - 1:
+                    raise InvalidProjectError(
+                        "ha_config dashboardMenu entityId is invalid"
+                    )
+                if normalized_entity_id in seen_menu_entities:
+                    raise InvalidProjectError(
+                        "ha_config dashboardMenu entity ids must be unique"
+                    )
+                seen_menu_entities.add(normalized_entity_id)
+                cards.append({"type": "tile", "entity": normalized_entity_id})
+
+            config["dashboardMenu"] = {
+                "mode": "lovelace",
+                "lovelaceCard": {
+                    "type": "vertical-stack",
+                    "cards": cards,
+                },
+            }
+        elif mode == "lovelace":
+            if lovelace_card is MISSING:
                 raise InvalidProjectError(
-                    "ha_config dashboardMenu entity ids must be unique"
+                    "ha_config dashboardMenu lovelaceCard is required in lovelace mode"
                 )
-            seen_menu_entities.add(normalized_entity_id)
-            if (
-                isinstance(span, bool)
-                or not isinstance(span, int)
-                or span not in {1, 2}
-            ):
-                raise InvalidProjectError("ha_config dashboardMenu span must be 1 or 2")
+            config["dashboardMenu"] = {
+                "mode": "lovelace",
+                "lovelaceCard": deepcopy(lovelace_card),
+            }
+        else:
+            config["dashboardMenu"] = {
+                "mode": "auto",
+                "lovelaceCard": (
+                    {"type": "vertical-stack", "cards": []}
+                    if lovelace_card is MISSING
+                    else deepcopy(lovelace_card)
+                ),
+            }
 
     for binding in bindings:
         if not isinstance(binding, dict):

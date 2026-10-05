@@ -36,6 +36,7 @@ import {
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dDashboardMenuPanel } from '../components/ha3d/ha3d-dashboard-menu-panel'
+import { Ha3dDashboardMenuPreview } from '../components/ha3d/ha3d-dashboard-menu-preview'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
 import {
   HA3D_DASHBOARD_THEME_STYLE,
@@ -984,6 +985,8 @@ function NativeProject({
           }
         />
       </EditorCrashBoundary>
+
+      <Ha3dDashboardMenuPreview />
 
       {structureOpen ? (
         <Ha3dStructureManager host={host} onClose={() => setStructureOpen(false)} />
