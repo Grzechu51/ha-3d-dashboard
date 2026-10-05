@@ -128,14 +128,6 @@ export function Ha3dDashboardControls({
       })
   }, [project.bindings, runtime.adapter, runtime.revision, selectedNodeId])
 
-  const linkedObjectCount = useMemo(
-    () =>
-      new Set(
-        project.bindings.filter((binding) => binding.enabled).map((binding) => binding.nodeId),
-      ).size,
-    [project.bindings],
-  )
-
   const showMoreInfo = (entityId: string, fallbackNodeId: string) => {
     if (onShowMoreInfo) {
       onShowMoreInfo(entityId)
@@ -179,37 +171,26 @@ export function Ha3dDashboardControls({
     }
   }
 
-  const panel = collapsed ? (
-    <button
-      className="pointer-events-auto absolute right-3 bottom-3 z-40 rounded-full border border-white/10 bg-slate-950/75 px-4 py-2 font-medium text-sm text-white shadow-xl backdrop-blur-xl md:top-3 md:bottom-auto"
-      onClick={() => setCollapsedState(false)}
-      type="button"
-    >
-      Home Assistant
-    </button>
-  ) : (
+  const panel = collapsed ? null : (
     <aside
-      className="pointer-events-auto absolute right-3 bottom-3 left-3 z-40 max-h-[48vh] overflow-hidden rounded-2xl border border-white/10 bg-slate-950/78 text-white shadow-2xl backdrop-blur-xl md:top-3 md:bottom-3 md:left-auto md:w-[20rem] md:max-h-none"
+      className="pointer-events-auto absolute right-3 bottom-3 left-3 z-40 max-h-[48vh] overflow-hidden rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl md:top-3 md:bottom-3 md:left-auto md:w-[20rem] md:max-h-none"
       ref={panelRef}
     >
-      <div className="border-white/10 border-b p-3">
+      <div className="border-[var(--ha3d-dashboard-border)] border-b p-3">
         <div className="flex items-center gap-2.5">
           <span
             className={
               runtime.connected
-                ? 'size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]'
-                : 'size-2 rounded-full bg-slate-500'
+                ? 'size-2 rounded-full bg-[var(--ha3d-dashboard-success)]'
+                : 'size-2 rounded-full bg-[var(--ha3d-dashboard-disabled)]'
             }
           />
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-sm">Home Assistant</div>
-            <div className="truncate text-[10px] text-white/45">
-              {rows.length} entities · {linkedObjectCount} linked objects
-            </div>
+            <div className="font-semibold text-sm">Menu</div>
           </div>
           <button
             aria-label="Hide Home Assistant controls"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white/55 hover:bg-white/10 hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
             onClick={() => setCollapsedState(true)}
             type="button"
           >
@@ -217,14 +198,14 @@ export function Ha3dDashboardControls({
           </button>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl bg-white/[0.035] p-1">
+        <div className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl bg-[var(--ha3d-dashboard-hover)] p-1">
           {onHighlightsEnabledChange ? (
             <button
               aria-pressed={highlightsEnabled}
               className={
                 highlightsEnabled
-                  ? 'flex items-center justify-center gap-1.5 rounded-lg bg-cyan-400/15 px-2 py-1.5 text-cyan-100 text-[10px] ring-1 ring-cyan-300/20'
-                  : 'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] text-white/45 hover:bg-white/10 hover:text-white'
+                  ? 'flex items-center justify-center gap-1.5 rounded-lg bg-[var(--ha3d-dashboard-primary-soft)] px-2 py-1.5 text-[var(--ha3d-dashboard-primary)] text-[10px] ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                  : 'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
               }
               onClick={() => onHighlightsEnabledChange(!highlightsEnabled)}
               type="button"
@@ -242,8 +223,8 @@ export function Ha3dDashboardControls({
               aria-pressed={markersEnabled}
               className={
                 markersEnabled
-                  ? 'flex items-center justify-center gap-1.5 rounded-lg bg-cyan-400/15 px-2 py-1.5 text-cyan-100 text-[10px] ring-1 ring-cyan-300/20'
-                  : 'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] text-white/45 hover:bg-white/10 hover:text-white'
+                  ? 'flex items-center justify-center gap-1.5 rounded-lg bg-[var(--ha3d-dashboard-primary-soft)] px-2 py-1.5 text-[var(--ha3d-dashboard-primary)] text-[10px] ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                  : 'flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
               }
               onClick={() => onMarkersEnabledChange(!markersEnabled)}
               type="button"
@@ -255,14 +236,14 @@ export function Ha3dDashboardControls({
         </div>
 
         {onEnvironmentModeChange ? (
-          <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl bg-white/[0.035] p-1">
+          <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl bg-[var(--ha3d-dashboard-hover)] p-1">
             {(['auto', 'day', 'twilight', 'night'] as const).map((mode) => (
               <button
                 aria-pressed={environmentMode === mode}
                 className={
                   environmentMode === mode
-                    ? 'rounded-lg bg-amber-300/15 px-1.5 py-1.5 font-medium text-[10px] text-amber-100 ring-1 ring-amber-200/15'
-                    : 'rounded-lg px-1.5 py-1.5 text-[10px] text-white/40 hover:bg-white/10 hover:text-white'
+                    ? 'rounded-lg bg-[var(--ha3d-dashboard-warning-soft)] px-1.5 py-1.5 font-medium text-[10px] text-[var(--ha3d-dashboard-warning)] ring-1 ring-[var(--ha3d-dashboard-warning)]/20'
+                    : 'rounded-lg px-1.5 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
                 }
                 key={mode}
                 onClick={() => onEnvironmentModeChange(mode)}
@@ -281,13 +262,13 @@ export function Ha3dDashboardControls({
 
       <div className="max-h-[calc(48vh-8.5rem)] overflow-y-auto p-2 md:max-h-[calc(100vh-11.5rem)]">
         {actionError ? (
-          <div className="mb-2 rounded-xl border border-red-400/25 bg-red-500/10 px-3 py-2 text-red-200 text-xs">
+          <div className="mb-2 rounded-xl border border-[var(--ha3d-dashboard-error)]/30 bg-[var(--ha3d-dashboard-error-soft)] px-3 py-2 text-[var(--ha3d-dashboard-error)] text-xs">
             {actionError}
           </div>
         ) : null}
 
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-white/10 px-3 py-5 text-center text-white/45 text-xs">
+          <div className="rounded-xl border border-[var(--ha3d-dashboard-border)] px-3 py-5 text-center text-[var(--ha3d-dashboard-muted)] text-xs">
             No entities are linked to this scene.
           </div>
         ) : (
@@ -306,8 +287,8 @@ export function Ha3dDashboardControls({
                 <div
                   className={
                     selected
-                      ? 'flex items-center gap-2 rounded-xl bg-cyan-400/12 p-2 ring-1 ring-cyan-300/25'
-                      : 'flex items-center gap-2 rounded-xl p-2 transition-colors hover:bg-white/[0.055]'
+                      ? 'flex items-center gap-2 rounded-xl bg-[var(--ha3d-dashboard-primary-soft)] p-2 ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                      : 'flex items-center gap-2 rounded-xl p-2 transition-colors hover:bg-[var(--ha3d-dashboard-hover)]'
                   }
                   key={row.entityId}
                 >
@@ -315,7 +296,7 @@ export function Ha3dDashboardControls({
                     <div className="truncate font-medium text-xs">
                       {row.entity ? entityFriendlyName(row.entity) : row.entityId}
                     </div>
-                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10px] text-white/40">
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)]">
                       <span className="truncate">
                         {row.entity ? formatHomeAssistantEntityValue(row.entity) : 'Unavailable'}
                       </span>
@@ -332,7 +313,7 @@ export function Ha3dDashboardControls({
 
                   {hasQuickAction && row.entity ? (
                     <button
-                      className="min-w-9 rounded-lg bg-white/[0.06] px-2 py-1.5 text-[10px] text-white/70 hover:bg-white/10 hover:text-white"
+                      className="min-w-9 rounded-lg bg-[var(--ha3d-dashboard-hover)] px-2 py-1.5 text-[10px] text-[var(--ha3d-dashboard-text)] hover:bg-[var(--ha3d-dashboard-primary-soft)] hover:text-[var(--ha3d-dashboard-primary)]"
                       onClick={() => void quickAction(row)}
                       type="button"
                     >
@@ -349,7 +330,7 @@ export function Ha3dDashboardControls({
                   {onShowMoreInfo || onExpandedNodeIdChange ? (
                     <button
                       aria-label={`More info for ${row.entityId}`}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/45 hover:bg-white/10 hover:text-white"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
                       onClick={() => showMoreInfo(row.entityId, binding.nodeId)}
                       type="button"
                     >
