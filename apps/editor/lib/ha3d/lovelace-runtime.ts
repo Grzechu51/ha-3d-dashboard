@@ -75,7 +75,7 @@ async function loadLovelaceRoute(): Promise<void> {
 
 async function loadRegisteredLovelaceResources(host: HomeAssistantLovelaceHost): Promise<void> {
   try {
-    await waitForDefinition('ha-panel-lovelace')
+    if (!customElements.get('ha-panel-lovelace')) return
     const panel = document.createElement('ha-panel-lovelace') as LovelacePanel
     panel.hass = host
     panel.panel = { config: { mode: 'yaml' } }
