@@ -3,8 +3,21 @@
 import { useScene } from '@pascal-app/core'
 import { useEditor } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
-import { Box, Download, PackagePlus, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
-import { type ReactNode, useState, useSyncExternalStore } from 'react'
+import {
+  ArrowDown,
+  ArrowUp,
+  Box,
+  Columns2,
+  Download,
+  LayoutGrid,
+  PackagePlus,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  SlidersHorizontal,
+  Trash2,
+} from 'lucide-react'
+import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
 import {
   getHa3dDashboardAppearanceServerSnapshot,
   getHa3dDashboardAppearanceSnapshot,
@@ -12,6 +25,16 @@ import {
   subscribeHa3dDashboardAppearance,
   updateHa3dDashboardAppearance,
 } from '../../lib/ha3d/dashboard-appearance'
+import { entityFriendlyName } from '../../lib/ha3d/entity-display'
+import {
+  addDashboardMenuItem,
+  getHa3dProjectConfigSnapshot,
+  moveDashboardMenuItem,
+  removeDashboardMenuItem,
+  setDashboardMenuMode,
+  subscribeHa3dProjectConfig,
+  updateDashboardMenuItem,
+} from '../../lib/ha3d/project-config'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
@@ -31,8 +54,8 @@ function ToggleButton({
       aria-pressed={active}
       className={
         active
-          ? 'rounded-lg border border-cyan-400/40 bg-cyan-400/10 px-3 py-2 text-left text-cyan-100 text-sm'
-          : 'rounded-lg border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
+          ? 'rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-left text-primary text-sm'
+          : 'rounded-xl border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
       }
       onClick={onClick}
       type="button"
@@ -83,12 +106,33 @@ export function Ha3dEditorSettings() {
     getHa3dDashboardAppearanceSnapshot,
     getHa3dDashboardAppearanceServerSnapshot,
   )
+  const projectConfig = useSyncExternalStore(
+    subscribeHa3dProjectConfig,
+    getHa3dProjectConfigSnapshot,
+    getHa3dProjectConfigSnapshot,
+  )
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState<string | null>(null)
   const [exporting, setExporting] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [menuEntityId, setMenuEntityId] = useState('')
 
-  const entityCount = runtime.adapter?.listEntities().length ?? 0
+  const entities = useMemo(
+    () =>
+      [...(runtime.adapter?.listEntities() ?? [])].sort((left, right) =>
+        entityFriendlyName(left).localeCompare(entityFriendlyName(right)),
+      ),
+    [runtime.adapter, runtime.revision],
+  )
+  const entityCount = entities.length
+  const menuEntityIds = useMemo(
+    () => new Set(projectConfig.dashboardMenu.items.map((item) => item.entityId)),
+    [projectConfig.dashboardMenu.items],
+  )
+  const availableMenuEntities = useMemo(
+    () => entities.filter((entity) => !menuEntityIds.has(entity.entityId)),
+    [entities, menuEntityIds],
+  )
 
   const refreshEntities = async () => {
     const refresh = runtime.adapter?.refreshEntities
@@ -162,6 +206,161 @@ export function Ha3dEditorSettings() {
       </section>
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
+        <div className="flex items-center gap-2">
+          <LayoutGrid className="h-4 w-4 text-primary" />
+          <div className="font-medium text-sm">Dashboard menu</div>
+        </div>
+        <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
+          Automatic mode lists entities bound to 3D objects. Custom mode builds a Home
+          Assistant-style tile grid from any live HA entities, even when they are not linked to a 3D
+          object.
+        </p>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <ToggleButton
+            active={projectConfig.dashboardMenu.mode === 'auto'}
+            onClick={() => setDashboardMenuMode('auto')}
+          >
+            Automatic
+          </ToggleButton>
+          <ToggleButton
+            active={projectConfig.dashboardMenu.mode === 'custom'}
+            onClick={() => setDashboardMenuMode('custom')}
+          >
+            Custom tiles
+          </ToggleButton>
+        </div>
+
+        {projectConfig.dashboardMenu.mode === 'custom' ? (
+          <>
+            <div className="mt-3 flex gap-2">
+              <div className="min-w-0 flex-1">
+                <input
+                  className="w-full rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-primary/60"
+                  list="ha3d-dashboard-menu-entities"
+                  onChange={(event) => setMenuEntityId(event.currentTarget.value)}
+                  placeholder="Search entity by name or entity id…"
+                  value={menuEntityId}
+                />
+                <datalist id="ha3d-dashboard-menu-entities">
+                  {availableMenuEntities.map((entity) => (
+                    <option
+                      key={entity.entityId}
+                      label={entityFriendlyName(entity)}
+                      value={entity.entityId}
+                    />
+                  ))}
+                </datalist>
+              </div>
+              <button
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-3 py-2 font-medium text-primary-foreground text-xs disabled:opacity-40"
+                disabled={
+                  !availableMenuEntities.some((entity) => entity.entityId === menuEntityId.trim())
+                }
+                onClick={() => {
+                  const entityId = menuEntityId.trim()
+                  if (!availableMenuEntities.some((entity) => entity.entityId === entityId)) return
+                  addDashboardMenuItem(entityId)
+                  setMenuEntityId('')
+                }}
+                type="button"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add
+              </button>
+            </div>
+
+            {projectConfig.dashboardMenu.items.length === 0 ? (
+              <div className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-muted-foreground text-xs">
+                Add entities to build the Menu tile layout.
+              </div>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {projectConfig.dashboardMenu.items.map((item, index) => {
+                  const entity = runtime.adapter?.getEntity(item.entityId)
+                  return (
+                    <div
+                      className="flex items-center gap-2 rounded-xl border border-border bg-background/60 p-2"
+                      key={item.entityId}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium text-xs">
+                          {entity ? entityFriendlyName(entity) : item.entityId}
+                        </div>
+                        <div className="truncate text-[10px] text-muted-foreground">
+                          {item.entityId}
+                        </div>
+                      </div>
+
+                      <button
+                        aria-label="Use half width tile"
+                        aria-pressed={item.span === 1}
+                        className={
+                          item.span === 1
+                            ? 'flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-primary/25'
+                            : 'flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }
+                        onClick={() => updateDashboardMenuItem(item.entityId, { span: 1 })}
+                        title="Half width"
+                        type="button"
+                      >
+                        <Columns2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label="Use full width tile"
+                        aria-pressed={item.span === 2}
+                        className={
+                          item.span === 2
+                            ? 'flex h-8 min-w-8 items-center justify-center rounded-lg bg-primary/15 px-2 text-primary ring-1 ring-primary/25'
+                            : 'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }
+                        onClick={() => updateDashboardMenuItem(item.entityId, { span: 2 })}
+                        title="Full width"
+                        type="button"
+                      >
+                        2
+                      </button>
+                      <button
+                        aria-label="Move tile up"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-25"
+                        disabled={index === 0}
+                        onClick={() => moveDashboardMenuItem(item.entityId, -1)}
+                        type="button"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label="Move tile down"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-25"
+                        disabled={index === projectConfig.dashboardMenu.items.length - 1}
+                        onClick={() => moveDashboardMenuItem(item.entityId, 1)}
+                        type="button"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        aria-label="Remove tile"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removeDashboardMenuItem(item.entityId)}
+                        type="button"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <p className="mt-3 text-muted-foreground text-[10px] leading-relaxed">
+              Half-width tiles can sit side by side. Full-width tiles expose richer inline controls
+              where the entity supports them.
+            </p>
+          </>
+        ) : null}
+      </section>
+
+      <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="font-medium text-sm">Editor view</div>
         <p className="mt-1 text-muted-foreground text-xs">
           Rendering controls that affect the working 3D view.
@@ -203,7 +402,7 @@ export function Ha3dEditorSettings() {
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-cyan-300" />
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
             <div className="font-medium text-sm">Dashboard labels</div>
           </div>
           <button
@@ -227,7 +426,7 @@ export function Ha3dEditorSettings() {
             </span>
           </span>
           <input
-            className="mt-2 w-full accent-cyan-400"
+            className="mt-2 w-full accent-primary"
             max="0.95"
             min="0.35"
             onChange={(event) =>
@@ -245,7 +444,7 @@ export function Ha3dEditorSettings() {
             <span className="text-muted-foreground">{dashboardAppearance.labelRadiusPx}px</span>
           </span>
           <input
-            className="mt-2 w-full accent-cyan-400"
+            className="mt-2 w-full accent-primary"
             max="24"
             min="4"
             onChange={(event) =>
@@ -265,7 +464,7 @@ export function Ha3dEditorSettings() {
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center gap-2">
-          <Download className="h-4 w-4 text-cyan-300" />
+          <Download className="h-4 w-4 text-primary" />
           <div className="font-medium text-sm">Export</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
@@ -274,15 +473,15 @@ export function Ha3dEditorSettings() {
         </p>
 
         <button
-          className="mt-3 flex w-full items-center justify-between rounded-lg border border-cyan-400/30 bg-cyan-400/5 px-3 py-2 text-left text-sm hover:bg-cyan-400/10"
+          className="mt-3 flex w-full items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-left text-sm hover:bg-primary/10"
           onClick={exportPascalJson}
           type="button"
         >
           <span>
-            <span className="block font-medium text-cyan-100">Pascal project JSON</span>
+            <span className="block font-medium text-primary">Pascal project JSON</span>
             <span className="block text-[10px] text-muted-foreground">Editable scene graph</span>
           </span>
-          <Download className="h-4 w-4 text-cyan-300" />
+          <Download className="h-4 w-4 text-primary" />
         </button>
 
         <div className="mt-2 grid grid-cols-3 gap-2">
@@ -303,7 +502,7 @@ export function Ha3dEditorSettings() {
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center gap-2">
-          <Box className="h-4 w-4 text-cyan-300" />
+          <Box className="h-4 w-4 text-primary" />
           <div className="font-medium text-sm">Custom objects</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">

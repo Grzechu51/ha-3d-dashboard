@@ -1,12 +1,17 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { createEntityBinding } from './entity-binding'
 import {
+  addDashboardMenuItem,
   getHa3dProjectConfigSnapshot,
   ha3dProjectConfiguration,
+  moveDashboardMenuItem,
   removeAreaStructureMapping,
+  removeDashboardMenuItem,
   removeEntityBinding,
   removeFloorStructureMapping,
   resetHa3dProjectConfig,
+  setDashboardMenuMode,
+  updateDashboardMenuItem,
   upsertAreaStructureMapping,
   upsertEntityBinding,
   upsertFloorStructureMapping,
@@ -130,6 +135,44 @@ describe('HA 3D project configuration', () => {
     expect(getHa3dProjectConfigSnapshot().structureMappings).toEqual({
       floors: [],
       areas: [],
+    })
+  })
+
+  test('loads legacy project config with automatic dashboard menu', () => {
+    ha3dProjectConfiguration.restore({
+      version: 1,
+      bindings: [],
+    })
+
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
+      mode: 'auto',
+      items: [],
+    })
+  })
+
+  test('persists, resizes and reorders custom dashboard menu tiles', () => {
+    addDashboardMenuItem('light.salon')
+    addDashboardMenuItem('sensor.temperature')
+    updateDashboardMenuItem('light.salon', { span: 1 })
+    moveDashboardMenuItem('sensor.temperature', -1)
+
+    const persisted = ha3dProjectConfiguration.getSnapshot()
+    resetHa3dProjectConfig()
+    ha3dProjectConfiguration.restore(persisted)
+
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
+      mode: 'custom',
+      items: [
+        { entityId: 'sensor.temperature', span: 2 },
+        { entityId: 'light.salon', span: 1 },
+      ],
+    })
+
+    removeDashboardMenuItem('sensor.temperature')
+    setDashboardMenuMode('auto')
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
+      mode: 'auto',
+      items: [{ entityId: 'light.salon', span: 1 }],
     })
   })
 

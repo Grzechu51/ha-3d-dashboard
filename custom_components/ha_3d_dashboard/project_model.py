@@ -76,6 +76,7 @@ def default_ha_config() -> dict[str, Any]:
         "version": 1,
         "bindings": [],
         "structureMappings": {"floors": [], "areas": []},
+        "dashboardMenu": {"mode": "auto", "items": []},
     }
 
 
@@ -210,6 +211,45 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
                 raise InvalidProjectError("ha_config area mappings must be one-to-one")
             seen_area_ids.add(area_id)
             seen_zone_node_ids.add(zone_node_id)
+
+    dashboard_menu = config.get("dashboardMenu", MISSING)
+    if dashboard_menu is not MISSING:
+        if not isinstance(dashboard_menu, dict):
+            raise InvalidProjectError("ha_config dashboardMenu must be an object")
+        mode = dashboard_menu.get("mode")
+        items = dashboard_menu.get("items")
+        if not isinstance(mode, str) or mode not in {"auto", "custom"}:
+            raise InvalidProjectError("ha_config dashboardMenu mode must be auto or custom")
+        if not isinstance(items, list):
+            raise InvalidProjectError("ha_config dashboardMenu items must be an array")
+        if len(items) > 48:
+            raise InvalidProjectError("ha_config dashboardMenu supports at most 48 items")
+
+        seen_menu_entities: set[str] = set()
+        for item in items:
+            if not isinstance(item, dict):
+                raise InvalidProjectError("ha_config dashboardMenu item must be an object")
+            entity_id = item.get("entityId")
+            span = item.get("span", 2)
+            if not isinstance(entity_id, str) or not entity_id.strip():
+                raise InvalidProjectError(
+                    "ha_config dashboardMenu entityId must be a non-empty string"
+                )
+            normalized_entity_id = entity_id.strip()
+            separator = normalized_entity_id.find(".")
+            if separator <= 0 or separator == len(normalized_entity_id) - 1:
+                raise InvalidProjectError("ha_config dashboardMenu entityId is invalid")
+            if normalized_entity_id in seen_menu_entities:
+                raise InvalidProjectError(
+                    "ha_config dashboardMenu entity ids must be unique"
+                )
+            seen_menu_entities.add(normalized_entity_id)
+            if (
+                isinstance(span, bool)
+                or not isinstance(span, int)
+                or span not in {1, 2}
+            ):
+                raise InvalidProjectError("ha_config dashboardMenu span must be 1 or 2")
 
     for binding in bindings:
         if not isinstance(binding, dict):
@@ -455,10 +495,15 @@ class ProjectCollection:
             candidate["scene"] = next_scene
         if ha_config is not MISSING:
             next_ha_config = deepcopy(ha_config)
-            if isinstance(next_ha_config, dict) and "structureMappings" not in next_ha_config:
-                current_mappings = current["ha_config"].get("structureMappings")
-                if current_mappings is not None:
-                    next_ha_config["structureMappings"] = deepcopy(current_mappings)
+            if isinstance(next_ha_config, dict):
+                if "structureMappings" not in next_ha_config:
+                    current_mappings = current["ha_config"].get("structureMappings")
+                    if current_mappings is not None:
+                        next_ha_config["structureMappings"] = deepcopy(current_mappings)
+                if "dashboardMenu" not in next_ha_config:
+                    current_dashboard_menu = current["ha_config"].get("dashboardMenu")
+                    if current_dashboard_menu is not None:
+                        next_ha_config["dashboardMenu"] = deepcopy(current_dashboard_menu)
             candidate["ha_config"] = _validate_ha_config(next_ha_config)
 
         comparable = ("name", "scene", "ha_config")

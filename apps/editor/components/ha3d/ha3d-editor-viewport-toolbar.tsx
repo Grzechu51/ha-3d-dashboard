@@ -127,14 +127,14 @@ export function Ha3dEditorViewportToolbar({
   const soloLevel = levelMode === 'solo' ? selectedLevelId : null
 
   return (
-    <div className="pointer-events-auto flex max-w-[min(72vw,900px)] items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-black/65 p-1.5 text-white shadow-xl backdrop-blur-xl">
-      <div className="flex shrink-0 items-center gap-1 rounded-xl bg-white/5 p-1">
+    <div className="pointer-events-auto flex max-w-[min(72vw,900px)] items-center gap-1.5 overflow-x-auto rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1.5 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl">
+      <div className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--ha3d-dashboard-hover)] p-1">
         <button
           aria-pressed={soloLevel === null}
           className={
             soloLevel === null
-              ? 'rounded-lg bg-cyan-400/15 px-2.5 py-1.5 font-medium text-[10px] text-cyan-100 ring-1 ring-cyan-300/20'
-              : 'rounded-lg px-2.5 py-1.5 text-[10px] text-white/55 hover:bg-white/10 hover:text-white'
+              ? 'rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-2.5 py-1.5 font-medium text-[10px] text-[var(--ha3d-dashboard-primary)] ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+              : 'rounded-full px-2.5 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
           }
           onClick={showAllLevels}
           type="button"
@@ -148,8 +148,8 @@ export function Ha3dEditorViewportToolbar({
               aria-pressed={active}
               className={
                 active
-                  ? 'rounded-lg bg-cyan-400/15 px-2.5 py-1.5 font-medium text-[10px] text-cyan-100 ring-1 ring-cyan-300/20'
-                  : 'rounded-lg px-2.5 py-1.5 text-[10px] text-white/55 hover:bg-white/10 hover:text-white'
+                  ? 'rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-2.5 py-1.5 font-medium text-[10px] text-[var(--ha3d-dashboard-primary)] ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                  : 'rounded-full px-2.5 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
               }
               key={level.id}
               onClick={() => showLevel(level)}
@@ -161,12 +161,12 @@ export function Ha3dEditorViewportToolbar({
         })}
       </div>
 
-      <span className="h-5 w-px shrink-0 bg-white/10" />
+      <span className="h-5 w-px shrink-0 bg-[var(--ha3d-dashboard-border)]" />
 
-      <div className="flex shrink-0 items-center gap-1 rounded-xl bg-white/5 p-1">
+      <div className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--ha3d-dashboard-hover)] p-1">
         {CAMERA_PRESETS.map((preset) => (
           <button
-            className="rounded-lg px-2.5 py-1.5 text-[10px] text-white/60 hover:bg-white/10 hover:text-white"
+            className="rounded-full px-2.5 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
             key={preset.id}
             onClick={() => requestCameraPreset(preset.id)}
             type="button"
@@ -176,9 +176,9 @@ export function Ha3dEditorViewportToolbar({
         ))}
       </div>
 
-      <span className="h-5 w-px shrink-0 bg-white/10" />
+      <span className="h-5 w-px shrink-0 bg-[var(--ha3d-dashboard-border)]" />
 
-      <div className="flex shrink-0 items-center gap-1 rounded-xl bg-white/5 p-1">
+      <div className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--ha3d-dashboard-hover)] p-1">
         {ENVIRONMENT_MODES.map((mode) => {
           const active = environmentMode === mode.id
           return (
@@ -186,8 +186,8 @@ export function Ha3dEditorViewportToolbar({
               aria-pressed={active}
               className={
                 active
-                  ? 'rounded-lg bg-amber-300/15 px-2.5 py-1.5 font-medium text-[10px] text-amber-100 ring-1 ring-amber-200/20'
-                  : 'rounded-lg px-2.5 py-1.5 text-[10px] text-white/55 hover:bg-white/10 hover:text-white'
+                  ? 'rounded-full bg-[var(--ha3d-dashboard-warning-soft)] px-2.5 py-1.5 font-medium text-[10px] text-[var(--ha3d-dashboard-warning)] ring-1 ring-[var(--ha3d-dashboard-warning-ring)]'
+                  : 'rounded-full px-2.5 py-1.5 text-[10px] text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
               }
               key={mode.id}
               onClick={() => onEnvironmentModeChange(mode.id)}

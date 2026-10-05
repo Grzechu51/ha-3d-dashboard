@@ -18,37 +18,48 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.21 versioned frontend delivery**
+**Checkpoint: beta.22 customizable dashboard Menu + editor visual alignment**
 
-Status: **v0.3.0-beta.21 is published from merged PR #41 and ready for real Home Assistant delivery verification**
+Status: **v0.3.0-beta.21 is published; beta.22 work is on `feat/custom-dashboard-menu-beta22`**
 
-The beta.20 source and generated release frontend were re-inspected after the real HA retest still
-showed the beta.19 UI. The published beta.20 generated bundle is correct: it contains the new
-`Open menu` / `Close menu` strings and Home Assistant theme mapping, and it no longer contains
-the old `linked objects` dashboard header. The device therefore is not rendering the frontend
-contained in the beta.20 release even after an HA restart and app restart.
+The beta.21 delivery fix is confirmed by the real Home Assistant screenshots: the running panel now
+shows the integrated **Menu** control and the loaded beta.21 frontend. The next real-world pass
+focuses on operator customization and consistency between Dashboard and Edit.
 
-The existing custom panel URL changes only by query string
-(`/ha3d_static/ha3d-panel.js?v=<version>`) while the static directory is registered with cache
-headers enabled. Beta.21 removes that weak cache boundary for the panel entry assets without
-disabling caching for the much larger runtime asset directory.
+Beta.22 adds a project-persisted **Dashboard menu** model. Existing projects stay in **Automatic**
+mode, which continues to show entities bound to 3D objects. **Custom tiles** mode can instead contain
+any live Home Assistant entity, including entities that are not bound to scene geometry. The layout
+editor lives under **Edit → Settings → Dashboard menu** and supports:
 
-Each integration version now registers an additional immutable static alias:
+- adding any current HA entity;
+- half-width or full-width tiles;
+- explicit ordering;
+- removal;
+- switching back to the automatic bound-entity list.
 
-`/ha3d_static_build/<version>/`
+The runtime Menu now renders the configured entities as a two-column, HA-style tile grid. Common
+domains get direct controls: lights/switches/input booleans keep quick power actions, covers keep
+open/close, and full-width lights/covers/number helpers expose inline range controls when Home
+Assistant provides the required attributes. The tile body still opens native HA more-info, so less
+common domains remain useful without duplicating every Lovelace card implementation.
 
-The custom-panel module URL and its stylesheet use that versioned path. A new release therefore has
-a genuinely different request path, not only a query parameter, while icons/materials can keep using
-the stable cached `/ha3d_static/` path. The backend also passes the loaded integration version into
-the panel; the dashboard project badge renders it beside the project revision so a real HA screenshot
-can prove which frontend is executing.
+Dashboard active controls have been normalized to rounded pill geometry, including the top
+**Projects / Edit** control group, the bottom Menu/floor/camera navigation and active Menu toggles.
+This removes the square-looking highlighted **Edit** state seen in the beta.21 desktop smoke test.
 
-PR #41 passed the normal CI gate and the automatic **HA Release #38** published
-**v0.3.0-beta.21** as a prerelease. The next gate is a real HA update/restart. The expected
-verification marker is `Dashboard · rev <n> · 0.3.0-beta.21` together with the integrated
-**Menu** control. If that marker still does not appear, the remaining issue is outside the committed
-frontend bundle itself and the installed integration files / Home Assistant panel registration must
-be inspected directly on the test instance.
+The embedded Pascal editor now inherits Home Assistant theme variables through its host CSS-variable
+surface instead of being visually isolated behind a fixed dark palette. Its HA navbar, viewport
+toolbar and HA-specific Settings accents use the same surface, divider, primary, warning and text
+colors as Dashboard. The editor remains Pascal's existing v2 layout; this pass changes host
+presentation, not editor/core semantics.
+
+The HA project sidecar remains version 1. `dashboardMenu` is an optional additive field so legacy
+projects load as Automatic mode. The Home Assistant backend validates the custom menu and preserves
+an existing menu when an older client saves a v1 sidecar without that field.
+
+The next gate is source/architecture review followed by one normal PR CI run for
+**v0.3.0-beta.22**, then a real desktop/mobile smoke test of custom Menu tiles and editor theme
+alignment.
 
 ## Completed
 

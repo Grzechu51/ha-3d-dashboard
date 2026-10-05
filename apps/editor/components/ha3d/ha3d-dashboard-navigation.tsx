@@ -81,7 +81,7 @@ export function Ha3dDashboardNavigation({
       className={`pointer-events-none absolute right-3 bottom-[var(--ha3d-dashboard-nav-bottom)] left-3 z-40 flex justify-center transition-[bottom] duration-200 md:bottom-3 ${controlsCollapsed ? 'md:right-3' : 'md:right-[22rem]'}`}
       style={navigationStyle}
     >
-      <div className="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1.5 text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl">
+      <div className="pointer-events-auto flex max-w-full items-center overflow-hidden rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1.5 text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl">
         {onControlsCollapsedChange ? (
           <>
             <button
@@ -89,8 +89,8 @@ export function Ha3dDashboardNavigation({
               aria-pressed={!controlsCollapsed}
               className={
                 controlsCollapsed
-                  ? 'flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
-                  : 'flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-[var(--ha3d-dashboard-primary-soft)] px-2.5 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                  ? 'flex h-9 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
+                  : 'flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-2.5 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
               }
               onClick={() => onControlsCollapsedChange(!controlsCollapsed)}
               type="button"
@@ -111,8 +111,8 @@ export function Ha3dDashboardNavigation({
               aria-pressed={levelMode !== 'solo'}
               className={
                 levelMode !== 'solo'
-                  ? 'rounded-xl bg-[var(--ha3d-dashboard-primary-soft)] px-3 py-2 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
-                  : 'rounded-xl px-3 py-2 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
+                  ? 'rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-3 py-2 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                  : 'rounded-full px-3 py-2 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
               }
               onClick={showAllFloors}
               type="button"
@@ -126,8 +126,8 @@ export function Ha3dDashboardNavigation({
                   aria-pressed={active}
                   className={
                     active
-                      ? 'rounded-xl bg-[var(--ha3d-dashboard-primary-soft)] px-3 py-2 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
-                      : 'rounded-xl px-3 py-2 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
+                      ? 'rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-3 py-2 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)]'
+                      : 'rounded-full px-3 py-2 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]'
                   }
                   key={level.id}
                   onClick={() => showFloor(level)}
@@ -147,7 +147,7 @@ export function Ha3dDashboardNavigation({
             </span>
             {CAMERA_PRESETS.map((preset) => (
               <button
-                className="rounded-xl px-3 py-2 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
+                className="rounded-full px-3 py-2 text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
                 key={preset.id}
                 onClick={() => onCameraPreset(preset.id)}
                 type="button"
