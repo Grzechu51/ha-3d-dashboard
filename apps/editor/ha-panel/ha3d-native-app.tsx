@@ -25,6 +25,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { BuildTab } from '../components/build-tab'
+import { Ha3dCustomObjectTile } from '../components/ha3d/ha3d-custom-object-tile'
 import {
   Ha3dDashboardCameraControls,
   type Ha3dDashboardCameraRequest,
@@ -35,7 +36,6 @@ import {
   Ha3dDashboardInteractions,
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
-import { Ha3dCustomObjectTile } from '../components/ha3d/ha3d-custom-object-tile'
 import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
 import { Ha3dEditorViewportToolbar } from '../components/ha3d/ha3d-editor-viewport-toolbar'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
