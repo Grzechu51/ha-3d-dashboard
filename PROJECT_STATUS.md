@@ -20,7 +20,7 @@ Deliver an installable Home Assistant custom integration that provides:
 
 **Checkpoint: beta.24 native-only Home Assistant Menu + camera framing**
 
-Status: **v0.3.0-beta.23 is published; beta.24 work is on `feat/native-ha-menu-beta24`**
+Status: **v0.3.0-beta.24 is published from merged PR #44 and ready for real Home Assistant smoke testing**
 
 The beta.23 real-HA smoke test confirmed that the native Lovelace editor and Mushroom cards render,
 but it also clarified three UX requirements:
@@ -57,10 +57,10 @@ Architecture classification:
 - Legacy HA3D-tile migration: existing HA project sidecar parser/backend normalization.
 - No new Pascal core/viewer store state, scene schema, node kind or plugin API.
 
-The next gate is source/architecture review followed by one normal PR CI run for
-**v0.3.0-beta.24**, then a real Home Assistant smoke test of Automatic native Tile cards, the
-right-docked editor preview, custom Mushroom editing and the revised Fit/Iso/Top/Front/Right
-framing.
+PR #44 passed the normal CI gate and the automatic **HA Release #41** published
+**v0.3.0-beta.24** as a prerelease. The next gate is a real Home Assistant smoke test of Automatic
+native Tile cards, the right-docked editor preview, custom Mushroom editing and the revised
+Fit/Iso/Top/Front/Right framing.
 
 ## Completed
 
