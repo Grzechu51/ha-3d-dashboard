@@ -180,6 +180,30 @@ describe('HA 3D project configuration', () => {
     })
   })
 
+  test('keeps native Lovelace config while editing HA3D tiles', () => {
+    setDashboardLovelaceCard({
+      type: 'custom:mushroom-light-card',
+      entity: 'light.cct',
+      show_brightness_control: true,
+    })
+
+    addDashboardMenuItem('light.salon')
+    addDashboardMenuItem('sensor.temperature')
+    updateDashboardMenuItem('light.salon', { span: 1 })
+    moveDashboardMenuItem('sensor.temperature', -1)
+    removeDashboardMenuItem('sensor.temperature')
+
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
+      mode: 'custom',
+      items: [{ entityId: 'light.salon', span: 1 }],
+      lovelaceCard: {
+        type: 'custom:mushroom-light-card',
+        entity: 'light.cct',
+        show_brightness_control: true,
+      },
+    })
+  })
+
   test('persists a native Lovelace dashboard Menu card tree', () => {
     setDashboardLovelaceCard({
       type: 'vertical-stack',

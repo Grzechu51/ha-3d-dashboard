@@ -6,15 +6,19 @@ export type Ha3dDashboardMenuItem = Readonly<{
   span: Ha3dDashboardMenuSpan
 }>
 
+export interface Ha3dJsonObject {
+  readonly [key: string]: Ha3dJsonValue
+}
+
 export type Ha3dJsonValue =
   | null
   | boolean
   | number
   | string
   | readonly Ha3dJsonValue[]
-  | Readonly<Record<string, Ha3dJsonValue>>
+  | Ha3dJsonObject
 
-export type Ha3dLovelaceCardConfig = Readonly<Record<string, Ha3dJsonValue>>
+export type Ha3dLovelaceCardConfig = Ha3dJsonObject
 
 export type Ha3dDashboardMenuConfig = Readonly<{
   mode: Ha3dDashboardMenuMode

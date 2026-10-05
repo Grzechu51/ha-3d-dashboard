@@ -272,6 +272,7 @@ export function addDashboardMenuItem(entityId: string): void {
   const trimmed = entityId.trim()
   if (snapshot.dashboardMenu.items.some((item) => item.entityId === trimmed)) return
   const next = parseHa3dDashboardMenu({
+    ...snapshot.dashboardMenu,
     mode: 'custom',
     items: [...snapshot.dashboardMenu.items, { entityId: trimmed, span: 2 }],
   })
@@ -288,7 +289,11 @@ export function updateDashboardMenuItem(
   const items = snapshot.dashboardMenu.items.map((item, itemIndex) =>
     itemIndex === index ? { ...item, ...patch } : item,
   )
-  const next = parseHa3dDashboardMenu({ mode: 'custom', items })
+  const next = parseHa3dDashboardMenu({
+    ...snapshot.dashboardMenu,
+    mode: 'custom',
+    items,
+  })
   if (dashboardMenuEqual(snapshot.dashboardMenu, next)) return
   publish(snapshot.bindings, snapshot.structureMappings, next)
 }
@@ -303,6 +308,7 @@ export function moveDashboardMenuItem(entityId: string, offset: -1 | 1): void {
   if (!item) return
   items.splice(target, 0, item)
   publish(snapshot.bindings, snapshot.structureMappings, {
+    ...snapshot.dashboardMenu,
     mode: 'custom',
     items,
   })
@@ -312,6 +318,7 @@ export function removeDashboardMenuItem(entityId: string): void {
   const items = snapshot.dashboardMenu.items.filter((item) => item.entityId !== entityId)
   if (items.length === snapshot.dashboardMenu.items.length) return
   publish(snapshot.bindings, snapshot.structureMappings, {
+    ...snapshot.dashboardMenu,
     mode: 'custom',
     items,
   })
