@@ -101,7 +101,9 @@ export function Ha3dEditorSettings() {
     try {
       await modelExport(format, { download: true, onlyVisible: false })
     } catch (error) {
-      setExportError(error instanceof Error ? error.message : `${format.toUpperCase()} export failed`)
+      setExportError(
+        error instanceof Error ? error.message : `${format.toUpperCase()} export failed`,
+      )
     } finally {
       setExporting(null)
     }
