@@ -43,10 +43,10 @@ as the final dashboard. **Settings → Dashboard menu** only selects Automatic v
 embeds a second card editor/preview beneath the first one.
 
 The camera preset issue from the real smoke test had two causes. Both Dashboard and Edit previously
-skipped only the Site root object while still including Site descendants such as the large property
-surface/terrain in the fit bounds, and the generic preset distance multiplier was overly
-conservative. Beta.24 excludes the complete Site object subtree from building camera bounds and
-reduces the framing multiplier from 2.2 to 1.45. Level-solo bounds remain unchanged.
+expanded fit bounds from almost the whole scene registry, so the large Site/property geometry could
+dominate the framing, and the generic preset distance multiplier was overly conservative. Beta.24
+now derives all-level framing from registered Building roots (with the old non-Site scan only as a
+fallback) and reduces the framing multiplier from 2.2 to 1.45. Level-solo bounds remain unchanged.
 
 The beta.23 slab depth-contact relief remains in place and is not broadened in this checkpoint.
 
