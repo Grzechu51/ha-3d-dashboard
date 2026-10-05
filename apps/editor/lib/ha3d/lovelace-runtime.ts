@@ -56,7 +56,7 @@ function waitForDefinition(name: string): Promise<void> {
 }
 
 async function loadLovelaceRoute(): Promise<void> {
-  if (window.loadCardHelpers) return
+  if (window.loadCardHelpers && customElements.get('hui-card')) return
 
   await waitForDefinition('partial-panel-resolver')
   const resolver = document.createElement('partial-panel-resolver') as PartialPanelResolver
