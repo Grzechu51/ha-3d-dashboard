@@ -36,6 +36,9 @@ class ProjectCollectionTests(unittest.TestCase):
         self.assertEqual(
             created["ha_config"]["structureMappings"], {"floors": [], "areas": []}
         )
+        self.assertEqual(
+            created["ha_config"]["dashboardMenu"], {"mode": "auto", "items": []}
+        )
         self.assertEqual(collection.list_metadata()[0]["id"], "main_house")
 
         loaded = collection.get("main_house")
@@ -201,6 +204,78 @@ class ProjectCollectionTests(unittest.TestCase):
                 "input_number.target_temperature",
                 "input_select.scene",
             ],
+        )
+
+    def test_dashboard_menu_persists_and_validates(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        created = collection.create(
+            project_id="menu",
+            name="Menu",
+            ha_config={
+                "version": 1,
+                "bindings": [],
+                "dashboardMenu": {
+                    "mode": "custom",
+                    "items": [
+                        {"entityId": "light.salon", "span": 2},
+                        {"entityId": "sensor.co2", "span": 1},
+                    ],
+                },
+            },
+        )
+
+        self.assertEqual(
+            created["ha_config"]["dashboardMenu"]["items"][1],
+            {"entityId": "sensor.co2", "span": 1},
+        )
+
+        with self.assertRaises(InvalidProjectError):
+            collection.create(
+                project_id="bad_menu",
+                name="Bad menu",
+                ha_config={
+                    "version": 1,
+                    "bindings": [],
+                    "dashboardMenu": {
+                        "mode": "custom",
+                        "items": [
+                            {"entityId": "light.salon", "span": 1},
+                            {"entityId": "light.salon", "span": 2},
+                        ],
+                    },
+                },
+            )
+
+    def test_legacy_config_save_preserves_existing_dashboard_menu(self) -> None:
+        collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
+        collection.create(
+            project_id="menu",
+            name="Menu",
+            ha_config={
+                "version": 1,
+                "bindings": [],
+                "dashboardMenu": {
+                    "mode": "custom",
+                    "items": [{"entityId": "light.salon", "span": 2}],
+                },
+            },
+        )
+
+        updated = collection.save(
+            "menu",
+            expected_revision=1,
+            ha_config={
+                "version": 1,
+                "bindings": [{"nodeId": "lamp", "entityId": "light.salon"}],
+            },
+        )
+
+        self.assertEqual(
+            updated["ha_config"]["dashboardMenu"],
+            {
+                "mode": "custom",
+                "items": [{"entityId": "light.salon", "span": 2}],
+            },
         )
 
     def test_structure_mappings_persist(self) -> None:
