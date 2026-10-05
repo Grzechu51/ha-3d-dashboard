@@ -92,7 +92,10 @@ describe('buildSlabGeometry', () => {
     expect(recessedSurface.position.y).toBeCloseTo(0.4495)
     expect(recessedSide.position.y).toBeCloseTo(0.45)
     recessedSurface.geometry.computeBoundingBox()
-    expect(recessedSurface.geometry.boundingBox?.max.y).toBeCloseTo(0.15)
+    expect(recessedSurface.geometry.boundingBox?.max.y).toBeCloseTo(0)
+    expect(
+      recessedSurface.position.y + (recessedSurface.geometry.boundingBox?.max.y ?? 0),
+    ).toBeCloseTo(0.4495)
   })
 
   test('adds a terrain-following perimeter below the fixed slab underside', () => {
