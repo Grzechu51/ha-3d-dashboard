@@ -18,7 +18,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
-import { Ha3dLovelaceMenuEditor } from './ha3d-lovelace-menu-editor'
 import {
   getHa3dDashboardAppearanceServerSnapshot,
   getHa3dDashboardAppearanceSnapshot,
@@ -41,6 +40,7 @@ import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
 } from '../../lib/ha3d/runtime'
+import { Ha3dLovelaceMenuEditor } from './ha3d-lovelace-menu-editor'
 
 function ToggleButton({
   active,
@@ -213,9 +213,9 @@ export function Ha3dEditorSettings() {
           <div className="font-medium text-sm">Dashboard menu</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-          Choose the automatic 3D bindings, the lightweight HA3D tile grid, or native Home
-          Assistant cards. Native cards use the same Lovelace visual/YAML editor and installed
-          custom cards as a normal HA dashboard.
+          Choose the automatic 3D bindings, the lightweight HA3D tile grid, or native Home Assistant
+          cards. Native cards use the same Lovelace visual/YAML editor and installed custom cards as
+          a normal HA dashboard.
         </p>
 
         <div className="mt-3 grid grid-cols-3 gap-2">

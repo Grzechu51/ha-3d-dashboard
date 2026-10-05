@@ -113,8 +113,10 @@ export async function ensureHomeAssistantCardEditor(
 
       const stack = helpers.createCardElement({ type: 'vertical-stack', cards: [] })
       await waitForDefinition(stack.localName)
-      const constructor = customElements.get(stack.localName) as CardElementConstructor | undefined
-      await constructor?.getConfigElement?.()
+      const cardElementClass = customElements.get(stack.localName) as
+        | CardElementConstructor
+        | undefined
+      await cardElementClass?.getConfigElement?.()
       await waitForDefinition('hui-card-element-editor')
     })().catch((error) => {
       editorPromise = null

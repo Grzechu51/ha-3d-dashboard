@@ -37,10 +37,12 @@ export function Ha3dDashboardMenuPanel() {
             <div className="min-w-0 flex-1">
               <div className="font-medium text-sm">Use native HA cards</div>
               <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-                The current Menu uses {projectConfig.dashboardMenu.mode === 'auto'
+                The current Menu uses{' '}
+                {projectConfig.dashboardMenu.mode === 'auto'
                   ? 'automatic 3D bindings'
-                  : 'HA3D tiles'}. Switch to native Lovelace cards to add Mushroom,
-                Tile, stacks and other installed Home Assistant cards.
+                  : 'HA3D tiles'}
+                . Switch to native Lovelace cards to add Mushroom, Tile, stacks and other installed
+                Home Assistant cards.
               </p>
               <button
                 className="mt-3 rounded-full bg-primary px-3 py-2 font-medium text-primary-foreground text-xs"

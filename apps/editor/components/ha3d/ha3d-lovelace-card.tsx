@@ -60,7 +60,10 @@ export function Ha3dLovelaceCard({
           {error}
         </div>
       ) : null}
-      <div className="ha3d-lovelace-card min-w-0 [&>hui-card]:block [&>hui-card]:w-full" ref={mountRef} />
+      <div
+        className="ha3d-lovelace-card min-w-0 [&>hui-card]:block [&>hui-card]:w-full"
+        ref={mountRef}
+      />
     </>
   )
 }

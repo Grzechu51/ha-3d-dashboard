@@ -211,7 +211,6 @@ describe('HA 3D project configuration', () => {
     })
   })
 
-
   test('round-trips manual Home Assistant structure mappings', () => {
     upsertFloorStructureMapping('ground', 'level_ground')
     upsertAreaStructureMapping('living', 'zone_living')

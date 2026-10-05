@@ -147,18 +147,13 @@ function jsonValueEqual(left: Ha3dJsonValue, right: Ha3dJsonValue): boolean {
     if (!(Array.isArray(left) && Array.isArray(right)) || left.length !== right.length) return false
     return left.every((entry, index) => jsonValueEqual(entry, right[index]!))
   }
-  if (
-    left &&
-    right &&
-    typeof left === 'object' &&
-    typeof right === 'object'
-  ) {
+  if (left && right && typeof left === 'object' && typeof right === 'object') {
     const leftEntries = Object.entries(left)
     const rightEntries = Object.entries(right)
     if (leftEntries.length !== rightEntries.length) return false
     return leftEntries.every(
       ([key, value]) =>
-        Object.prototype.hasOwnProperty.call(right, key) &&
+        Object.hasOwn(right, key) &&
         jsonValueEqual(value, (right as Record<string, Ha3dJsonValue>)[key]!),
     )
   }

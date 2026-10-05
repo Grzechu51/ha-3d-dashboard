@@ -17,13 +17,13 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { EntityBinding } from '../../lib/ha3d/entity-binding'
+import { entityDomain } from '../../lib/ha3d/entity-binding'
+import { entityFriendlyName, formatHomeAssistantEntityValue } from '../../lib/ha3d/entity-display'
+import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
   getHomeAssistantLovelaceHostSnapshot,
   subscribeHomeAssistantLovelaceHost,
 } from '../../lib/ha3d/lovelace-host'
-import { entityDomain } from '../../lib/ha3d/entity-binding'
-import { entityFriendlyName, formatHomeAssistantEntityValue } from '../../lib/ha3d/entity-display'
-import type { HomeAssistantEntityState } from '../../lib/ha3d/home-assistant-adapter'
 import {
   getHa3dProjectConfigSnapshot,
   subscribeHa3dProjectConfig,
@@ -434,10 +434,7 @@ export function Ha3dDashboardControls({
 
         {project.dashboardMenu.mode === 'lovelace' ? (
           lovelaceHost ? (
-            <Ha3dLovelaceCard
-              config={project.dashboardMenu.lovelaceCard}
-              hass={lovelaceHost}
-            />
+            <Ha3dLovelaceCard config={project.dashboardMenu.lovelaceCard} hass={lovelaceHost} />
           ) : (
             <div className="rounded-2xl border border-dashed border-[var(--ha3d-dashboard-border)] px-3 py-5 text-center text-[var(--ha3d-dashboard-muted)] text-xs">
               Home Assistant card runtime is not connected.

@@ -587,7 +587,13 @@ function ViewerCanvasControlsHint({
           onClick={() => setCollapsed(false)}
           type="button"
         >
-          <Icon aria-hidden="true" color="currentColor" height={15} icon="lucide:mouse" width={15} />
+          <Icon
+            aria-hidden="true"
+            color="currentColor"
+            height={15}
+            icon="lucide:mouse"
+            width={15}
+          />
           Camera controls
           <Icon
             aria-hidden="true"
