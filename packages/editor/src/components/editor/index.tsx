@@ -1653,6 +1653,15 @@ function EditorContent({
     }
 
     const renderTabContent = (tabId: string) => {
+      // Explicit host tabs take precedence over Pascal built-ins. This lets an
+      // embedded host intentionally replace e.g. the Site/Settings surface
+      // instead of rendering the built-in panel underneath its own UI.
+      const explicitTab = sidebarTabs?.find((tab) => tab.id === tabId)
+      if (explicitTab) {
+        const Component = explicitTab.component
+        return <Component />
+      }
+
       // Built-in panels
       if (tabId === 'site') {
         return <SitePanel {...sitePanelProps} />
@@ -1660,7 +1669,8 @@ function EditorContent({
       if (tabId === 'settings') {
         return <SettingsPanel {...settingsPanelProps} />
       }
-      // External tabs (AI chat, catalog, etc.)
+
+      // Registered host tabs (AI chat, catalog, etc.)
       const tab = tabMap.get(tabId)
       if (!tab) return null
       const Component = tab.component

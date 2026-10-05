@@ -976,6 +976,7 @@ function NativeProject({
           presentationPersistenceMode="external"
           projectId={metadata.id}
           sidebarTabs={HA_EDITOR_SIDEBAR_TABS}
+          viewerBanner={<Ha3dDashboardMenuPreview />}
           viewerSceneSlot={<Ha3dSunEnvironment mode={environmentMode} />}
           viewerToolbarRight={
             <Ha3dEditorViewportToolbar
@@ -985,8 +986,6 @@ function NativeProject({
           }
         />
       </EditorCrashBoundary>
-
-      <Ha3dDashboardMenuPreview />
 
       {structureOpen ? (
         <Ha3dStructureManager host={host} onClose={() => setStructureOpen(false)} />

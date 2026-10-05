@@ -172,7 +172,25 @@ describe('HA 3D project configuration', () => {
     })
   })
 
-  test('switches between automatic tiles and a saved custom HA card tree', () => {
+  test('seeds editable HA cards from automatic bound entities', () => {
+    upsertEntityBinding(createEntityBinding({ nodeId: 'lamp', entityId: 'light.salon' }))
+    upsertEntityBinding(createEntityBinding({ nodeId: 'co2', entityId: 'sensor.co2' }))
+
+    setDashboardMenuMode('lovelace')
+
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
+      mode: 'lovelace',
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          { type: 'tile', entity: 'light.salon' },
+          { type: 'tile', entity: 'sensor.co2' },
+        ],
+      },
+    })
+  })
+
+  test('switches between automatic tiles and a saved HA card tree', () => {
     setDashboardLovelaceCard({
       type: 'custom:mushroom-light-card',
       entity: 'light.cct',

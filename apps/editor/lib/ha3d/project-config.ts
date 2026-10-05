@@ -1,5 +1,6 @@
 import type { ViewerPresentationConfiguration } from '@pascal-app/viewer'
 import {
+  buildAutomaticDashboardCard,
   cloneHa3dLovelaceCardConfig,
   DEFAULT_HA3D_DASHBOARD_MENU,
   dashboardMenuEqual,
@@ -249,9 +250,24 @@ export function removeEntityBinding(nodeId: string, domain: SupportedHomeAssista
 
 export function setDashboardMenuMode(mode: Ha3dDashboardMenuConfig['mode']): void {
   if (snapshot.dashboardMenu.mode === mode) return
+
+  const cards = snapshot.dashboardMenu.lovelaceCard.cards
+  const shouldSeedEditableCards =
+    mode === 'lovelace' &&
+    snapshot.dashboardMenu.lovelaceCard.type === 'vertical-stack' &&
+    Array.isArray(cards) &&
+    cards.length === 0
+
   publish(snapshot.bindings, snapshot.structureMappings, {
     ...snapshot.dashboardMenu,
     mode,
+    lovelaceCard: shouldSeedEditableCards
+      ? buildAutomaticDashboardCard(
+          snapshot.bindings
+            .filter((binding) => binding.enabled)
+            .map((binding) => binding.entityId),
+        )
+      : snapshot.dashboardMenu.lovelaceCard,
   })
 }
 
