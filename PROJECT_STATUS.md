@@ -1,6 +1,6 @@
 # HA 3D Dashboard — Project Status
 
-_Last updated: 2026-10-04_
+_Last updated: 2026-10-05_
 
 This repository is a Home Assistant 3D dashboard/editor project built on top of the open-source Pascal Editor codebase.
 
@@ -18,46 +18,35 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.18 editor/dashboard workspace polish**
+**Checkpoint: beta.19 mobile dashboard polish**
 
-Status: **v0.3.0-beta.17 is published; beta.18 work is on `feat/editor-workspace-polish-beta18`**
+Status: **v0.3.0-beta.18 is published; beta.19 work is on `fix/mobile-dashboard-visuals-beta19`**
 
-The beta.17 real-HA smoke test confirmed that renderer-independent Highlights are now visible, but
-the bounding-box fallback is too coarse for the intended dashboard presentation. The current
-beta.18 branch replaces those boxes with inflated back-face silhouette shells for each bound mesh,
-so Highlights follow the actual object contour instead of the object's axis-aligned bounds. The
-existing screen-space outline path remains available when the viewer post-processing pipeline can
-use it.
+The beta.18 real-HA mobile smoke test confirmed that entity grouping, floating labels and
+renderer-independent Highlights are visible in the native Home Assistant panel. It also exposed
+three presentation issues before broader testing:
 
-The native dashboard overlay is also being consolidated around entity identity rather than binding
-rows. An HA entity bound to several scene objects now appears once, with the number of linked
-objects shown beside it; live state still refreshes through the HA runtime revision.
+- the floor/camera navigation bar used a viewport-height estimate for the bottom HA controls,
+  leaving it stranded near the middle of a phone and still too high after the panel was collapsed;
+- floating labels need a softer translucent presentation with user-adjustable opacity and corner
+  radius;
+- the fallback Highlight shell reads as a filled cyan object instead of a clean object outline.
 
-The editor now receives the same operator navigation concepts as the dashboard without mounting a
-second camera controller:
+The beta.19 branch now measures the real Home Assistant controls panel and anchors the mobile
+navigation bar directly above it. When the controls collapse, navigation drops to a compact bottom
+position above the Home Assistant pill. The desktop right-side controls and bottom navigation
+layout remain unchanged.
 
-- All / individual authored-floor switching,
-- Fit / Iso / Top / Front / Right camera presets through the editor camera event bus,
-- Auto / Day / Dusk / Night environment control shared with dashboard mode.
+Renderer-independent Highlights now use edge-only line geometry instead of an inflated back-face
+mesh. Pascal's screen-space outline remains available when supported, while the fallback no longer
+paints the linked object's surfaces.
 
-The HA-specific Settings panel now contains useful project actions instead of Pascal-only settings:
+Floating entity labels now use a translucent glass background. **Settings → Dashboard labels**
+exposes background opacity and corner radius controls plus reset. These are per-browser display
+preferences stored locally and do not change shared Home Assistant project data.
 
-- editable **Pascal project JSON** export,
-- GLB / OBJ / STL model export through the existing Pascal export manager,
-- a direct shortcut to **Items / Add GLB**.
-
-Items also gets a first-class **Add GLB** tile. The initial custom-object asset store uses Pascal's
-existing browser IndexedDB asset backend, so the model remains available in the same browser but is
-not yet synchronized to other HA clients. Server-owned custom asset storage is a separate follow-up
-before this can be considered cross-device project data.
-
-Editor chrome is being normalized into the v2 layout slots: project/save/navigation actions live in
-the editor navbar, while floor/camera/daylight controls live in the viewer toolbar instead of
-competing absolute overlays.
-
-The next gate is source review followed by one normal PR CI run for **v0.3.0-beta.18**, then a real
-HA smoke test of contour Highlights, editor navigation/daylight, Pascal JSON export and local GLB
-placement.
+The next gate is one normal PR CI run for **v0.3.0-beta.19**, followed by an iPhone/desktop smoke
+test of responsive navigation, outline-only Highlights and label appearance controls.
 
 ## Completed
 
