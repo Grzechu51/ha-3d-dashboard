@@ -1,7 +1,6 @@
 import type { HomeAssistantHassLike } from './hass-adapter'
 
-export type HomeAssistantLovelaceHost = HomeAssistantHassLike &
-  Readonly<Record<string, unknown>>
+export type HomeAssistantLovelaceHost = HomeAssistantHassLike
 
 const listeners = new Set<() => void>()
 let snapshot: HomeAssistantLovelaceHost | null = null
