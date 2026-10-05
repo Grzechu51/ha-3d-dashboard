@@ -1,7 +1,7 @@
 import type { ViewerPresentationConfiguration } from '@pascal-app/viewer'
 import {
-  dashboardMenuEqual,
   DEFAULT_HA3D_DASHBOARD_MENU,
+  dashboardMenuEqual,
   type Ha3dDashboardMenuConfig,
   type Ha3dDashboardMenuItem,
   parseHa3dDashboardMenu,

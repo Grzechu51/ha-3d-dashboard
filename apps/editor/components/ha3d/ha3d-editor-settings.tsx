@@ -18,6 +18,13 @@ import {
   Trash2,
 } from 'lucide-react'
 import { type ReactNode, useMemo, useState, useSyncExternalStore } from 'react'
+import {
+  getHa3dDashboardAppearanceServerSnapshot,
+  getHa3dDashboardAppearanceSnapshot,
+  resetHa3dDashboardAppearance,
+  subscribeHa3dDashboardAppearance,
+  updateHa3dDashboardAppearance,
+} from '../../lib/ha3d/dashboard-appearance'
 import { entityFriendlyName } from '../../lib/ha3d/entity-display'
 import {
   addDashboardMenuItem,
@@ -28,13 +35,6 @@ import {
   subscribeHa3dProjectConfig,
   updateDashboardMenuItem,
 } from '../../lib/ha3d/project-config'
-import {
-  getHa3dDashboardAppearanceServerSnapshot,
-  getHa3dDashboardAppearanceSnapshot,
-  resetHa3dDashboardAppearance,
-  subscribeHa3dDashboardAppearance,
-  updateHa3dDashboardAppearance,
-} from '../../lib/ha3d/dashboard-appearance'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
@@ -212,8 +212,8 @@ export function Ha3dEditorSettings() {
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
           Automatic mode lists entities bound to 3D objects. Custom mode builds a Home
-          Assistant-style tile grid from any live HA entities, even when they are not linked to a
-          3D object.
+          Assistant-style tile grid from any live HA entities, even when they are not linked to a 3D
+          object.
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-2">

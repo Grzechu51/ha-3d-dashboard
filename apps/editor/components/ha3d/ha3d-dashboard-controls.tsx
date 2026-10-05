@@ -51,7 +51,10 @@ function actionErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Home Assistant service call failed'
 }
 
-function numericAttribute(entity: HomeAssistantEntityState | undefined, key: string): number | null {
+function numericAttribute(
+  entity: HomeAssistantEntityState | undefined,
+  key: string,
+): number | null {
   const value = entity?.attributes[key]
   return typeof value === 'number' && Number.isFinite(value) ? value : null
 }
@@ -249,13 +252,7 @@ export function Ha3dDashboardControls({
         const rightName = right.entity ? entityFriendlyName(right.entity) : right.entityId
         return leftName.localeCompare(rightName)
       })
-  }, [
-    project.bindings,
-    project.dashboardMenu,
-    runtime.adapter,
-    runtime.revision,
-    selectedNodeId,
-  ])
+  }, [project.bindings, project.dashboardMenu, runtime.adapter, runtime.revision, selectedNodeId])
 
   const showMoreInfo = (row: DashboardRow) => {
     if (onShowMoreInfo) {
@@ -272,11 +269,7 @@ export function Ha3dDashboardControls({
     if (!(adapter && entity)) return
 
     let service: string | null = null
-    if (
-      row.domain === 'light' ||
-      row.domain === 'switch' ||
-      row.domain === 'input_boolean'
-    ) {
+    if (row.domain === 'light' || row.domain === 'switch' || row.domain === 'input_boolean') {
       service = entity.state === 'on' ? 'turn_off' : 'turn_on'
     } else if (row.domain === 'cover') {
       service =
@@ -476,9 +469,7 @@ export function Ha3dDashboardControls({
                           {row.entity ? entityFriendlyName(row.entity) : row.entityId}
                         </span>
                         <span className="mt-0.5 block truncate text-[10px] text-[var(--ha3d-dashboard-muted)]">
-                          {row.entity
-                            ? formatHomeAssistantEntityValue(row.entity)
-                            : 'Unavailable'}
+                          {row.entity ? formatHomeAssistantEntityValue(row.entity) : 'Unavailable'}
                         </span>
                       </span>
                     </button>
