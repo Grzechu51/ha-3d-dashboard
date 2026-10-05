@@ -4,7 +4,7 @@ import { sceneRegistry } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { CameraControls, type CameraControlsImpl } from '@react-three/drei'
 import { useEffect, useRef } from 'react'
-import { Box3, type Object3D, Vector3 } from 'three'
+import { Box3, Vector3 } from 'three'
 import {
   type Ha3dDashboardCameraPreset,
   resolveHa3dDashboardCameraPose,
@@ -19,15 +19,6 @@ const dashboardBounds = new Box3()
 const dashboardCenter = new Vector3()
 const dashboardSize = new Vector3()
 
-function belongsToSiteSubtree(object: Object3D, siteObjects: ReadonlySet<Object3D>): boolean {
-  let current: Object3D | null = object
-  while (current) {
-    if (siteObjects.has(current)) return true
-    current = current.parent
-  }
-  return false
-}
-
 function resolveDashboardBounds(levelId: string | null, solo: boolean): Box3 | null {
   dashboardBounds.makeEmpty()
 
@@ -35,15 +26,16 @@ function resolveDashboardBounds(levelId: string | null, solo: boolean): Box3 | n
     const levelObject = sceneRegistry.nodes.get(levelId)
     if (levelObject) dashboardBounds.setFromObject(levelObject)
   } else {
-    const siteObjects = new Set<Object3D>()
-    for (const siteId of sceneRegistry.byType.site ?? []) {
-      const siteObject = sceneRegistry.nodes.get(siteId)
-      if (siteObject) siteObjects.add(siteObject)
+    for (const buildingId of sceneRegistry.byType.building ?? []) {
+      const buildingObject = sceneRegistry.nodes.get(buildingId)
+      if (buildingObject) dashboardBounds.expandByObject(buildingObject)
     }
 
-    for (const object of sceneRegistry.nodes.values()) {
-      if (belongsToSiteSubtree(object, siteObjects)) continue
-      dashboardBounds.expandByObject(object)
+    if (dashboardBounds.isEmpty()) {
+      for (const [nodeId, object] of sceneRegistry.nodes) {
+        if (sceneRegistry.byType.site?.has(nodeId)) continue
+        dashboardBounds.expandByObject(object)
+      }
     }
   }
 
