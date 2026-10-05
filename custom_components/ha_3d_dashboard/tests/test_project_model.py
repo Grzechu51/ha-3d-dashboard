@@ -40,7 +40,6 @@ class ProjectCollectionTests(unittest.TestCase):
             created["ha_config"]["dashboardMenu"],
             {
                 "mode": "auto",
-                "items": [],
                 "lovelaceCard": {"type": "vertical-stack", "cards": []},
             },
         )
@@ -211,7 +210,7 @@ class ProjectCollectionTests(unittest.TestCase):
             ],
         )
 
-    def test_dashboard_menu_persists_and_validates(self) -> None:
+    def test_legacy_ha3d_tiles_migrate_to_native_tile_cards(self) -> None:
         collection = ProjectCollection(clock=lambda: "2026-09-29T10:00:00+00:00")
         created = collection.create(
             project_id="menu",
@@ -230,8 +229,17 @@ class ProjectCollectionTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            created["ha_config"]["dashboardMenu"]["items"][1],
-            {"entityId": "sensor.co2", "span": 1},
+            created["ha_config"]["dashboardMenu"],
+            {
+                "mode": "lovelace",
+                "lovelaceCard": {
+                    "type": "vertical-stack",
+                    "cards": [
+                        {"type": "tile", "entity": "light.salon"},
+                        {"type": "tile", "entity": "sensor.co2"},
+                    ],
+                },
+            },
         )
 
         with self.assertRaises(InvalidProjectError):
@@ -244,8 +252,8 @@ class ProjectCollectionTests(unittest.TestCase):
                     "dashboardMenu": {
                         "mode": "custom",
                         "items": [
-                            {"entityId": "light.salon", "span": 1},
-                            {"entityId": "light.salon", "span": 2},
+                            {"entityId": "light.salon"},
+                            {"entityId": "light.salon"},
                         ],
                     },
                 },
@@ -253,10 +261,7 @@ class ProjectCollectionTests(unittest.TestCase):
 
         for malformed_menu in (
             {"mode": [], "items": []},
-            {
-                "mode": "custom",
-                "items": [{"entityId": "light.salon", "span": []}],
-            },
+            {"mode": "custom", "items": [{"entityId": "invalid"}]},
         ):
             with self.assertRaises(InvalidProjectError):
                 collection.create(
@@ -279,7 +284,6 @@ class ProjectCollectionTests(unittest.TestCase):
                 "bindings": [],
                 "dashboardMenu": {
                     "mode": "lovelace",
-                    "items": [],
                     "lovelaceCard": {
                         "type": "vertical-stack",
                         "cards": [
@@ -316,7 +320,6 @@ class ProjectCollectionTests(unittest.TestCase):
                         "bindings": [],
                         "dashboardMenu": {
                             "mode": "lovelace",
-                            "items": [],
                             "lovelaceCard": lovelace_card,
                         },
                     },
@@ -349,8 +352,11 @@ class ProjectCollectionTests(unittest.TestCase):
         self.assertEqual(
             updated["ha_config"]["dashboardMenu"],
             {
-                "mode": "custom",
-                "items": [{"entityId": "light.salon", "span": 2}],
+                "mode": "lovelace",
+                "lovelaceCard": {
+                    "type": "vertical-stack",
+                    "cards": [{"type": "tile", "entity": "light.salon"}],
+                },
             },
         )
 
