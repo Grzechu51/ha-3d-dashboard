@@ -189,7 +189,7 @@ export function Ha3dDashboardControls({
             <div className="font-semibold text-sm">Menu</div>
           </div>
           <button
-            aria-label="Hide Home Assistant controls"
+            aria-label="Close menu"
             className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--ha3d-dashboard-muted)] hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
             onClick={() => setCollapsedState(true)}
             type="button"
