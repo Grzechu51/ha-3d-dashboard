@@ -1,18 +1,14 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { createEntityBinding } from './entity-binding'
 import {
-  addDashboardMenuItem,
   getHa3dProjectConfigSnapshot,
   ha3dProjectConfiguration,
-  moveDashboardMenuItem,
   removeAreaStructureMapping,
-  removeDashboardMenuItem,
   removeEntityBinding,
   removeFloorStructureMapping,
   resetHa3dProjectConfig,
   setDashboardLovelaceCard,
   setDashboardMenuMode,
-  updateDashboardMenuItem,
   upsertAreaStructureMapping,
   upsertEntityBinding,
   upsertFloorStructureMapping,
@@ -147,61 +143,54 @@ describe('HA 3D project configuration', () => {
 
     expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
       mode: 'auto',
-      items: [],
       lovelaceCard: { type: 'vertical-stack', cards: [] },
     })
   })
 
-  test('persists, resizes and reorders custom dashboard menu tiles', () => {
-    addDashboardMenuItem('light.salon')
-    addDashboardMenuItem('sensor.temperature')
-    updateDashboardMenuItem('light.salon', { span: 1 })
-    moveDashboardMenuItem('sensor.temperature', -1)
-
-    const persisted = ha3dProjectConfiguration.getSnapshot()
-    resetHa3dProjectConfig()
-    ha3dProjectConfiguration.restore(persisted)
-
-    expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
-      mode: 'custom',
-      items: [
-        { entityId: 'sensor.temperature', span: 2 },
-        { entityId: 'light.salon', span: 1 },
-      ],
-      lovelaceCard: { type: 'vertical-stack', cards: [] },
+  test('migrates legacy HA3D tile config to native HA Tile cards', () => {
+    ha3dProjectConfiguration.restore({
+      version: 1,
+      bindings: [],
+      dashboardMenu: {
+        mode: 'custom',
+        items: [
+          { entityId: 'light.salon', span: 1 },
+          { entityId: 'sensor.temperature', span: 2 },
+        ],
+      },
     })
 
-    removeDashboardMenuItem('sensor.temperature')
-    setDashboardMenuMode('auto')
     expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
-      mode: 'auto',
-      items: [{ entityId: 'light.salon', span: 1 }],
-      lovelaceCard: { type: 'vertical-stack', cards: [] },
+      mode: 'lovelace',
+      lovelaceCard: {
+        type: 'vertical-stack',
+        cards: [
+          { type: 'tile', entity: 'light.salon' },
+          { type: 'tile', entity: 'sensor.temperature' },
+        ],
+      },
     })
   })
 
-  test('keeps native Lovelace config while editing HA3D tiles', () => {
+  test('switches between automatic tiles and a saved custom HA card tree', () => {
     setDashboardLovelaceCard({
       type: 'custom:mushroom-light-card',
       entity: 'light.cct',
       show_brightness_control: true,
     })
-
-    addDashboardMenuItem('light.salon')
-    addDashboardMenuItem('sensor.temperature')
-    updateDashboardMenuItem('light.salon', { span: 1 })
-    moveDashboardMenuItem('sensor.temperature', -1)
-    removeDashboardMenuItem('sensor.temperature')
+    setDashboardMenuMode('auto')
 
     expect(getHa3dProjectConfigSnapshot().dashboardMenu).toEqual({
-      mode: 'custom',
-      items: [{ entityId: 'light.salon', span: 1 }],
+      mode: 'auto',
       lovelaceCard: {
         type: 'custom:mushroom-light-card',
         entity: 'light.cct',
         show_brightness_control: true,
       },
     })
+
+    setDashboardMenuMode('lovelace')
+    expect(getHa3dProjectConfigSnapshot().dashboardMenu.mode).toBe('lovelace')
   })
 
   test('persists a native Lovelace dashboard Menu card tree', () => {
