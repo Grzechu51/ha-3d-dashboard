@@ -18,44 +18,46 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: native Home Assistant More info + reliable dashboard highlights**
+**Checkpoint: beta.18 editor/dashboard workspace polish**
 
-Status: **beta.16 smoke findings fixed on `fix/native-more-info-highlights-beta17`; beta.17 prepared**
+Status: **v0.3.0-beta.17 is published; beta.18 work is on `feat/editor-workspace-polish-beta18`**
 
-The operator-UX work is merged to `main`: live entity inventory refresh,
-common HA helper bindings, HA-focused Settings, compact dashboard controls,
-HA-style More info, camera presets and authored-floor switching all passed the
-normal PR CI gate.
+The beta.17 real-HA smoke test confirmed that renderer-independent Highlights are now visible, but
+the bounding-box fallback is too coarse for the intended dashboard presentation. The current
+beta.18 branch replaces those boxes with inflated back-face silhouette shells for each bound mesh,
+so Highlights follow the actual object contour instead of the object's axis-aligned bounds. The
+existing screen-space outline path remains available when the viewer post-processing pipeline can
+use it.
 
-The missing beta.14 and beta.15 GitHub Releases were traced to the generated
-frontend commit subject. CI used `[skip ci]`; GitHub's squash merge copied that
-subject into the final `main` commit message, so GitHub suppressed the
-push-triggered **HA Release** workflow even though the source version changed.
+The native dashboard overlay is also being consolidated around entity identity rather than binding
+rows. An HA entity bound to several scene objects now appears once, with the number of linked
+objects shown beside it; live state still refreshes through the HA runtime revision.
 
-PR #35 removed recognized skip-CI directives from the generated frontend commit,
-documented the rule for future agents and advanced the integration to
-**`0.3.0-beta.16`**. Its PR CI passed, it was squash-merged to `main`, and the
-corrected push path automatically ran **HA Release #33** successfully. GitHub
-published prerelease `v0.3.0-beta.16` with the HACS ZIP, manual-install ZIP and
-SHA256 checksums.
+The editor now receives the same operator navigation concepts as the dashboard without mounting a
+second camera controller:
 
-The beta.16 real-HA smoke test found two remaining dashboard defects:
+- All / individual authored-floor switching,
+- Fit / Iso / Top / Front / Right camera presets through the editor camera event bus,
+- Auto / Day / Dusk / Night environment control shared with dashboard mode.
 
-- More info was still a HA3D-built modal instead of Home Assistant's native entity dialog;
-- Highlights relied on the viewer post-processing outline path and could be invisible when that
-  pipeline was unavailable or ineffective in the embedded HA runtime.
+The HA-specific Settings panel now contains useful project actions instead of Pascal-only settings:
 
-The beta.17 branch now bubbles Home Assistant's standard `hass-more-info` event with the exact
-entity id from the custom panel host, so HA owns the dialog and all entity-specific controls.
-The native dashboard no longer mounts the custom HA3D popup. The standalone browser dashboard
-keeps the custom modal as a fallback because it has no Home Assistant shell to receive that event.
+- editable **Pascal project JSON** export,
+- GLB / OBJ / STL model export through the existing Pascal export manager,
+- a direct shortcut to **Items / Add GLB**.
 
-Highlights now also render a pulsing cyan 3D bounding-box helper for every bound interactive
-object, with a solid white box for the selected object. This path renders directly in the scene
-and does not depend on the WebGPU/post-processing outline pipeline.
+Items also gets a first-class **Add GLB** tile. The initial custom-object asset store uses Pascal's
+existing browser IndexedDB asset backend, so the model remains available in the same browser but is
+not yet synchronized to other HA clients. Server-owned custom asset storage is a separate follow-up
+before this can be considered cross-device project data.
 
-The next gate is the real HA smoke test of beta.17: native More info from hold/chevron and visible
-Highlights on the same bound objects.
+Editor chrome is being normalized into the v2 layout slots: project/save/navigation actions live in
+the editor navbar, while floor/camera/daylight controls live in the viewer toolbar instead of
+competing absolute overlays.
+
+The next gate is source review followed by one normal PR CI run for **v0.3.0-beta.18**, then a real
+HA smoke test of contour Highlights, editor navigation/daylight, Pascal JSON export and local GLB
+placement.
 
 ## Completed
 

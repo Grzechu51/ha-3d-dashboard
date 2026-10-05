@@ -25,6 +25,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 import { BuildTab } from '../components/build-tab'
+import { Ha3dCustomObjectTile } from '../components/ha3d/ha3d-custom-object-tile'
 import {
   Ha3dDashboardCameraControls,
   type Ha3dDashboardCameraRequest,
@@ -36,6 +37,7 @@ import {
 } from '../components/ha3d/ha3d-dashboard-interactions'
 import { Ha3dDashboardNavigation } from '../components/ha3d/ha3d-dashboard-navigation'
 import { Ha3dEditorSettings } from '../components/ha3d/ha3d-editor-settings'
+import { Ha3dEditorViewportToolbar } from '../components/ha3d/ha3d-editor-viewport-toolbar'
 import { Ha3dStructureManager } from '../components/ha3d/ha3d-structure-manager'
 import {
   type Ha3dEnvironmentMode,
@@ -82,7 +84,13 @@ type Ha3dNativeAppProps = Readonly<{
 const EmptyEditorSidebarPanel = () => null
 
 function HaEditorItemsPanel() {
-  return <ItemsPanel showSourceFilter={false} showTagFilters={false} />
+  return (
+    <ItemsPanel
+      leadingTile={<Ha3dCustomObjectTile />}
+      showSourceFilter={false}
+      showTagFilters={false}
+    />
+  )
 }
 
 const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
@@ -565,12 +573,16 @@ function NativeDashboard({
   onEdit,
   onProjects,
   onShowMoreInfo,
+  environmentMode,
+  onEnvironmentModeChange,
 }: Readonly<{
   projectName: string
   session: HomeAssistantProjectSession
   onEdit?: () => void
   onProjects: () => void
   onShowMoreInfo: (entityId: string) => void
+  environmentMode: Ha3dEnvironmentMode
+  onEnvironmentModeChange: (mode: Ha3dEnvironmentMode) => void
 }>) {
   const [scene, setScene] = useState<SceneGraph | null | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
@@ -578,7 +590,6 @@ function NativeDashboard({
   const [selectedInteractiveNodeId, setSelectedInteractiveNodeId] = useState<string | null>(null)
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
-  const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
   const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
@@ -727,16 +738,16 @@ function NativeDashboard({
         />
       </Viewer>
 
-      <div className="pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 md:right-[21rem]">
-        <div className="min-w-0 rounded-xl border border-border/70 bg-background/90 px-3 py-2 shadow-lg backdrop-blur">
+      <div className="pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 md:right-[22rem]">
+        <div className="min-w-0 rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 text-white shadow-xl backdrop-blur-xl">
           <div className="truncate font-semibold text-sm">{projectName}</div>
-          <div className="text-muted-foreground text-[10px]">
+          <div className="text-[10px] text-white/40">
             Dashboard · rev {session.getSnapshot().revision ?? '—'}
           </div>
         </div>
         <div className="pointer-events-auto flex gap-2">
           <button
-            className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
+            className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 font-medium text-white/70 text-xs shadow-xl backdrop-blur-xl hover:bg-slate-900/90 hover:text-white"
             onClick={onProjects}
             type="button"
           >
@@ -744,7 +755,7 @@ function NativeDashboard({
           </button>
           {onEdit ? (
             <button
-              className="rounded-xl border border-border/70 bg-background/90 px-3 py-2 font-medium text-xs shadow-lg backdrop-blur hover:bg-accent"
+              className="rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 font-medium text-white/70 text-xs shadow-xl backdrop-blur-xl hover:bg-slate-900/90 hover:text-white"
               onClick={onEdit}
               type="button"
             >
@@ -760,7 +771,7 @@ function NativeDashboard({
         environmentMode={environmentMode}
         highlightsEnabled={interactiveHighlights}
         markersEnabled={interactiveMarkers}
-        onEnvironmentModeChange={setEnvironmentMode}
+        onEnvironmentModeChange={onEnvironmentModeChange}
         onHighlightsEnabledChange={setInteractiveHighlights}
         onMarkersEnabledChange={setInteractiveMarkers}
         onShowMoreInfo={onShowMoreInfo}
@@ -805,6 +816,7 @@ function NativeProject({
   const [editorEpoch, setEditorEpoch] = useState(0)
   const [editorReady, setEditorReady] = useState(false)
   const [structureOpen, setStructureOpen] = useState(false)
+  const [environmentMode, setEnvironmentMode] = useState<Ha3dEnvironmentMode>('auto')
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot)
   const sceneSaveBlocked =
     saveStatus === 'pending' ||
@@ -850,6 +862,8 @@ function NativeProject({
         onProjects={() => {
           void onProjects()
         }}
+        environmentMode={environmentMode}
+        onEnvironmentModeChange={setEnvironmentMode}
         projectName={metadata.name}
         session={session}
         onShowMoreInfo={onShowMoreInfo}
@@ -870,6 +884,48 @@ function NativeProject({
           key={editorEpoch}
           layoutVersion="v2"
           manageDocumentDarkClass={false}
+          navbarSlot={
+            <div className="flex min-h-11 items-center justify-between gap-3 border-white/10 border-b bg-slate-950/82 px-3 py-2 text-xs text-white shadow-sm backdrop-blur-xl">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span className="max-w-56 truncate font-semibold">{metadata.name}</span>
+                <span className="text-white/15">/</span>
+                <SessionStatus saveStatus={saveStatus} session={session} />
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={!editorReady || sceneSaveBlocked || leavingProject}
+                  onClick={() => setStructureOpen(true)}
+                  title={editorReady ? undefined : 'Wait for the scene to finish loading'}
+                  type="button"
+                >
+                  HA structure
+                </button>
+                <button
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={sceneSaveBlocked || leavingProject}
+                  onClick={() => {
+                    setStructureOpen(false)
+                    onModeChange('dashboard')
+                  }}
+                  type="button"
+                >
+                  Dashboard
+                </button>
+                <button
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-white/70 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  disabled={sceneSaveBlocked || leavingProject}
+                  onClick={() => {
+                    setStructureOpen(false)
+                    void onProjects()
+                  }}
+                  type="button"
+                >
+                  {leavingProject ? 'Saving…' : 'Projects'}
+                </button>
+              </div>
+            </div>
+          }
           onLoad={loadScene}
           onLoaderChange={handleLoaderChange}
           onSave={saveScene}
@@ -877,61 +933,15 @@ function NativeProject({
           presentationPersistenceMode="external"
           projectId={metadata.id}
           sidebarTabs={HA_EDITOR_SIDEBAR_TABS}
+          viewerSceneSlot={<Ha3dSunEnvironment mode={environmentMode} />}
+          viewerToolbarRight={
+            <Ha3dEditorViewportToolbar
+              environmentMode={environmentMode}
+              onEnvironmentModeChange={setEnvironmentMode}
+            />
+          }
         />
       </EditorCrashBoundary>
-
-      <div className="pointer-events-none absolute top-3 right-3 z-[90] flex max-w-[calc(100%-1.5rem)] flex-wrap items-center justify-end gap-2">
-        <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-end gap-2 rounded-xl border border-border/70 bg-background/92 px-3 py-2 text-xs shadow-xl backdrop-blur">
-          <span className="max-w-40 truncate font-medium">{metadata.name}</span>
-          <span className="text-border">|</span>
-          <SessionStatus saveStatus={saveStatus} session={session} />
-          <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={!editorReady || sceneSaveBlocked || leavingProject}
-            onClick={() => setStructureOpen(true)}
-            title={editorReady ? undefined : 'Wait for the Pascal scene to finish loading'}
-            type="button"
-          >
-            HA structure
-          </button>
-          <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => {
-              setStructureOpen(false)
-              onModeChange('dashboard')
-            }}
-            title={
-              saveStatus === 'error' || snapshot.status === 'error'
-                ? 'Resolve or retry the save error before leaving the editor'
-                : sceneSaveBlocked
-                  ? 'Wait for the current scene save to finish'
-                  : undefined
-            }
-            type="button"
-          >
-            Dashboard
-          </button>
-          <button
-            className="rounded-md border border-border px-2 py-1 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-45"
-            disabled={sceneSaveBlocked || leavingProject}
-            onClick={() => {
-              setStructureOpen(false)
-              void onProjects()
-            }}
-            title={
-              saveStatus === 'error' || snapshot.status === 'error'
-                ? 'Resolve or retry the save error before leaving the editor'
-                : sceneSaveBlocked
-                  ? 'Wait for the current scene save to finish'
-                  : undefined
-            }
-            type="button"
-          >
-            {leavingProject ? 'Saving…' : 'Projects'}
-          </button>
-        </div>
-      </div>
 
       {structureOpen ? (
         <Ha3dStructureManager host={host} onClose={() => setStructureOpen(false)} />

@@ -6,7 +6,7 @@ import { useViewer } from '@pascal-app/viewer'
 import { Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Box3, Box3Helper, type Group, type LineBasicMaterial } from 'three'
+import { BackSide, Group, Matrix4, Mesh, MeshBasicMaterial, type Object3D, Vector3 } from 'three'
 import {
   type EntityBinding,
   resolveDashboardInteractionAction,
@@ -90,48 +90,130 @@ async function toggleBinding(binding: EntityBinding): Promise<boolean> {
   return false
 }
 
+type HighlightContourEntry = Readonly<{
+  source: Mesh
+  outline: Mesh
+  inflation: Matrix4
+}>
+
+const HIGHLIGHT_INFLATION = 1.025
+
+function isWorldVisible(object: Object3D): boolean {
+  let current: Object3D | null = object
+  while (current) {
+    if (!current.visible) return false
+    current = current.parent
+  }
+  return true
+}
+
+function contourInflation(mesh: Mesh): Matrix4 {
+  mesh.geometry.computeBoundingBox()
+  const center = mesh.geometry.boundingBox?.getCenter(new Vector3()) ?? new Vector3()
+  return new Matrix4()
+    .makeTranslation(center.x, center.y, center.z)
+    .multiply(
+      new Matrix4().makeScale(HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION, HIGHLIGHT_INFLATION),
+    )
+    .multiply(new Matrix4().makeTranslation(-center.x, -center.y, -center.z))
+}
+
 function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; selected: boolean }) {
-  const box = useMemo(() => new Box3(), [])
-  const { helper, material } = useMemo(() => {
-    const next = new Box3Helper(box, selected ? 0xff_ff_ff : 0x22_d3ee)
-    const nextMaterial = next.material as LineBasicMaterial
+  const geometryRevision = useViewer((state) => state.geometryRevision)
+  const group = useMemo(() => {
+    const next = new Group()
+    next.name = `ha3d-highlight:${nodeId}`
     next.renderOrder = 10_000
     next.layers.set(EDITOR_LAYER)
-    next.frustumCulled = false
-    next.raycast = () => {}
-    nextMaterial.depthTest = false
-    nextMaterial.depthWrite = false
-    nextMaterial.transparent = true
-    nextMaterial.toneMapped = false
-    return { helper: next, material: nextMaterial }
-  }, [box, selected])
+    return next
+  }, [nodeId])
+  const material = useMemo(
+    () =>
+      new MeshBasicMaterial({
+        color: selected ? 0xff_ff_ff : 0x22_d3ee,
+        side: BackSide,
+        transparent: true,
+        opacity: 0.92,
+        depthTest: true,
+        depthWrite: false,
+        toneMapped: false,
+      }),
+    [selected],
+  )
+  const entriesRef = useRef<HighlightContourEntry[]>([])
+  const builtRootRef = useRef<Object3D | null>(null)
+  const builtRevisionRef = useRef(-1)
+
+  const clearContours = useCallback(() => {
+    for (const entry of entriesRef.current) group.remove(entry.outline)
+    entriesRef.current = []
+    builtRootRef.current = null
+  }, [group])
+
+  const rebuildContours = useCallback(
+    (root: Object3D) => {
+      clearContours()
+      root.updateWorldMatrix(true, true)
+
+      const entries: HighlightContourEntry[] = []
+      root.traverse((child) => {
+        const source = child as Mesh
+        if (!(source.isMesh && source.geometry?.getAttribute('position'))) return
+
+        const inflation = contourInflation(source)
+        const outline = new Mesh(source.geometry, material)
+        outline.name = `ha3d-highlight-contour:${nodeId}`
+        outline.matrixAutoUpdate = false
+        outline.matrix.copy(source.matrixWorld).multiply(inflation)
+        outline.matrixWorldNeedsUpdate = true
+        outline.renderOrder = 10_000
+        outline.frustumCulled = false
+        outline.layers.set(EDITOR_LAYER)
+        outline.raycast = () => {}
+        group.add(outline)
+        entries.push({ source, outline, inflation })
+      })
+
+      entriesRef.current = entries
+      builtRootRef.current = root
+      builtRevisionRef.current = geometryRevision
+    },
+    [clearContours, geometryRevision, group, material, nodeId],
+  )
 
   useEffect(
     () => () => {
-      helper.geometry.dispose()
+      clearContours()
       material.dispose()
     },
-    [helper, material],
+    [clearContours, material],
   )
 
   useFrame(({ clock }) => {
-    const object = sceneRegistry.nodes.get(nodeId)
-    if (!object) {
-      helper.visible = false
+    const root = sceneRegistry.nodes.get(nodeId)
+    if (!root) {
+      group.visible = false
+      builtRootRef.current = null
       return
     }
 
-    box.setFromObject(object, true)
-    if (box.isEmpty()) {
-      helper.visible = false
-      return
+    if (builtRootRef.current !== root || builtRevisionRef.current !== geometryRevision) {
+      rebuildContours(root)
     }
 
-    helper.visible = true
-    material.opacity = selected ? 1 : 0.58 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.34
+    root.updateWorldMatrix(true, true)
+    for (const entry of entriesRef.current) {
+      entry.outline.visible = isWorldVisible(entry.source)
+      entry.outline.matrix.copy(entry.source.matrixWorld).multiply(entry.inflation)
+      entry.outline.matrixWorldNeedsUpdate = true
+    }
+
+    group.visible = isWorldVisible(root) && entriesRef.current.length > 0
+    material.color.setHex(selected ? 0xff_ff_ff : 0x22_d3ee)
+    material.opacity = selected ? 1 : 0.72 + ((Math.sin(clock.elapsedTime * 3.2) + 1) / 2) * 0.2
   })
 
-  return <primitive object={helper} />
+  return <primitive object={group} />
 }
 
 function InteractiveEntityMarker({

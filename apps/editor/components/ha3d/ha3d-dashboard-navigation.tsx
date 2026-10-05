@@ -64,8 +64,8 @@ export function Ha3dDashboardNavigation({
   }
 
   return (
-    <div className="pointer-events-none absolute right-3 bottom-[calc(46vh+1.5rem)] left-3 z-40 flex justify-center md:right-[21rem] md:bottom-3">
-      <div className="pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-black/70 p-1.5 text-white shadow-2xl backdrop-blur-xl">
+    <div className="pointer-events-none absolute right-3 bottom-[calc(46vh+1.5rem)] left-3 z-40 flex justify-center md:right-[22rem] md:bottom-3">
+      <div className="pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/75 p-1.5 text-white shadow-2xl backdrop-blur-xl">
         <div className="flex shrink-0 items-center gap-1">
           <span className="flex h-8 w-8 items-center justify-center text-white/60">
             <Layers className="h-4 w-4" />
@@ -74,8 +74,8 @@ export function Ha3dDashboardNavigation({
             aria-pressed={levelMode !== 'solo'}
             className={
               levelMode !== 'solo'
-                ? 'rounded-xl bg-white/10 px-3 py-2 font-medium text-xs text-white'
-                : 'rounded-xl px-3 py-2 text-white/60 text-xs hover:bg-white/10 hover:text-white'
+                ? 'rounded-xl bg-cyan-400/15 px-3 py-2 font-medium text-cyan-100 text-xs ring-1 ring-cyan-300/20'
+                : 'rounded-xl px-3 py-2 text-white/55 text-xs hover:bg-white/10 hover:text-white'
             }
             onClick={showAllFloors}
             type="button"
@@ -90,7 +90,7 @@ export function Ha3dDashboardNavigation({
                 className={
                   active
                     ? 'rounded-xl bg-cyan-400/20 px-3 py-2 font-medium text-cyan-200 text-xs ring-1 ring-cyan-300/30'
-                    : 'rounded-xl px-3 py-2 text-white/60 text-xs hover:bg-white/10 hover:text-white'
+                    : 'rounded-xl px-3 py-2 text-white/55 text-xs hover:bg-white/10 hover:text-white'
                 }
                 key={level.id}
                 onClick={() => showFloor(level)}
@@ -110,7 +110,7 @@ export function Ha3dDashboardNavigation({
           </span>
           {CAMERA_PRESETS.map((preset) => (
             <button
-              className="rounded-xl px-3 py-2 text-white/60 text-xs hover:bg-white/10 hover:text-white"
+              className="rounded-xl px-3 py-2 text-white/55 text-xs hover:bg-white/10 hover:text-white"
               key={preset.id}
               onClick={() => onCameraPreset(preset.id)}
               type="button"
