@@ -18,6 +18,7 @@ type CardEditorElement = HTMLElement & {
   lovelace?: Readonly<Record<string, unknown>>
   value?: Ha3dLovelaceCardConfig
   GUImode?: boolean
+  showVisibilityTab?: boolean
   toggleMode?: () => void
 }
 
@@ -40,40 +41,51 @@ export function Ha3dLovelaceMenuEditor({
   )
   const mountRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<CardEditorElement | null>(null)
+  const hassRef = useRef(hass)
+  const configRef = useRef(config)
   const onChangeRef = useRef(onChange)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [preview, setPreview] = useState(true)
 
+  hassRef.current = hass
+  configRef.current = config
   onChangeRef.current = onChange
 
   useEffect(() => {
     if (!hass || !editorRef.current) return
     editorRef.current.hass = hass
-  }, [hass])
+  }, [connected])
 
   useEffect(() => {
     if (!editorRef.current) return
     editorRef.current.value = config
+    editorRef.current.showVisibilityTab = config.type !== 'conditional'
   }, [config])
 
+  const connected = hass !== null
+
   useEffect(() => {
+    if (!connected) return
     const mount = mountRef.current
-    if (!(mount && hass)) return
+    const host = hassRef.current
+    if (!(mount && host)) return
 
     let cancelled = false
     setLoading(true)
     setLoadError(null)
     mount.replaceChildren()
 
-    void ensureHomeAssistantCardEditor(hass)
+    void ensureHomeAssistantCardEditor(host)
       .then(() => {
         if (cancelled) return
 
         const editor = document.createElement('hui-card-element-editor') as CardEditorElement
-        editor.hass = hass
+        const initialConfig = configRef.current
+        editor.hass = host
         editor.lovelace = createLovelaceEditorContext()
-        editor.value = config
+        editor.value = initialConfig
+        editor.showVisibilityTab = initialConfig.type !== 'conditional'
         editor.style.display = 'block'
         editor.style.width = '100%'
 

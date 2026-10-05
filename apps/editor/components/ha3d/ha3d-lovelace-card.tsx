@@ -18,7 +18,10 @@ export function Ha3dLovelaceCard({
 }) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const cardRef = useRef<(HTMLElement & { hass?: HomeAssistantLovelaceHost }) | null>(null)
+  const hassRef = useRef(hass)
   const [error, setError] = useState<string | null>(null)
+
+  hassRef.current = hass
 
   useEffect(() => {
     if (cardRef.current) cardRef.current.hass = hass
@@ -33,7 +36,7 @@ export function Ha3dLovelaceCard({
     mount.replaceChildren()
     cardRef.current = null
 
-    void createHomeAssistantLovelaceCard(hass, config, preview)
+    void createHomeAssistantLovelaceCard(hassRef.current, config, preview)
       .then((card) => {
         if (cancelled) return
         card.style.display = 'block'
@@ -51,7 +54,7 @@ export function Ha3dLovelaceCard({
       cardRef.current = null
       mount.replaceChildren()
     }
-  }, [config, hass, preview])
+  }, [config, preview])
 
   return (
     <>

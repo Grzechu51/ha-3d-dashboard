@@ -69,9 +69,7 @@ describe('buildSlabGeometry', () => {
 
     const solid = SlabNode.parse({ elevation: 0.3, thickness: 0.1, polygon })
     const solidGroup = buildSlabGeometry(solid, undefined, 'solid', false)
-    const solidMeshes = solidGroup.children.filter(
-      (child): child is Mesh => child instanceof Mesh,
-    )
+    const solidMeshes = solidGroup.children.filter((child): child is Mesh => child instanceof Mesh)
     const solidSurface = solidMeshes.find((mesh) => mesh.userData.slotId === 'surface')!
     const solidSide = solidMeshes.find((mesh) => mesh.userData.slotId === 'side')!
 
