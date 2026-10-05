@@ -54,7 +54,7 @@ function ToggleButton({
       aria-pressed={active}
       className={
         active
-          ? 'rounded-lg border border-cyan-400/40 bg-cyan-400/10 px-3 py-2 text-left text-cyan-100 text-sm'
+          ? 'rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-left text-primary text-sm'
           : 'rounded-lg border border-border bg-background/60 px-3 py-2 text-left text-muted-foreground text-sm hover:bg-accent hover:text-foreground'
       }
       onClick={onClick}
@@ -207,7 +207,7 @@ export function Ha3dEditorSettings() {
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center gap-2">
-          <LayoutGrid className="h-4 w-4 text-cyan-300" />
+          <LayoutGrid className="h-4 w-4 text-primary" />
           <div className="font-medium text-sm">Dashboard menu</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
@@ -393,7 +393,7 @@ export function Ha3dEditorSettings() {
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-cyan-300" />
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
             <div className="font-medium text-sm">Dashboard labels</div>
           </div>
           <button
@@ -417,7 +417,7 @@ export function Ha3dEditorSettings() {
             </span>
           </span>
           <input
-            className="mt-2 w-full accent-cyan-400"
+            className="mt-2 w-full accent-primary"
             max="0.95"
             min="0.35"
             onChange={(event) =>
@@ -435,7 +435,7 @@ export function Ha3dEditorSettings() {
             <span className="text-muted-foreground">{dashboardAppearance.labelRadiusPx}px</span>
           </span>
           <input
-            className="mt-2 w-full accent-cyan-400"
+            className="mt-2 w-full accent-primary"
             max="24"
             min="4"
             onChange={(event) =>
@@ -455,7 +455,7 @@ export function Ha3dEditorSettings() {
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center gap-2">
-          <Download className="h-4 w-4 text-cyan-300" />
+          <Download className="h-4 w-4 text-primary" />
           <div className="font-medium text-sm">Export</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
@@ -464,15 +464,15 @@ export function Ha3dEditorSettings() {
         </p>
 
         <button
-          className="mt-3 flex w-full items-center justify-between rounded-lg border border-cyan-400/30 bg-cyan-400/5 px-3 py-2 text-left text-sm hover:bg-cyan-400/10"
+          className="mt-3 flex w-full items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-left text-sm hover:bg-primary/10"
           onClick={exportPascalJson}
           type="button"
         >
           <span>
-            <span className="block font-medium text-cyan-100">Pascal project JSON</span>
+            <span className="block font-medium text-primary">Pascal project JSON</span>
             <span className="block text-[10px] text-muted-foreground">Editable scene graph</span>
           </span>
-          <Download className="h-4 w-4 text-cyan-300" />
+          <Download className="h-4 w-4 text-primary" />
         </button>
 
         <div className="mt-2 grid grid-cols-3 gap-2">
@@ -493,7 +493,7 @@ export function Ha3dEditorSettings() {
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
         <div className="flex items-center gap-2">
-          <Box className="h-4 w-4 text-cyan-300" />
+          <Box className="h-4 w-4 text-primary" />
           <div className="font-medium text-sm">Custom objects</div>
         </div>
         <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
