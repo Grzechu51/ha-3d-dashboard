@@ -52,14 +52,19 @@ export function ActionMenu({
   const transition = reducedMotion
     ? { duration: 0 }
     : { type: 'spring' as const, bounce: 0.2, duration: 0.4 }
+  const positionClass =
+    embedded && !isMobile
+      ? 'relative z-50'
+      : cn(
+          'left-1/2 z-50 -translate-x-1/2',
+          isMobile ? 'absolute origin-bottom scale-90' : 'fixed bottom-6',
+        )
 
   return (
     <TooltipProvider>
       <motion.div
         className={cn(
-          embedded && !isMobile
-            ? 'relative z-50'
-            : cn('left-1/2 z-50 -translate-x-1/2', isMobile ? 'absolute origin-bottom scale-90' : 'fixed bottom-6'),
+          positionClass,
           !embedded &&
             'rounded-2xl border border-border bg-background/90 shadow-2xl backdrop-blur-md',
           'transition-colors duration-200 ease-out',

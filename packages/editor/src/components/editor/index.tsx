@@ -36,8 +36,8 @@ import {
 import { ViewerOverlay } from '../../components/viewer-overlay'
 import { ViewerZoneSystem } from '../../components/viewer-zone-system'
 import { type SaveStatus, useAutoSave } from '../../hooks/use-auto-save'
-import { useIsMobile } from '../../hooks/use-mobile'
 import { useKeyboard } from '../../hooks/use-keyboard'
+import { useIsMobile } from '../../hooks/use-mobile'
 import { useSaveShortcut } from '../../hooks/use-save-shortcut'
 import {
   createLocalProjectPresentationPersistence,
@@ -1706,6 +1706,10 @@ function EditorContent({
       compactOverlayControls &&
       !isMobile &&
       !(isVersionPreviewMode || isCaptureMode || isStudioMode || stageOverlay)
+    const showFloatingLevelSelector =
+      !showCompactControlDock && !(isCaptureMode || stageOverlay)
+    const showFloatingActionMenu =
+      !showCompactControlDock && !(isVersionPreviewMode || isCaptureMode || isStudioMode)
 
     return (
       <>
@@ -1741,11 +1745,8 @@ function EditorContent({
                       <ActionMenu embedded />
                     </div>
                   ) : null}
-                  {!showCompactControlDock && !(isCaptureMode || stageOverlay) ? (
-                    <FloatingLevelSelector />
-                  ) : null}
-                  {!showCompactControlDock &&
-                  !(isVersionPreviewMode || isCaptureMode || isStudioMode) ? (
+                  {showFloatingLevelSelector ? <FloatingLevelSelector /> : null}
+                  {showFloatingActionMenu ? (
                     <div className="pointer-events-auto">
                       <ActionMenu />
                     </div>

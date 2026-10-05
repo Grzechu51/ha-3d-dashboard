@@ -125,7 +125,8 @@ export function Ha3dLovelaceMenuEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="max-w-xl text-muted-foreground text-xs leading-relaxed">
           This is Home Assistant's native Lovelace card editor. Built-in cards, stacks and installed
-          cards such as Mushroom use the same editors and YAML configuration as a normal HA dashboard.
+          cards such as Mushroom use the same editors and YAML configuration as a normal HA
+          dashboard.
         </p>
         <button
           className="flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-2.5 py-1.5 text-muted-foreground text-xs hover:bg-accent hover:text-foreground"

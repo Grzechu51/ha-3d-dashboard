@@ -199,7 +199,7 @@ def icon_archive_name(path: Path, layout: str) -> str:
 def validate_material_catalog_assets() -> None:
     """Ensure every static material URL used by the catalog ships in the HA package."""
     source = MATERIAL_LIBRARY_PATH.read_text(encoding="utf-8")
-    references = sorted(set(re.findall(r"[\\\"'](/material/[^\\\"']+)[\\\"']", source)))
+    references = sorted(set(re.findall(r"""["'](/material/[^"']+)["']""", source)))
     missing = [
         reference
         for reference in references
