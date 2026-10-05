@@ -90,9 +90,7 @@ export function subscribeHa3dDashboardAppearance(listener: () => void): () => vo
   return () => listeners.delete(listener)
 }
 
-export function updateHa3dDashboardAppearance(
-  updates: Partial<Ha3dDashboardAppearance>,
-): void {
+export function updateHa3dDashboardAppearance(updates: Partial<Ha3dDashboardAppearance>): void {
   hydrate()
   publish(normalizeHa3dDashboardAppearance({ ...snapshot, ...updates }))
 }

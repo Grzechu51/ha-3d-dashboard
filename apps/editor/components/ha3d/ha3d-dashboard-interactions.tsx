@@ -12,7 +12,7 @@ import {
   LineBasicMaterial,
   LineSegments,
   Matrix4,
-  Mesh,
+  type Mesh,
   type Object3D,
   Vector3,
 } from 'three'
@@ -179,10 +179,7 @@ function InteractiveEntityHighlight({ nodeId, selected }: { nodeId: string; sele
         if (!(source.isMesh && source.geometry?.getAttribute('position'))) return
 
         const inflation = contourInflation(source)
-        const edgeGeometry = new EdgesGeometry(
-          source.geometry,
-          HIGHLIGHT_EDGE_THRESHOLD_DEGREES,
-        )
+        const edgeGeometry = new EdgesGeometry(source.geometry, HIGHLIGHT_EDGE_THRESHOLD_DEGREES)
         const outline = new LineSegments(edgeGeometry, material)
         outline.name = `ha3d-highlight-contour:${nodeId}`
         outline.matrixAutoUpdate = false

@@ -6,9 +6,7 @@ import {
 
 describe('HA 3D dashboard appearance', () => {
   test('uses stable defaults for missing preferences', () => {
-    expect(normalizeHa3dDashboardAppearance(undefined)).toEqual(
-      DEFAULT_HA3D_DASHBOARD_APPEARANCE,
-    )
+    expect(normalizeHa3dDashboardAppearance(undefined)).toEqual(DEFAULT_HA3D_DASHBOARD_APPEARANCE)
   })
 
   test('clamps user-facing label preferences to supported ranges', () => {

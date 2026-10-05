@@ -242,9 +242,7 @@ export function Ha3dEditorSettings() {
         <label className="mt-3 block">
           <span className="flex items-center justify-between gap-3 text-xs">
             <span>Corner radius</span>
-            <span className="text-muted-foreground">
-              {dashboardAppearance.labelRadiusPx}px
-            </span>
+            <span className="text-muted-foreground">{dashboardAppearance.labelRadiusPx}px</span>
           </span>
           <input
             className="mt-2 w-full accent-cyan-400"
