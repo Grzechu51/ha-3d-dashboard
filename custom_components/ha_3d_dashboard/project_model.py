@@ -218,7 +218,7 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
             raise InvalidProjectError("ha_config dashboardMenu must be an object")
         mode = dashboard_menu.get("mode")
         items = dashboard_menu.get("items")
-        if mode not in {"auto", "custom"}:
+        if not isinstance(mode, str) or mode not in {"auto", "custom"}:
             raise InvalidProjectError("ha_config dashboardMenu mode must be auto or custom")
         if not isinstance(items, list):
             raise InvalidProjectError("ha_config dashboardMenu items must be an array")
@@ -244,7 +244,11 @@ def _validate_ha_config(value: Any) -> dict[str, Any]:
                     "ha_config dashboardMenu entity ids must be unique"
                 )
             seen_menu_entities.add(normalized_entity_id)
-            if isinstance(span, bool) or span not in {1, 2}:
+            if (
+                isinstance(span, bool)
+                or not isinstance(span, int)
+                or span not in {1, 2}
+            ):
                 raise InvalidProjectError("ha_config dashboardMenu span must be 1 or 2")
 
     for binding in bindings:
