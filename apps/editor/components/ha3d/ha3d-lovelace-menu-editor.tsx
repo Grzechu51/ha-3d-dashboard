@@ -1,6 +1,6 @@
 'use client'
 
-import { Code2, Eye, LoaderCircle } from 'lucide-react'
+import { Code2, LoaderCircle } from 'lucide-react'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
   getHomeAssistantLovelaceHostSnapshot,
@@ -11,7 +11,6 @@ import {
   ensureHomeAssistantCardEditor,
   type Ha3dLovelaceCardConfig,
 } from '../../lib/ha3d/lovelace-runtime'
-import { Ha3dLovelaceCard } from './ha3d-lovelace-card'
 
 type CardEditorElement = HTMLElement & {
   hass?: unknown
@@ -46,7 +45,6 @@ export function Ha3dLovelaceMenuEditor({
   const onChangeRef = useRef(onChange)
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [preview, setPreview] = useState(true)
 
   hassRef.current = hass
   configRef.current = config
@@ -130,29 +128,14 @@ export function Ha3dLovelaceMenuEditor({
           custom cards such as Mushroom use the same editors and YAML configuration as a normal HA
           dashboard.
         </p>
-        <div className="flex items-center gap-1 rounded-full border border-border bg-background/70 p-1">
-          <button
-            className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground text-xs hover:bg-accent hover:text-foreground"
-            onClick={() => editorRef.current?.toggleMode?.()}
-            type="button"
-          >
-            <Code2 className="h-3.5 w-3.5" />
-            Visual / YAML
-          </button>
-          <button
-            aria-pressed={preview}
-            className={
-              preview
-                ? 'flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1.5 text-primary text-xs ring-1 ring-primary/25'
-                : 'flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground text-xs hover:bg-accent hover:text-foreground'
-            }
-            onClick={() => setPreview((value) => !value)}
-            type="button"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            Preview
-          </button>
-        </div>
+        <button
+          className="flex items-center gap-1.5 rounded-full border border-border bg-background/70 px-2.5 py-1.5 text-muted-foreground text-xs hover:bg-accent hover:text-foreground"
+          onClick={() => editorRef.current?.toggleMode?.()}
+          type="button"
+        >
+          <Code2 className="h-3.5 w-3.5" />
+          Visual / YAML
+        </button>
       </div>
 
       {loading ? (
@@ -173,14 +156,6 @@ export function Ha3dLovelaceMenuEditor({
         ref={mountRef}
       />
 
-      {preview ? (
-        <div className="rounded-2xl border border-border bg-background/45 p-3">
-          <div className="mb-2 font-medium text-muted-foreground text-[10px] uppercase tracking-wide">
-            Live preview
-          </div>
-          <Ha3dLovelaceCard config={config} hass={hass} preview />
-        </div>
-      ) : null}
     </div>
   )
 }
