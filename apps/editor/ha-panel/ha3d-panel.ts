@@ -5,7 +5,7 @@ import { HomeAssistantPanelHostController } from '../lib/ha3d/panel-host-control
 import { Ha3dNativeApp, type NativeHomeAssistant } from './ha3d-native-app'
 import type { HomeAssistantPanelInfo } from './panel-types'
 
-const STYLESHEET_PATH = '/ha3d_static/ha3d-panel.css'
+const DEFAULT_STYLESHEET_PATH = '/ha3d_static/ha3d-panel.css'
 
 export class Ha3dDashboardPanel extends HTMLElement {
   private readonly controller = new HomeAssistantPanelHostController()
@@ -66,7 +66,7 @@ export class Ha3dDashboardPanel extends HTMLElement {
 
     this.stylesheet = document.createElement('link')
     this.stylesheet.rel = 'stylesheet'
-    this.stylesheet.href = STYLESHEET_PATH
+    this.stylesheet.href = DEFAULT_STYLESHEET_PATH
 
     this.reactHost = document.createElement('div')
     this.reactHost.id = 'ha3d-root'
@@ -152,11 +152,21 @@ export class Ha3dDashboardPanel extends HTMLElement {
   }
 
   private refreshStylesheet(): void {
+    const assetUrl = this.panelValue?.config?.asset_url
     const version = this.panelValue?.config?.version
+
     this.stylesheet.href =
-      typeof version === 'string' && version.length > 0
-        ? `${STYLESHEET_PATH}?v=${encodeURIComponent(version)}`
-        : STYLESHEET_PATH
+      typeof assetUrl === 'string' && assetUrl.startsWith('/')
+        ? `${assetUrl}/ha3d-panel.css`
+        : typeof version === 'string' && version.length > 0
+          ? `${DEFAULT_STYLESHEET_PATH}?v=${encodeURIComponent(version)}`
+          : DEFAULT_STYLESHEET_PATH
+
+    if (typeof version === 'string' && version.length > 0) {
+      this.dataset.ha3dVersion = version
+    } else {
+      delete this.dataset.ha3dVersion
+    }
   }
 
   private renderReact(): void {
@@ -164,6 +174,10 @@ export class Ha3dDashboardPanel extends HTMLElement {
     this.reactRoot ??= createRoot(this.reactHost)
     this.reactRoot.render(
       createElement(Ha3dNativeApp, {
+        buildVersion:
+          typeof this.panelValue?.config?.version === 'string'
+            ? this.panelValue.config.version
+            : null,
         hass: this.hassValue,
         narrow: this.narrowValue,
         onShowMoreInfo: this.showMoreInfo,
