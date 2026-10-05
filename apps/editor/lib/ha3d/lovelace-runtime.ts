@@ -1,6 +1,7 @@
+import type { Ha3dLovelaceCardConfig } from './dashboard-menu'
 import type { HomeAssistantLovelaceHost } from './lovelace-host'
 
-export type Ha3dLovelaceCardConfig = Readonly<Record<string, unknown>>
+export type { Ha3dLovelaceCardConfig } from './dashboard-menu'
 
 type LovelaceCardElement = HTMLElement & {
   hass?: HomeAssistantLovelaceHost
