@@ -6,7 +6,6 @@ import { useViewer } from '@pascal-app/viewer'
 import {
   Box,
   Download,
-  LayoutGrid,
   PackagePlus,
   RefreshCw,
   RotateCcw,
@@ -20,11 +19,6 @@ import {
   subscribeHa3dDashboardAppearance,
   updateHa3dDashboardAppearance,
 } from '../../lib/ha3d/dashboard-appearance'
-import {
-  getHa3dProjectConfigSnapshot,
-  setDashboardMenuMode,
-  subscribeHa3dProjectConfig,
-} from '../../lib/ha3d/project-config'
 import {
   getHomeAssistantRuntimeSnapshot,
   subscribeHomeAssistantRuntime,
@@ -95,11 +89,6 @@ export function Ha3dEditorSettings() {
     subscribeHa3dDashboardAppearance,
     getHa3dDashboardAppearanceSnapshot,
     getHa3dDashboardAppearanceServerSnapshot,
-  )
-  const projectConfig = useSyncExternalStore(
-    subscribeHa3dProjectConfig,
-    getHa3dProjectConfigSnapshot,
-    getHa3dProjectConfigSnapshot,
   )
   const [refreshing, setRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState<string | null>(null)
@@ -177,32 +166,6 @@ export function Ha3dEditorSettings() {
           helpers and integrations.
         </p>
         {refreshError ? <p className="mt-2 text-destructive text-xs">{refreshError}</p> : null}
-      </section>
-
-      <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
-        <div className="flex items-center gap-2">
-          <LayoutGrid className="h-4 w-4 text-primary" />
-          <div className="font-medium text-sm">Dashboard menu</div>
-        </div>
-        <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
-          Automatic uses native Home Assistant Tile cards for entities linked to the 3D scene. HA
-          cards uses your own Lovelace card tree. Edit cards in the dedicated Menu tab.
-        </p>
-
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <ToggleButton
-            active={projectConfig.dashboardMenu.mode === 'auto'}
-            onClick={() => setDashboardMenuMode('auto')}
-          >
-            Automatic HA tiles
-          </ToggleButton>
-          <ToggleButton
-            active={projectConfig.dashboardMenu.mode === 'lovelace'}
-            onClick={() => setDashboardMenuMode('lovelace')}
-          >
-            HA cards
-          </ToggleButton>
-        </div>
       </section>
 
       <section className="mt-3 rounded-xl border border-border bg-card/70 p-3">
