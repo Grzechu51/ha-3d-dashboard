@@ -65,10 +65,7 @@ export function Ha3dEditorViewportToolbar({
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraPreset) => {
     const viewer = useViewer.getState()
-    const bounds = resolveHa3dSceneCameraBounds(
-      viewer.selection.levelId,
-      viewer.levelMode === 'solo',
-    )
+    const bounds = resolveHa3dSceneCameraBounds(viewer.selection.levelId, viewer.levelMode)
     if (!bounds) {
       emitter.emit('camera-controls:fit-scene', {})
       return

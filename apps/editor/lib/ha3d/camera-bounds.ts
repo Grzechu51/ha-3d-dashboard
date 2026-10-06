@@ -1,5 +1,5 @@
 import { sceneRegistry, useScene } from '@pascal-app/core'
-import { getLevelPresentationY } from '@pascal-app/viewer'
+import { getLevelPresentationY, useViewer } from '@pascal-app/viewer'
 import { Box3, Vector3 } from 'three'
 
 const resolvedBounds = new Box3()
@@ -17,7 +17,9 @@ function hasFiniteBounds(bounds: Box3) {
   )
 }
 
-function expandLevelAtPresentationY(target: Box3, levelId: string, solo: boolean) {
+type Ha3dLevelMode = ReturnType<typeof useViewer.getState>['levelMode']
+
+function expandLevelAtPresentationY(target: Box3, levelId: string, levelMode: Ha3dLevelMode) {
   const levelObject = sceneRegistry.nodes.get(levelId)
   if (!levelObject) return false
 
@@ -25,11 +27,7 @@ function expandLevelAtPresentationY(target: Box3, levelId: string, solo: boolean
   levelBounds.setFromObject(levelObject, true)
   if (levelBounds.isEmpty() || !hasFiniteBounds(levelBounds)) return false
 
-  const targetY = getLevelPresentationY(
-    levelId,
-    useScene.getState().nodes,
-    solo ? 'solo' : 'stacked',
-  )
+  const targetY = getLevelPresentationY(levelId, useScene.getState().nodes, levelMode)
   if (Number.isFinite(targetY) && Number.isFinite(levelObject.position.y)) {
     levelBounds.translate(levelOffset.set(0, targetY - levelObject.position.y, 0))
   }
@@ -44,10 +42,17 @@ function expandLevelAtPresentationY(target: Box3, levelId: string, solo: boolean
  * stable while LevelSystem is settling and prevents a stale level transform from
  * sending the camera far away.
  */
-export function resolveHa3dSceneCameraBounds(levelId: string | null, solo: boolean): Box3 | null {
+export function resolveHa3dSceneCameraBounds(
+  levelId: string | null,
+  levelMode: Ha3dLevelMode,
+): Box3 | null {
   resolvedBounds.makeEmpty()
 
-  if (solo && levelId && expandLevelAtPresentationY(resolvedBounds, levelId, true)) {
+  if (
+    levelMode === 'solo' &&
+    levelId &&
+    expandLevelAtPresentationY(resolvedBounds, levelId, levelMode)
+  ) {
     return resolvedBounds
   }
 
@@ -55,7 +60,7 @@ export function resolveHa3dSceneCameraBounds(levelId: string | null, solo: boole
   // levels instead of the whole Three.js scene (which may include Site/terrain).
   resolvedBounds.makeEmpty()
   for (const candidateId of sceneRegistry.byType.level ?? []) {
-    expandLevelAtPresentationY(resolvedBounds, candidateId, false)
+    expandLevelAtPresentationY(resolvedBounds, candidateId, levelMode)
   }
 
   if (!resolvedBounds.isEmpty() && hasFiniteBounds(resolvedBounds)) {

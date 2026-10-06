@@ -30,7 +30,7 @@ export function Ha3dDashboardCameraControls({
   useEffect(() => {
     if (!(request && controls.current)) return
 
-    const bounds = resolveHa3dSceneCameraBounds(selectedLevelId, levelMode === 'solo')
+    const bounds = resolveHa3dSceneCameraBounds(selectedLevelId, levelMode)
     if (!bounds) {
       void controls.current.setLookAt(10, 10, 10, 0, 0, 0, true)
       return
