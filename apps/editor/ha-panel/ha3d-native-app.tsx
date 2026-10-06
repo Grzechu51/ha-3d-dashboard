@@ -5,9 +5,9 @@ import {
   Editor,
   ItemsPanel,
   type SaveStatus,
-  SitePanel,
   type SceneGraph,
   type SidebarTab,
+  SitePanel,
   useEditor,
   useScene,
 } from '@pascal-app/editor'
