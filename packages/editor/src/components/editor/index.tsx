@@ -549,10 +549,28 @@ function ShortcutSequence({ keys }: { keys: ShortcutKey[] }) {
   )
 }
 
-function CameraControlHintItem({ hint }: { hint: CameraControlHint }) {
+function CameraControlHintItem({
+  hint,
+  compact = false,
+}: {
+  hint: CameraControlHint
+  compact?: boolean
+}) {
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1.5 px-4 text-center first:pl-0 last:pr-0">
-      <span className="font-medium text-[10px] text-muted-foreground/60 tracking-[0.03em]">
+    <div
+      className={
+        compact
+          ? 'flex min-w-0 flex-col items-center gap-1 px-2 text-center first:pl-0 last:pr-0'
+          : 'flex min-w-0 flex-col items-center gap-1.5 px-4 text-center first:pl-0 last:pr-0'
+      }
+    >
+      <span
+        className={
+          compact
+            ? 'font-medium text-[9px] text-muted-foreground/60 tracking-[0.03em]'
+            : 'font-medium text-[10px] text-muted-foreground/60 tracking-[0.03em]'
+        }
+      >
         {hint.action}
       </span>
       <div className="flex flex-wrap items-center justify-center gap-1.5">
@@ -571,14 +589,14 @@ function CameraControlHintItem({ hint }: { hint: CameraControlHint }) {
 function ViewerCanvasControlsHint({
   isPreviewMode,
   onDismiss,
+  embedded = false,
 }: {
   isPreviewMode: boolean
   onDismiss: () => void
+  embedded?: boolean
 }) {
   const [collapsed, setCollapsed] = useState(false)
   const all = isPreviewMode ? PREVIEW_CAMERA_CONTROL_HINTS : EDITOR_CAMERA_CONTROL_HINTS
-  // A host teaching one gesture at a time narrows this to the one it is asking
-  // for, and to nothing once it is done. Null — the default — is all of them.
   const focus = useCameraHintFocus((state) => state.actions)
   const hints = focus === null ? all : all.filter((hint) => focus.includes(hint.action))
 
@@ -587,11 +605,21 @@ function ViewerCanvasControlsHint({
   }
 
   return (
-    <div className="pointer-events-none absolute top-3 right-3 z-40 max-w-[calc(100%-1.5rem)]">
+    <div
+      className={
+        embedded
+          ? 'pointer-events-auto relative min-w-0'
+          : 'pointer-events-none absolute top-3 right-3 z-40 max-w-[calc(100%-1.5rem)]'
+      }
+    >
       {collapsed ? (
         <button
           aria-label="Expand camera controls hint"
-          className="pointer-events-auto flex items-center gap-2 rounded-full border border-border/35 bg-background/90 px-3 py-2 text-muted-foreground text-xs shadow-elevation-3 backdrop-blur-xl transition-colors hover:text-foreground"
+          className={
+            embedded
+              ? 'pointer-events-auto flex h-9 items-center gap-2 rounded-xl px-2 text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground'
+              : 'pointer-events-auto flex items-center gap-2 rounded-full border border-border/35 bg-background/90 px-3 py-2 text-muted-foreground text-xs shadow-elevation-3 backdrop-blur-xl transition-colors hover:text-foreground'
+          }
           onClick={() => setCollapsed(false)}
           type="button"
         >
@@ -614,14 +642,26 @@ function ViewerCanvasControlsHint({
       ) : (
         <section
           aria-label="Camera controls hint"
-          className="pointer-events-auto flex items-start gap-3 rounded-2xl border border-border/35 bg-background/90 px-3.5 py-2.5 shadow-elevation-4 backdrop-blur-xl"
+          className={
+            embedded
+              ? 'pointer-events-auto flex items-center gap-2 px-1 py-0.5'
+              : 'pointer-events-auto flex items-start gap-3 rounded-2xl border border-border/35 bg-background/90 px-3.5 py-2.5 shadow-elevation-4 backdrop-blur-xl'
+          }
         >
           <div
-            className="grid min-w-0 flex-1 items-start divide-x divide-border/18"
-            style={{ gridTemplateColumns: `repeat(${hints.length}, minmax(0, 1fr))` }}
+            className={
+              embedded
+                ? 'flex min-w-0 flex-1 items-start divide-x divide-border/18'
+                : 'grid min-w-0 flex-1 items-start divide-x divide-border/18'
+            }
+            style={
+              embedded
+                ? undefined
+                : { gridTemplateColumns: `repeat(${hints.length}, minmax(0, 1fr))` }
+            }
           >
             {hints.map((hint) => (
-              <CameraControlHintItem hint={hint} key={hint.action} />
+              <CameraControlHintItem compact={embedded} hint={hint} key={hint.action} />
             ))}
           </div>
           <div className="flex shrink-0 items-center self-center border-border/18 border-l pl-2">
@@ -642,7 +682,7 @@ function ViewerCanvasControlsHint({
                   />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={8}>
+              <TooltipContent side={embedded ? 'top' : 'bottom'} sideOffset={8}>
                 Collapse
               </TooltipContent>
             </Tooltip>
@@ -663,7 +703,7 @@ function ViewerCanvasControlsHint({
                   />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={8}>
+              <TooltipContent side={embedded ? 'top' : 'bottom'} sideOffset={8}>
                 Dismiss
               </TooltipContent>
             </Tooltip>
@@ -1101,6 +1141,8 @@ const ViewerCanvas = memo(function ViewerCanvas({
   presentationsReady,
   viewerSceneSlot,
   floorplanSceneSlot,
+  showCameraControlsHint,
+  onDismissCameraControlsHint,
   disablePostFx = false,
   immersive,
 }: {
@@ -1116,6 +1158,8 @@ const ViewerCanvas = memo(function ViewerCanvas({
   presentationsReady: boolean
   viewerSceneSlot?: ReactNode
   floorplanSceneSlot?: ReactNode
+  showCameraControlsHint: boolean
+  onDismissCameraControlsHint: () => void
   disablePostFx?: boolean
   immersive?: ViewerImmersiveSession
 }) {
@@ -1127,10 +1171,6 @@ const ViewerCanvas = memo(function ViewerCanvas({
   useUnitFocusRules()
   const presetIsolation = useEditor((s) =>
     s.captureMode.mode === 'preset' ? s.captureMode.isolated : null,
-  )
-
-  const [isCameraControlsHintVisible, setIsCameraControlsHintVisible] = useState<boolean | null>(
-    null,
   )
 
   const viewerAreaRef = useRef<HTMLDivElement>(null)
@@ -1171,15 +1211,6 @@ const ViewerCanvas = memo(function ViewerCanvas({
       window.removeEventListener('pointerup', handlePointerUp)
     }
   }, [setFloorplanPaneRatio])
-
-  useEffect(() => {
-    setIsCameraControlsHintVisible(!readCameraControlsHintDismissed())
-  }, [])
-
-  const dismissCameraControlsHint = useCallback(() => {
-    setIsCameraControlsHintVisible(false)
-    writeCameraControlsHintDismissed(true)
-  }, [])
 
   const show2d = viewMode === '2d' || viewMode === 'split'
   const show3d = viewMode === '3d' || viewMode === 'split'
@@ -1227,10 +1258,10 @@ const ViewerCanvas = memo(function ViewerCanvas({
             containerRef={viewer3dRef}
             isVersionPreviewMode={isVersionPreviewMode}
           />
-          {!showLoader && isCameraControlsHintVisible && !isFirstPersonMode ? (
+          {!showLoader && showCameraControlsHint && !isFirstPersonMode ? (
             <ViewerCanvasControlsHint
               isPreviewMode={isPreviewMode}
-              onDismiss={dismissCameraControlsHint}
+              onDismiss={onDismissCameraControlsHint}
             />
           ) : null}
           <SelectionPersistenceManager enabled={hasLoadedInitialScene && !showLoader} />
@@ -1428,6 +1459,22 @@ function EditorContent({
   const [previewStageMode, setPreviewStageMode] = useState<ViewerStageMode>('3d')
   const isPreviewMode = useEditor((s) => s.isPreviewMode)
   const isCaptureMode = useEditor((s) => s.isCaptureMode)
+  const [isCameraControlsHintVisible, setIsCameraControlsHintVisible] = useState(false)
+
+  useEffect(() => {
+    setIsCameraControlsHintVisible(!readCameraControlsHintDismissed())
+  }, [])
+
+  const dismissCameraControlsHint = useCallback(() => {
+    setIsCameraControlsHintVisible(false)
+    writeCameraControlsHintDismissed(true)
+  }, [])
+
+  const showCompactControlDock =
+    layoutVersion === 'v2' &&
+    compactOverlayControls &&
+    !isMobile &&
+    !(isVersionPreviewMode || isCaptureMode || isStudioMode || stageOverlay)
 
   const sidebarWidth = useSidebarStore((s) => s.width)
   const isSidebarCollapsed = useSidebarStore((s) => s.isCollapsed)
@@ -1641,8 +1688,10 @@ function EditorContent({
       isVersionPreviewMode={isVersionPreviewMode}
       onSceneReadyChange={handleSceneReadyChange}
       onThumbnailCapture={onThumbnailCapture}
+      onDismissCameraControlsHint={dismissCameraControlsHint}
       presentationsReady={presentationsReady}
       sceneReadyKey={sceneReadyKey}
+      showCameraControlsHint={!showCompactControlDock && isCameraControlsHintVisible}
       showLoader={showLoader}
       viewerSceneSlot={viewerSceneSlot}
       floorplanSceneSlot={floorplanSceneSlot}
@@ -1708,10 +1757,6 @@ function EditorContent({
       })),
     ]
 
-    const showCompactControlDock =
-      compactOverlayControls &&
-      !isMobile &&
-      !(isVersionPreviewMode || isCaptureMode || isStudioMode || stageOverlay)
     const showFloatingLevelSelector = !showCompactControlDock && !(isCaptureMode || stageOverlay)
     const showFloatingActionMenu =
       !showCompactControlDock && !(isVersionPreviewMode || isCaptureMode || isStudioMode)
@@ -1748,6 +1793,16 @@ function EditorContent({
                       <FloatingLevelSelector embedded />
                       <div className="mx-0.5 h-7 w-px self-end bg-border/70" />
                       <ActionMenu embedded />
+                      {isCameraControlsHintVisible && !isFirstPersonMode && !showLoader ? (
+                        <>
+                          <div className="mx-0.5 h-7 w-px self-end bg-border/70" />
+                          <ViewerCanvasControlsHint
+                            embedded
+                            isPreviewMode={false}
+                            onDismiss={dismissCameraControlsHint}
+                          />
+                        </>
+                      ) : null}
                     </div>
                   ) : null}
                   {showFloatingLevelSelector ? <FloatingLevelSelector /> : null}

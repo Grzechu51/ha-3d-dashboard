@@ -1,15 +1,10 @@
 'use client'
 
-import {
-  emitter,
-  getLevelDisplayName,
-  type LevelNode,
-  sceneRegistry,
-  useScene,
-} from '@pascal-app/core'
+import { emitter, getLevelDisplayName, type LevelNode, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
-import { Box3, Vector3 } from 'three'
+import { Vector3 } from 'three'
+import { resolveHa3dSceneCameraBounds } from '../../lib/ha3d/camera-bounds'
 import {
   type Ha3dDashboardCameraPreset,
   resolveHa3dDashboardCameraPose,
@@ -30,29 +25,6 @@ const ENVIRONMENT_MODES: readonly { id: Ha3dEnvironmentMode; label: string }[] =
   { id: 'twilight', label: 'Dusk' },
   { id: 'night', label: 'Night' },
 ]
-
-function resolveEditorBounds(levelId: string | null, solo: boolean): Box3 | null {
-  const bounds = new Box3()
-
-  if (solo && levelId) {
-    const levelObject = sceneRegistry.nodes.get(levelId)
-    if (levelObject) bounds.setFromObject(levelObject, true)
-  } else {
-    for (const buildingId of sceneRegistry.byType.building ?? []) {
-      const buildingObject = sceneRegistry.nodes.get(buildingId)
-      if (buildingObject) bounds.expandByObject(buildingObject, true)
-    }
-
-    if (bounds.isEmpty()) {
-      for (const [nodeId, object] of sceneRegistry.nodes) {
-        if (sceneRegistry.byType.site?.has(nodeId)) continue
-        bounds.expandByObject(object, true)
-      }
-    }
-  }
-
-  return bounds.isEmpty() ? null : bounds
-}
 
 function levelBuildingId(level: LevelNode, nodes: ReturnType<typeof useScene.getState>['nodes']) {
   const parent = level.parentId
@@ -93,7 +65,7 @@ export function Ha3dEditorViewportToolbar({
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraPreset) => {
     const viewer = useViewer.getState()
-    const bounds = resolveEditorBounds(viewer.selection.levelId, viewer.levelMode === 'solo')
+    const bounds = resolveHa3dSceneCameraBounds(viewer.selection.levelId, viewer.levelMode)
     if (!bounds) {
       emitter.emit('camera-controls:fit-scene', {})
       return

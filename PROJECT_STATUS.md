@@ -18,38 +18,38 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.27 unified top controls + editor regressions**
+**Checkpoint: beta.28 editor chrome + camera framing polish**
 
-Status: **v0.3.0-beta.26 is published; beta.27 work is on `feat/unified-topbar-scene-beta27`**
+Status: **v0.3.0-beta.27 is published; beta.28 work is on `feat/editor-polish-camera-beta28`**
 
-The beta.26 real-HA smoke test exposed four remaining editor-shell issues:
+The beta.27 real-HA smoke test confirmed the unified toolbar and restored Scene surface, then exposed
+three remaining polish issues:
 
-- Dashboard camera/level controls were still a separate floating bar instead of sharing the top
-  chrome with Projects/Edit.
-- Editor camera/level/environment controls still floated over the viewport and visually collided
-  with the normal top-right inspector/helper surface.
-- The HA Scene tab overrode Pascal's Site panel with an empty component, so the tab had no content.
-- Level deletion opened a Radix dialog outside the HA panel ShadowRoot, making the confirmation
-  surface appear non-functional.
+- the editor navbar used the HA dashboard surface token instead of the sidebar token, so the top strip
+  visibly differed from the left editor column;
+- the Pan / Rotate / Zoom camera-help card still floated independently over the viewport instead of
+  belonging to the compact bottom control dock;
+- camera presets could still frame from a transient animated level transform and send the camera far
+  away while a level presentation was settling.
 
-Beta.27 moves Dashboard navigation and the editor viewport toolbar into their respective top bars.
-The editor no longer mounts a second floating toolbar over the 3D viewport; when no viewer toolbar
-exists the Menu right dock starts close to the viewport top instead of reserving obsolete space.
+Beta.28 uses the exact sidebar background/foreground tokens for the editor navbar. In the compact HA
+layout the camera-help surface is rendered inside the same bottom-left dock as the level selector and
+Action Menu; the standalone editor keeps its existing floating help behavior.
 
-The Scene tab now mounts Pascal's real `SitePanel` through the public editor package surface.
-Dialog portals resolve the active ShadowRoot, matching the existing popover integration, and the
-level action popover closes before the delete confirmation opens.
+Camera bounds are now shared by Dashboard and Edit and are calculated from registered level geometry
+translated to the analytic target presentation Y. A missing selected-level registry entry falls back
+to authored levels/buildings rather than the whole Site/terrain scene, preventing transient level
+positions from producing a distant blank view.
 
 Architecture classification:
 
-- HA top-bar composition: `apps/editor` host integration;
-- `SitePanel` public re-export, right-dock positioning, dialog portal behavior and controlled level
-  action menu: reusable `packages/editor` UI/presentation fixes;
-- no scene schema, node-kind semantics, renderer dispatch, viewer store, tool behavior or plugin API
-  changes.
+- HA navbar color remains `apps/editor` host composition;
+- compact camera-help placement is reusable `packages/editor` presentation only;
+- shared HA camera bounds live under `apps/editor/lib/ha3d` and consume public core/viewer state;
+- no node schema, renderer dispatch, tool semantics, viewer store or plugin API changes.
 
-The next gate is source/architecture review and one normal PR CI run for **v0.3.0-beta.27**, then a
-real Home Assistant smoke test of the unified top bars, restored Scene panel and level deletion.
+The next gate is source/architecture review and one normal PR CI run for **v0.3.0-beta.28**, followed
+by a real Home Assistant smoke test of top-bar color, the combined bottom dock and all camera presets.
 
 ## Completed
 
