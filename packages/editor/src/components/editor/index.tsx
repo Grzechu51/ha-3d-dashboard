@@ -1756,8 +1756,7 @@ function EditorContent({
                       <ActionMenu />
                     </div>
                   ) : null}
-                  {!viewerRightDock &&
-                  !(isVersionPreviewMode || isCaptureMode || isStudioMode) ? (
+                  {!viewerRightDock && !(isVersionPreviewMode || isCaptureMode || isStudioMode) ? (
                     <div className="pointer-events-auto">
                       <PanelManager
                         inspectorFooter={inspectorFooter}

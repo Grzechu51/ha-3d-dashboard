@@ -3,14 +3,7 @@
 import { useScene } from '@pascal-app/core'
 import { useEditor } from '@pascal-app/editor'
 import { useViewer } from '@pascal-app/viewer'
-import {
-  Box,
-  Download,
-  PackagePlus,
-  RefreshCw,
-  RotateCcw,
-  SlidersHorizontal,
-} from 'lucide-react'
+import { Box, Download, PackagePlus, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { type ReactNode, useState, useSyncExternalStore } from 'react'
 import {
   getHa3dDashboardAppearanceServerSnapshot,
