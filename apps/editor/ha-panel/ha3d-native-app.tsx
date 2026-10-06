@@ -7,6 +7,7 @@ import {
   type SaveStatus,
   type SceneGraph,
   type SidebarTab,
+  SitePanel,
   useEditor,
   useScene,
 } from '@pascal-app/editor'
@@ -90,8 +91,6 @@ type Ha3dNativeAppProps = Readonly<{
   onShowMoreInfo: (entityId: string) => void
 }>
 
-const EmptyEditorSidebarPanel = () => null
-
 function HaEditorItemsPanel() {
   return (
     <ItemsPanel
@@ -106,7 +105,7 @@ const HA_EDITOR_SIDEBAR_TABS: (SidebarTab & { component: ComponentType })[] = [
   {
     id: 'site',
     label: 'Scene',
-    component: EmptyEditorSidebarPanel,
+    component: SitePanel,
     mobileDefaultSnap: 0.5,
     mobileIcon: <Layers className="h-5 w-5" />,
     icon: <Layers className="h-5 w-5" />,
@@ -610,7 +609,6 @@ function NativeDashboard({
   const [interactiveHighlights, setInteractiveHighlights] = useState(true)
   const [interactiveMarkers, setInteractiveMarkers] = useState(true)
   const [dashboardControlsCollapsed, setDashboardControlsCollapsed] = useState(false)
-  const [dashboardControlsHeight, setDashboardControlsHeight] = useState(0)
   const [cameraRequest, setCameraRequest] = useState<Ha3dDashboardCameraRequest | null>(null)
 
   const requestCameraPreset = useCallback((preset: Ha3dDashboardCameraRequest['preset']) => {
@@ -763,18 +761,29 @@ function NativeDashboard({
       </Viewer>
 
       <div
-        className={`pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start justify-between gap-3 ${dashboardControlsCollapsed ? 'md:right-3' : 'md:right-[22rem]'}`}
+        className={`pointer-events-none absolute top-3 right-3 left-3 z-40 flex items-start gap-3 ${dashboardControlsCollapsed ? 'md:right-3' : 'md:right-[22rem]'}`}
       >
-        <div className="min-w-0 rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] px-3.5 py-2.5 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl">
-          <div className="truncate font-semibold text-sm">{projectName}</div>
+        <div className="hidden min-w-0 shrink-0 rounded-2xl border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] px-3.5 py-2.5 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl sm:block">
+          <div className="max-w-48 truncate font-semibold text-sm">{projectName}</div>
           <div className="text-[10px] text-[var(--ha3d-dashboard-muted)]">
             Dashboard · rev {session.getSnapshot().revision ?? '—'}
             {buildVersion ? ` · ${buildVersion}` : ''}
           </div>
         </div>
-        <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1 shadow-xl backdrop-blur-xl">
+
+        <div className="pointer-events-auto ml-auto flex min-w-0 max-w-full items-center overflow-hidden rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl">
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <Ha3dDashboardNavigation
+              embedded
+              controlsCollapsed={dashboardControlsCollapsed}
+              onCameraPreset={requestCameraPreset}
+              onControlsCollapsedChange={setDashboardControlsCollapsed}
+              scene={scene}
+            />
+          </div>
+          <div className="mx-1 h-6 w-px shrink-0 bg-[var(--ha3d-dashboard-border)]" />
           <button
-            className="flex h-9 items-center gap-1.5 rounded-full px-3 font-medium text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
+            className="flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 font-medium text-[var(--ha3d-dashboard-muted)] text-xs hover:bg-[var(--ha3d-dashboard-hover)] hover:text-[var(--ha3d-dashboard-text)]"
             onClick={onProjects}
             type="button"
           >
@@ -783,7 +792,7 @@ function NativeDashboard({
           </button>
           {onEdit ? (
             <button
-              className="flex h-9 items-center gap-1.5 rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-3 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)] hover:brightness-110"
+              className="flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-[var(--ha3d-dashboard-primary-soft)] px-3 font-medium text-[var(--ha3d-dashboard-primary)] text-xs ring-1 ring-[var(--ha3d-dashboard-primary-ring)] hover:brightness-110"
               onClick={onEdit}
               type="button"
             >
@@ -794,14 +803,6 @@ function NativeDashboard({
         </div>
       </div>
 
-      <Ha3dDashboardNavigation
-        controlsCollapsed={dashboardControlsCollapsed}
-        controlsPanelHeight={dashboardControlsHeight}
-        onCameraPreset={requestCameraPreset}
-        onControlsCollapsedChange={setDashboardControlsCollapsed}
-        scene={scene}
-      />
-
       <Ha3dDashboardControls
         collapsed={dashboardControlsCollapsed}
         environmentMode={environmentMode}
@@ -811,7 +812,6 @@ function NativeDashboard({
         onEnvironmentModeChange={onEnvironmentModeChange}
         onHighlightsEnabledChange={setInteractiveHighlights}
         onMarkersEnabledChange={setInteractiveMarkers}
-        onPanelHeightChange={setDashboardControlsHeight}
         onShowMoreInfo={onShowMoreInfo}
         selectedNodeId={selectedInteractiveNodeId}
       />
@@ -931,11 +931,18 @@ function NativeProject({
           layoutVersion="v2"
           manageDocumentDarkClass={false}
           navbarSlot={
-            <div className="flex min-h-12 items-center justify-between gap-3 border-[var(--ha3d-dashboard-border)] border-b bg-[var(--ha3d-dashboard-surface)] px-3 py-2 text-xs text-[var(--ha3d-dashboard-text)] shadow-sm backdrop-blur-xl">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="max-w-56 truncate font-semibold">{metadata.name}</span>
+            <div className="flex min-h-12 items-center gap-2 border-[var(--ha3d-dashboard-border)] border-b bg-[var(--ha3d-dashboard-surface)] px-3 py-1.5 text-xs text-[var(--ha3d-dashboard-text)] shadow-sm backdrop-blur-xl">
+              <div className="hidden min-w-0 shrink-0 items-center gap-2.5 xl:flex">
+                <span className="max-w-48 truncate font-semibold">{metadata.name}</span>
                 <span className="text-[var(--ha3d-dashboard-muted)]/40">/</span>
                 <SessionStatus saveStatus={saveStatus} session={session} />
+              </div>
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <Ha3dEditorViewportToolbar
+                  embedded
+                  environmentMode={environmentMode}
+                  onEnvironmentModeChange={setEnvironmentMode}
+                />
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
                 <button
@@ -981,12 +988,6 @@ function NativeProject({
           sidebarTabs={HA_EDITOR_SIDEBAR_TABS}
           viewerRightDock={menuEditorOpen ? <Ha3dDashboardMenuPreview /> : undefined}
           viewerSceneSlot={<Ha3dSunEnvironment mode={environmentMode} />}
-          viewerToolbarRight={
-            <Ha3dEditorViewportToolbar
-              environmentMode={environmentMode}
-              onEnvironmentModeChange={setEnvironmentMode}
-            />
-          }
         />
       </EditorCrashBoundary>
 

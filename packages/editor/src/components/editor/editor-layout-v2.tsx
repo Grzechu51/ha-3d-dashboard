@@ -209,7 +209,10 @@ function RightColumn({
       {rightDock ? (
         <div
           className="pointer-events-none absolute right-3 bottom-3 z-40"
-          style={{ top: 64, width: 'min(21rem, calc(100% - 1.5rem))' }}
+          style={{
+            top: toolbarLeft || toolbarRight ? 64 : 12,
+            width: 'min(21rem, calc(100% - 1.5rem))',
+          }}
         >
           {rightDock}
         </div>
