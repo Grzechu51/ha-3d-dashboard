@@ -931,7 +931,7 @@ function NativeProject({
           layoutVersion="v2"
           manageDocumentDarkClass={false}
           navbarSlot={
-            <div className="flex min-h-12 items-center gap-2 border-[var(--ha3d-dashboard-border)] border-b bg-[var(--ha3d-dashboard-surface)] px-3 py-1.5 text-xs text-[var(--ha3d-dashboard-text)] shadow-sm backdrop-blur-xl">
+            <div className="flex min-h-12 items-center gap-2 border-border border-b bg-sidebar px-3 py-1.5 text-sidebar-foreground text-xs shadow-sm">
               <div className="hidden min-w-0 shrink-0 items-center gap-2.5 xl:flex">
                 <span className="max-w-48 truncate font-semibold">{metadata.name}</span>
                 <span className="text-[var(--ha3d-dashboard-muted)]/40">/</span>

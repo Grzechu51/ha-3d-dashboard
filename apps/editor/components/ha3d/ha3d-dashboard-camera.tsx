@@ -1,10 +1,10 @@
 'use client'
 
-import { sceneRegistry } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { CameraControls, type CameraControlsImpl } from '@react-three/drei'
 import { useEffect, useRef } from 'react'
-import { Box3, Vector3 } from 'three'
+import { Vector3 } from 'three'
+import { resolveHa3dSceneCameraBounds } from '../../lib/ha3d/camera-bounds'
 import {
   type Ha3dDashboardCameraPreset,
   resolveHa3dDashboardCameraPose,
@@ -15,33 +15,8 @@ export type Ha3dDashboardCameraRequest = Readonly<{
   preset: Ha3dDashboardCameraPreset
 }>
 
-const dashboardBounds = new Box3()
 const dashboardCenter = new Vector3()
 const dashboardSize = new Vector3()
-
-function resolveDashboardBounds(levelId: string | null, solo: boolean): Box3 | null {
-  dashboardBounds.makeEmpty()
-
-  if (solo && levelId) {
-    const levelObject = sceneRegistry.nodes.get(levelId)
-    if (levelObject) dashboardBounds.setFromObject(levelObject)
-  } else {
-    for (const buildingId of sceneRegistry.byType.building ?? []) {
-      const buildingObject = sceneRegistry.nodes.get(buildingId)
-      if (buildingObject) dashboardBounds.expandByObject(buildingObject)
-    }
-
-    if (dashboardBounds.isEmpty()) {
-      for (const [nodeId, object] of sceneRegistry.nodes) {
-        if (sceneRegistry.byType.site?.has(nodeId)) continue
-        dashboardBounds.expandByObject(object)
-      }
-    }
-  }
-
-  return dashboardBounds.isEmpty() ? null : dashboardBounds
-}
-
 export function Ha3dDashboardCameraControls({
   request,
 }: {
@@ -54,7 +29,7 @@ export function Ha3dDashboardCameraControls({
   useEffect(() => {
     if (!(request && controls.current)) return
 
-    const bounds = resolveDashboardBounds(selectedLevelId, levelMode === 'solo')
+    const bounds = resolveHa3dSceneCameraBounds(selectedLevelId, levelMode === 'solo')
     if (!bounds) {
       void controls.current.setLookAt(10, 10, 10, 0, 0, 0, true)
       return
