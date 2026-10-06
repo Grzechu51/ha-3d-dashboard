@@ -303,7 +303,7 @@ export {
   SettingsPanel,
   type SettingsPanelProps,
 } from './components/ui/sidebar/panels/settings-panel'
-export type { SitePanelProps } from './components/ui/sidebar/panels/site-panel'
+export { SitePanel, type SitePanelProps } from './components/ui/sidebar/panels/site-panel'
 export type { SidebarTab } from './components/ui/sidebar/tab-bar'
 export {
   resolveAssetSnapTarget,

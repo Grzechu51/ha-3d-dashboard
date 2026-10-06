@@ -64,9 +64,11 @@ function levelBuildingId(level: LevelNode, nodes: ReturnType<typeof useScene.get
 export function Ha3dEditorViewportToolbar({
   environmentMode,
   onEnvironmentModeChange,
+  embedded = false,
 }: {
   environmentMode: Ha3dEnvironmentMode
   onEnvironmentModeChange: (mode: Ha3dEnvironmentMode) => void
+  embedded?: boolean
 }) {
   const selectedLevelId = useViewer((state) => state.selection.levelId)
   const levelMode = useViewer((state) => state.levelMode)
@@ -134,7 +136,13 @@ export function Ha3dEditorViewportToolbar({
   const soloLevel = levelMode === 'solo' ? selectedLevelId : null
 
   return (
-    <div className="pointer-events-auto flex max-w-[min(72vw,900px)] items-center gap-1.5 overflow-x-auto rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1.5 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl">
+    <div
+      className={
+        embedded
+          ? 'pointer-events-auto flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto text-[var(--ha3d-dashboard-text)]'
+          : 'pointer-events-auto flex max-w-[min(72vw,900px)] items-center gap-1.5 overflow-x-auto rounded-full border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] p-1.5 text-[var(--ha3d-dashboard-text)] shadow-xl backdrop-blur-xl'
+      }
+    >
       <div className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--ha3d-dashboard-hover)] p-1">
         <button
           aria-pressed={soloLevel === null}
