@@ -18,34 +18,38 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.26 Menu/editor layout cleanup**
+**Checkpoint: beta.27 unified top controls + editor regressions**
 
-Status: **v0.3.0-beta.25 is published; beta.26 work is on `feat/menu-layout-beta26`**
+Status: **v0.3.0-beta.26 is published; beta.27 work is on `feat/unified-topbar-scene-beta27`**
 
-The beta.25 release is published and its PR CI/release gates are green. The next real-HA screenshots
-also showed that the browser was still displaying beta.24-era UI: the Settings page still said
-"Custom HA cards" and the level selector/action menu were still detached. Beta.25 source already
-contains "HA cards" and the compact bottom-left dock, so the installed panel must be restarted/reloaded
-after an integration update for the versioned panel module URL to be re-registered.
+The beta.26 real-HA smoke test exposed four remaining editor-shell issues:
 
-Beta.26 removes Dashboard Menu configuration from Settings entirely; Menu is now the single place
-for Automatic vs HA cards and native Lovelace editing.
+- Dashboard camera/level controls were still a separate floating bar instead of sharing the top
+  chrome with Projects/Edit.
+- Editor camera/level/environment controls still floated over the viewport and visually collided
+  with the normal top-right inspector/helper surface.
+- The HA Scene tab overrode Pascal's Site panel with an empty component, so the tab had no content.
+- Level deletion opened a Radix dialog outside the HA panel ShadowRoot, making the confirmation
+  surface appear non-functional.
 
-The Menu preview now uses a dedicated desktop right-side viewer dock instead of a generic overlay.
-The dock begins below the viewer toolbar, so it cannot cover camera/environment controls. While the
-Menu dock is open, generic floating inspector and helper panels are suppressed, preventing a second
-right-side tile from sitting behind the preview. The preview component no longer owns absolute
-positioning; the editor layout owns its geometry.
+Beta.27 moves Dashboard navigation and the editor viewport toolbar into their respective top bars.
+The editor no longer mounts a second floating toolbar over the 3D viewport; when no viewer toolbar
+exists the Menu right dock starts close to the viewport top instead of reserving obsolete space.
+
+The Scene tab now mounts Pascal's real `SitePanel` through the public editor package surface.
+Dialog portals resolve the active ShadowRoot, matching the existing popover integration, and the
+level action popover closes before the delete confirmation opens.
 
 Architecture classification:
 
-- Settings/Menu ownership and HA preview selection: `apps/editor` host integration;
-- reusable right-side viewer dock: opt-in `packages/editor` v2 presentation API;
-- no scene schema, node semantics, viewer store, renderer dispatch or plugin API changes.
+- HA top-bar composition: `apps/editor` host integration;
+- `SitePanel` public re-export, right-dock positioning, dialog portal behavior and controlled level
+  action menu: reusable `packages/editor` UI/presentation fixes;
+- no scene schema, node-kind semantics, renderer dispatch, viewer store, tool behavior or plugin API
+  changes.
 
-The next gate is one source review plus one normal PR CI run for **v0.3.0-beta.26**, followed by a
-real Home Assistant smoke test after reloading/restarting the integration so the new versioned panel
-module is actually active.
+The next gate is source/architecture review and one normal PR CI run for **v0.3.0-beta.27**, then a
+real Home Assistant smoke test of the unified top bars, restored Scene panel and level deletion.
 
 ## Completed
 

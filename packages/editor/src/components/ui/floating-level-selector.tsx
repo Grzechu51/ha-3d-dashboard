@@ -154,6 +154,7 @@ function LevelRow({
   onPaste?: () => void
   onRequestDelete: () => void
 }) {
+  const [actionsOpen, setActionsOpen] = useState(false)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const updateNode = useScene((s) => s.updateNode)
@@ -282,7 +283,7 @@ function LevelRow({
           </Popover>
 
           {/* Vertical three-dot menu — inside the pill */}
-          <Popover>
+          <Popover onOpenChange={setActionsOpen} open={actionsOpen}>
             <PopoverTrigger asChild>
               <button
                 className="flex h-5 w-4 shrink-0 items-center justify-center text-muted-foreground/40 opacity-0 transition-all hover:text-foreground group-hover/level:opacity-100"
@@ -338,6 +339,7 @@ function LevelRow({
                 disabled={!canDeleteLevel}
                 onClick={(e) => {
                   e.stopPropagation()
+                  setActionsOpen(false)
                   onRequestDelete()
                 }}
                 title={canDeleteLevel ? 'Delete level' : 'The ground level cannot be deleted'}

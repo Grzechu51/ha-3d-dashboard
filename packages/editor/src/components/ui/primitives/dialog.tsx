@@ -6,6 +6,26 @@ import type * as React from 'react'
 
 import { cn } from '../../../lib/utils'
 
+function activeShadowRoot(): ShadowRoot | null {
+  if (typeof document === 'undefined') return null
+
+  let active: Element | null = document.activeElement
+  let shadowRoot: ShadowRoot | null = null
+
+  while (active) {
+    const root = active.getRootNode()
+    if (root instanceof ShadowRoot) shadowRoot = root
+
+    const nestedRoot = active instanceof HTMLElement ? active.shadowRoot : null
+    if (!nestedRoot) break
+
+    shadowRoot = nestedRoot
+    active = nestedRoot.activeElement
+  }
+
+  return shadowRoot
+}
+
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
@@ -14,8 +34,14 @@ function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
-function DialogPortal({ ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+function DialogPortal({
+  container,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  const portalContainer =
+    container ?? (activeShadowRoot() as unknown as HTMLElement | undefined)
+
+  return <DialogPrimitive.Portal container={portalContainer} data-slot="dialog-portal" {...props} />
 }
 
 function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.Close>) {
