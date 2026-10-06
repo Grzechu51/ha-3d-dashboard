@@ -183,8 +183,8 @@ describe('HA 3D project configuration', () => {
       lovelaceCard: {
         type: 'vertical-stack',
         cards: [
-          { type: 'tile', entity: 'light.salon' },
           { type: 'tile', entity: 'sensor.co2' },
+          { type: 'tile', entity: 'light.salon' },
         ],
       },
     })
