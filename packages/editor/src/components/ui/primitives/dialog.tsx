@@ -34,7 +34,10 @@ function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
-function DialogPortal({ container, ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+function DialogPortal({
+  container,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   const portalContainer = container ?? (activeShadowRoot() as unknown as HTMLElement | undefined)
 
   return <DialogPrimitive.Portal container={portalContainer} data-slot="dialog-portal" {...props} />
