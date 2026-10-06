@@ -49,7 +49,11 @@ function runSourceTest(body: string) {
       return module
     }
     await importShared('react')
-    await importShared('three')
+    const three = await importShared('three')
+    // These probes validate geometry/cache ownership, not browser image I/O.
+    // Use a deterministic in-memory texture so repaired catalog URLs do not
+    // require a DOM inside the isolated Bun subprocess.
+    three.TextureLoader.prototype.loadAsync = async () => new three.Texture()
     // The batch reads each kind's \`capabilities.batchable\` from the registry.
     const registryCore = await importShared('@pascal-app/core')
     const batchable = await import(${sourcePath('packages/nodes/src/shared/node-batch/batchable.ts')})
