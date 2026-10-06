@@ -1,20 +1,14 @@
 'use client'
 
-import {
-  emitter,
-  getLevelDisplayName,
-  type LevelNode,
-  sceneRegistry,
-  useScene,
-} from '@pascal-app/core'
+import { emitter, getLevelDisplayName, type LevelNode, useScene } from '@pascal-app/core'
 import { useViewer } from '@pascal-app/viewer'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { Vector3 } from 'three'
+import { resolveHa3dSceneCameraBounds } from '../../lib/ha3d/camera-bounds'
 import {
   type Ha3dDashboardCameraPreset,
   resolveHa3dDashboardCameraPose,
 } from '../../lib/ha3d/dashboard-camera'
-import { resolveHa3dSceneCameraBounds } from '../../lib/ha3d/camera-bounds'
 import type { Ha3dEnvironmentMode } from './ha3d-sun-environment'
 
 const CAMERA_PRESETS: readonly { id: Ha3dDashboardCameraPreset; label: string }[] = [

@@ -17,6 +17,7 @@ export type Ha3dDashboardCameraRequest = Readonly<{
 
 const dashboardCenter = new Vector3()
 const dashboardSize = new Vector3()
+
 export function Ha3dDashboardCameraControls({
   request,
 }: {
