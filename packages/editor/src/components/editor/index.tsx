@@ -549,10 +549,28 @@ function ShortcutSequence({ keys }: { keys: ShortcutKey[] }) {
   )
 }
 
-function CameraControlHintItem({ hint }: { hint: CameraControlHint }) {
+function CameraControlHintItem({
+  hint,
+  compact = false,
+}: {
+  hint: CameraControlHint
+  compact?: boolean
+}) {
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1.5 px-4 text-center first:pl-0 last:pr-0">
-      <span className="font-medium text-[10px] text-muted-foreground/60 tracking-[0.03em]">
+    <div
+      className={
+        compact
+          ? 'flex min-w-0 flex-col items-center gap-1 px-2 text-center first:pl-0 last:pr-0'
+          : 'flex min-w-0 flex-col items-center gap-1.5 px-4 text-center first:pl-0 last:pr-0'
+      }
+    >
+      <span
+        className={
+          compact
+            ? 'font-medium text-[9px] text-muted-foreground/60 tracking-[0.03em]'
+            : 'font-medium text-[10px] text-muted-foreground/60 tracking-[0.03em]'
+        }
+      >
         {hint.action}
       </span>
       <div className="flex flex-wrap items-center justify-center gap-1.5">
@@ -643,7 +661,7 @@ function ViewerCanvasControlsHint({
             }
           >
             {hints.map((hint) => (
-              <CameraControlHintItem hint={hint} key={hint.action} />
+              <CameraControlHintItem compact={embedded} hint={hint} key={hint.action} />
             ))}
           </div>
           <div className="flex shrink-0 items-center self-center border-border/18 border-l pl-2">
