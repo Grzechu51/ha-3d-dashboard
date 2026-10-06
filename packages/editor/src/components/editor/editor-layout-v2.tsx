@@ -164,12 +164,14 @@ function RightColumn({
   toolbarRight,
   children,
   overlays,
+  rightDock,
   stageOverlay,
 }: {
   toolbarLeft?: ReactNode
   toolbarRight?: ReactNode
   children: ReactNode
   overlays?: ReactNode
+  rightDock?: ReactNode
   stageOverlay?: ReactNode
 }) {
   return (
@@ -201,6 +203,17 @@ function RightColumn({
           while keeping it mounted. Sits below the viewer toolbar (z-20) so
           the stage switch stays reachable. */}
       {stageOverlay && <div className="absolute inset-0 z-10">{stageOverlay}</div>}
+      {/* A host dock owns its own right-side surface. It begins below the toolbar
+          instead of competing with toolbar pills and suppresses the generic
+          floating inspector/help surfaces at the Editor level. */}
+      {rightDock ? (
+        <div
+          className="pointer-events-none absolute right-3 bottom-3 z-40"
+          style={{ top: 64, width: 'min(21rem, calc(100% - 1.5rem))' }}
+        >
+          {rightDock}
+        </div>
+      ) : null}
       {/* Overlays scoped to the viewer column. `data-viewer-bounds` marks the
           draggable region the floating inspector clamps itself to. */}
       {overlays && (
@@ -226,6 +239,7 @@ export interface EditorLayoutV2Props {
   viewerToolbarLeft?: ReactNode
   viewerToolbarRight?: ReactNode
   viewerContent: ReactNode
+  viewerRightDock?: ReactNode
   overlays?: ReactNode
   stageOverlay?: ReactNode
 }
@@ -238,6 +252,7 @@ export function EditorLayoutV2({
   viewerToolbarLeft,
   viewerToolbarRight,
   viewerContent,
+  viewerRightDock,
   overlays,
   stageOverlay,
 }: EditorLayoutV2Props) {
@@ -275,6 +290,7 @@ export function EditorLayoutV2({
         )}
         <RightColumn
           overlays={overlays}
+          rightDock={viewerRightDock}
           stageOverlay={stageOverlay}
           toolbarLeft={isCaptureMode ? undefined : viewerToolbarLeft}
           toolbarRight={isCaptureMode ? undefined : viewerToolbarRight}

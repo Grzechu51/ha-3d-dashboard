@@ -7,6 +7,7 @@ import {
   type SaveStatus,
   type SceneGraph,
   type SidebarTab,
+  useEditor,
   useScene,
 } from '@pascal-app/editor'
 import { SceneEnvironment, useViewer, Viewer, ViewerPresentations } from '@pascal-app/viewer'
@@ -852,6 +853,7 @@ function NativeProject({
   buildVersion?: string | null
 }>) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const menuEditorOpen = useEditor((state) => state.activeSidebarPanel === 'ha-menu')
   const [editorEpoch, setEditorEpoch] = useState(0)
   const [editorReady, setEditorReady] = useState(false)
   const [structureOpen, setStructureOpen] = useState(false)
@@ -977,7 +979,7 @@ function NativeProject({
           presentationPersistenceMode="external"
           projectId={metadata.id}
           sidebarTabs={HA_EDITOR_SIDEBAR_TABS}
-          viewerBanner={<Ha3dDashboardMenuPreview />}
+          viewerRightDock={menuEditorOpen ? <Ha3dDashboardMenuPreview /> : undefined}
           viewerSceneSlot={<Ha3dSunEnvironment mode={environmentMode} />}
           viewerToolbarRight={
             <Ha3dEditorViewportToolbar

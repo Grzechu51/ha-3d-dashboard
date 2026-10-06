@@ -1,6 +1,5 @@
 'use client'
 
-import { useEditor } from '@pascal-app/editor'
 import { useMemo, useSyncExternalStore } from 'react'
 import { buildAutomaticDashboardCard } from '../../lib/ha3d/dashboard-menu'
 import {
@@ -14,7 +13,6 @@ import {
 import { Ha3dLovelaceCard } from './ha3d-lovelace-card'
 
 export function Ha3dDashboardMenuPreview() {
-  const activeSidebarPanel = useEditor((state) => state.activeSidebarPanel)
   const project = useSyncExternalStore(
     subscribeHa3dProjectConfig,
     getHa3dProjectConfigSnapshot,
@@ -37,13 +35,10 @@ export function Ha3dDashboardMenuPreview() {
     [project.bindings, project.dashboardMenu],
   )
 
-  if (activeSidebarPanel !== 'ha-menu') return null
-
   return (
     <aside
-      className="pointer-events-auto absolute top-16 right-3 bottom-3 z-[70] flex flex-col overflow-hidden rounded-[22px] border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl"
+      className="pointer-events-auto flex h-full w-full flex-col overflow-hidden rounded-[22px] border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl"
       data-ha3d-menu-preview
-      style={{ width: 'min(21rem, calc(100% - 1.5rem))' }}
     >
       <div className="border-[var(--ha3d-dashboard-border)] border-b px-3.5 py-3">
         <div className="font-semibold text-sm">Menu preview</div>

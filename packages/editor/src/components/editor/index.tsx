@@ -178,6 +178,11 @@ export interface EditorProps {
   sidebarTabs?: (SidebarTab & { component: React.ComponentType })[]
   viewerToolbarLeft?: ReactNode
   viewerToolbarRight?: ReactNode
+  /**
+   * Host-owned panel docked below the v2 viewer toolbar on desktop. While present,
+   * generic floating inspector/help panels are hidden so surfaces do not overlap.
+   */
+  viewerRightDock?: ReactNode
   /** Group the level selector and action menu into one compact viewer dock. */
   compactOverlayControls?: boolean
   /**
@@ -1328,6 +1333,7 @@ function EditorContent({
   sidebarTabs,
   viewerToolbarLeft,
   viewerToolbarRight,
+  viewerRightDock,
   compactOverlayControls = false,
   stageOverlay,
   inspectorFooter,
@@ -1750,19 +1756,19 @@ function EditorContent({
                       <ActionMenu />
                     </div>
                   ) : null}
-                  {!(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
+                  {!viewerRightDock && !(isVersionPreviewMode || isCaptureMode || isStudioMode) ? (
                     <div className="pointer-events-auto">
                       <PanelManager
                         inspectorFooter={inspectorFooter}
                         multiSelectionFooter={multiSelectionFooter}
                       />
                     </div>
-                  )}
-                  {!isCaptureMode && (
+                  ) : null}
+                  {!viewerRightDock && !isCaptureMode ? (
                     <div className="pointer-events-auto">
                       <HelperManager />
                     </div>
-                  )}
+                  ) : null}
                   {/* Capture mode drives walk / drone from its own overlay, which
                       owns the framing chrome — the walkthrough HUD would both
                       clutter the frame and offer a second, conflicting exit. */}
@@ -1780,6 +1786,7 @@ function EditorContent({
               sidebarTabs={tabBarTabs}
               stageOverlay={stageOverlay}
               viewerContent={viewerCanvas}
+              viewerRightDock={viewerRightDock}
               viewerToolbarLeft={viewerToolbarLeft}
               viewerToolbarRight={viewerToolbarRight}
             />

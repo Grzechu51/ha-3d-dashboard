@@ -1,6 +1,6 @@
 # HA 3D Dashboard — Project Status
 
-_Last updated: 2026-10-05_
+_Last updated: 2026-10-06_
 
 This repository is a Home Assistant 3D dashboard/editor project built on top of the open-source Pascal Editor codebase.
 
@@ -18,45 +18,34 @@ Deliver an installable Home Assistant custom integration that provides:
 
 ## Current checkpoint
 
-**Checkpoint: beta.25 real-HA editor UX + material asset repair**
+**Checkpoint: beta.26 Menu/editor layout cleanup**
 
-Status: **v0.3.0-beta.24 is published; beta.25 work is on `feat/editor-ux-assets-beta25`**
+Status: **v0.3.0-beta.25 is published; beta.26 work is on `feat/menu-layout-beta26`**
 
-The beta.24 real Home Assistant smoke test confirmed that the revised camera framing and most native
-dashboard/editor behavior work, and exposed the remaining editor-host integration issues:
+The beta.25 release is published and its PR CI/release gates are green. The next real-HA screenshots
+also showed that the browser was still displaying beta.24-era UI: the Settings page still said
+"Custom HA cards" and the level selector/action menu were still detached. Beta.25 source already
+contains "HA cards" and the compact bottom-left dock, so the installed panel must be restarted/reloaded
+after an integration update for the versioned panel module URL to be re-registered.
 
-- an underlying Pascal sidebar surface can still appear behind an HA host panel;
-- the HA cards editor/preview needs to remain visible and editable inside the viewer layout;
-- the detached level selector should be grouped with the main editor action controls near a corner;
-- the level `...` actions must render as a normal vertical popover;
-- material thumbnails and maps are broken for many catalog entries even though the release ZIP ships
-  the material directories.
+Beta.26 removes Dashboard Menu configuration from Settings entirely; Menu is now the single place
+for Automatic vs HA cards and native Lovelace editing.
 
-Beta.25 makes explicit HA sidebar tabs override Pascal built-ins, scopes the native HA cards preview
-to the viewer overlay, seeds an empty HA cards configuration from the currently bound entities, and
-removes the remaining user-facing "Custom HA cards" wording.
-
-For the HA embed only, the level selector and editor action menu are grouped into one bottom-left
-control dock while standalone Pascal keeps its existing layout. The level action popover is forced
-to a vertical menu.
-
-The material failure was traced to catalog drift rather than incomplete packaging. The release
-builder already recursively ships the Pascal icon and material directories, but the material
-catalog contained hundreds of stale `/material/...` URLs for old thumbnail/KTX2 filenames. The
-catalog now points at the files that actually exist under `apps/editor/public/material`, and the HA
-package builder rejects any future catalog URL that does not resolve to a packaged material asset.
+The Menu preview now uses a dedicated desktop right-side viewer dock instead of a generic overlay.
+The dock begins below the viewer toolbar, so it cannot cover camera/environment controls. While the
+Menu dock is open, generic floating inspector and helper panels are suppressed, preventing a second
+right-side tile from sitting behind the preview. The preview component no longer owns absolute
+positioning; the editor layout owns its geometry.
 
 Architecture classification:
 
-- HA cards editor/preview/sidebar behavior: `apps/editor` host integration;
-- compact level/action dock: opt-in `packages/editor` presentation API used only by the HA host;
-- material URL correction: `packages/core` catalog data only, no renderer/system semantics;
-- release validation: packaging script only;
-- no viewer store, node schema, renderer dispatch, tool semantics or plugin API changes.
+- Settings/Menu ownership and HA preview selection: `apps/editor` host integration;
+- reusable right-side viewer dock: opt-in `packages/editor` v2 presentation API;
+- no scene schema, node semantics, viewer store, renderer dispatch or plugin API changes.
 
-The next gate is source/architecture review followed by one normal PR CI run for
-**v0.3.0-beta.25**, then a real Home Assistant smoke test of the Menu editor/preview, compact
-bottom-left controls, level actions and the full material picker.
+The next gate is one source review plus one normal PR CI run for **v0.3.0-beta.26**, followed by a
+real Home Assistant smoke test after reloading/restarting the integration so the new versioned panel
+module is actually active.
 
 ## Completed
 
