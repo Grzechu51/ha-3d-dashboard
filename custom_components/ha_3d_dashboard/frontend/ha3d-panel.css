@@ -629,6 +629,9 @@
   .-mx-4 {
     margin-inline: calc(var(--spacing) * -4);
   }
+  .mx-0\.5 {
+    margin-inline: calc(var(--spacing) * 0.5);
+  }
   .mx-1 {
     margin-inline: calc(var(--spacing) * 1);
   }
@@ -1126,11 +1129,11 @@
   .w-32 {
     width: calc(var(--spacing) * 32);
   }
-  .w-44 {
-    width: calc(var(--spacing) * 44);
-  }
   .w-48 {
     width: calc(var(--spacing) * 48);
+  }
+  .w-52 {
+    width: calc(var(--spacing) * 52);
   }
   .w-56 {
     width: calc(var(--spacing) * 56);
@@ -1155,9 +1158,6 @@
   }
   .w-\[18px\] {
     width: 18px;
-  }
-  .w-\[21rem\] {
-    width: 21rem;
   }
   .w-\[22rem\] {
     width: 22rem;
@@ -1766,6 +1766,9 @@
   }
   .self-center {
     align-self: center;
+  }
+  .self-end {
+    align-self: flex-end;
   }
   .self-start {
     align-self: flex-start;
@@ -2639,6 +2642,12 @@
     background-color: var(--border);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--border) 60%, transparent);
+    }
+  }
+  .bg-border\/70 {
+    background-color: var(--border);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--border) 70%, transparent);
     }
   }
   .bg-card {
@@ -7304,19 +7313,9 @@
       }
     }
   }
-  .lg\:flex {
-    @media (width >= 64rem) {
-      display: flex;
-    }
-  }
   .lg\:grid-cols-3 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .lg\:flex-col {
-    @media (width >= 64rem) {
-      flex-direction: column;
     }
   }
   .\@sm\:grid-cols-2 {
