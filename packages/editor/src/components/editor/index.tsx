@@ -37,6 +37,7 @@ import { ViewerOverlay } from '../../components/viewer-overlay'
 import { ViewerZoneSystem } from '../../components/viewer-zone-system'
 import { type SaveStatus, useAutoSave } from '../../hooks/use-auto-save'
 import { useKeyboard } from '../../hooks/use-keyboard'
+import { useIsMobile } from '../../hooks/use-mobile'
 import { useSaveShortcut } from '../../hooks/use-save-shortcut'
 import {
   createLocalProjectPresentationPersistence,
@@ -177,6 +178,8 @@ export interface EditorProps {
   sidebarTabs?: (SidebarTab & { component: React.ComponentType })[]
   viewerToolbarLeft?: ReactNode
   viewerToolbarRight?: ReactNode
+  /** Group the level selector and action menu into one compact viewer dock. */
+  compactOverlayControls?: boolean
   /**
    * Full-bleed surface swapped in over the 3D canvas (v2) — e.g. the studio
    * gallery. The canvas stays mounted underneath (no WebGL re-init) and the
@@ -1325,6 +1328,7 @@ function EditorContent({
   sidebarTabs,
   viewerToolbarLeft,
   viewerToolbarRight,
+  compactOverlayControls = false,
   stageOverlay,
   inspectorFooter,
   multiSelectionFooter,
@@ -1354,6 +1358,7 @@ function EditorContent({
 }: EditorProps) {
   const isFirstPersonMode = useEditor((s) => s.isFirstPersonMode)
   const isStudioMode = useEditor((s) => s.workspaceMode === 'studio')
+  const isMobile = useIsMobile()
   const presentationProjectId = projectId ?? null
   const presentationPersistenceRef = useRef<LocalProjectPresentationPersistence | null>(null)
   const [restoredPresentationProjectId, setRestoredPresentationProjectId] = useState<
@@ -1653,6 +1658,15 @@ function EditorContent({
     }
 
     const renderTabContent = (tabId: string) => {
+      // Explicit host tabs take precedence over Pascal built-ins. This lets an
+      // embedded host intentionally replace e.g. the Site/Settings surface
+      // instead of rendering the built-in panel underneath its own UI.
+      const explicitTab = sidebarTabs?.find((tab) => tab.id === tabId)
+      if (explicitTab) {
+        const Component = explicitTab.component
+        return <Component />
+      }
+
       // Built-in panels
       if (tabId === 'site') {
         return <SitePanel {...sitePanelProps} />
@@ -1660,7 +1674,8 @@ function EditorContent({
       if (tabId === 'settings') {
         return <SettingsPanel {...settingsPanelProps} />
       }
-      // External tabs (AI chat, catalog, etc.)
+
+      // Registered host tabs (AI chat, catalog, etc.)
       const tab = tabMap.get(tabId)
       if (!tab) return null
       const Component = tab.component
@@ -1686,6 +1701,14 @@ function EditorContent({
         icon: p.icon,
       })),
     ]
+
+    const showCompactControlDock =
+      compactOverlayControls &&
+      !isMobile &&
+      !(isVersionPreviewMode || isCaptureMode || isStudioMode || stageOverlay)
+    const showFloatingLevelSelector = !showCompactControlDock && !(isCaptureMode || stageOverlay)
+    const showFloatingActionMenu =
+      !showCompactControlDock && !(isVersionPreviewMode || isCaptureMode || isStudioMode)
 
     return (
       <>
@@ -1714,12 +1737,19 @@ function EditorContent({
               navbarSlot={navbarSlot}
               overlays={
                 <>
-                  {!(isCaptureMode || stageOverlay) && <FloatingLevelSelector />}
-                  {!(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
+                  {showCompactControlDock ? (
+                    <div className="pointer-events-auto absolute bottom-3 left-3 z-50 flex items-end gap-1 rounded-2xl border border-border bg-background/90 p-1 shadow-2xl backdrop-blur-md">
+                      <FloatingLevelSelector embedded />
+                      <div className="mx-0.5 h-7 w-px self-end bg-border/70" />
+                      <ActionMenu embedded />
+                    </div>
+                  ) : null}
+                  {showFloatingLevelSelector ? <FloatingLevelSelector /> : null}
+                  {showFloatingActionMenu ? (
                     <div className="pointer-events-auto">
                       <ActionMenu />
                     </div>
-                  )}
+                  ) : null}
                   {!(isVersionPreviewMode || isCaptureMode || isStudioMode) && (
                     <div className="pointer-events-auto">
                       <PanelManager

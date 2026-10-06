@@ -1,16 +1,56 @@
 'use client'
 
 import * as PopoverPrimitive from '@radix-ui/react-popover'
-import type * as React from 'react'
+import * as React from 'react'
 
 import { cn } from '../../../lib/utils'
 
-function Popover({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />
+type PopoverPortalContextValue = {
+  portalContainer: ShadowRoot | null
+  rememberPortalRoot: (node: Node | null) => void
 }
 
-function PopoverTrigger({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+const PopoverPortalContext = React.createContext<PopoverPortalContextValue | null>(null)
+
+function Popover({
+  children,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+  const [portalContainer, setPortalContainer] = React.useState<ShadowRoot | null>(null)
+
+  const rememberPortalRoot = React.useCallback((node: Node | null) => {
+    const root = node?.getRootNode()
+    setPortalContainer(root instanceof ShadowRoot ? root : null)
+  }, [])
+
+  return (
+    <PopoverPortalContext.Provider value={{ portalContainer, rememberPortalRoot }}>
+      <PopoverPrimitive.Root {...props}>{children}</PopoverPrimitive.Root>
+    </PopoverPortalContext.Provider>
+  )
+}
+
+function PopoverTrigger({
+  onFocusCapture,
+  onPointerDownCapture,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+  const portalContext = React.useContext(PopoverPortalContext)
+
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      onFocusCapture={(event) => {
+        portalContext?.rememberPortalRoot(event.currentTarget)
+        onFocusCapture?.(event)
+      }}
+      onPointerDownCapture={(event) => {
+        portalContext?.rememberPortalRoot(event.currentTarget)
+        onPointerDownCapture?.(event)
+      }}
+      {...props}
+    />
+  )
 }
 
 function PopoverContent({
@@ -19,8 +59,12 @@ function PopoverContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  const portalContext = React.useContext(PopoverPortalContext)
+
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal
+      container={portalContext?.portalContainer as unknown as HTMLElement | undefined}
+    >
       <PopoverPrimitive.Content
         align={align}
         className={cn(

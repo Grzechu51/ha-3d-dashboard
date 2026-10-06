@@ -18,7 +18,13 @@ import { SecondaryToggles } from './view-toggles'
 // just above that strip instead of inside it.
 const MOBILE_BOTTOM_OFFSET = 24
 
-export function ActionMenu({ className }: { className?: string }) {
+export function ActionMenu({
+  className,
+  embedded = false,
+}: {
+  className?: string
+  embedded?: boolean
+}) {
   const isMobile = useIsMobile()
   const readOnly = useScene((s) => s.readOnly)
   const hasSelectionOnMobile = useViewer((s) => isMobile && s.selection.selectedIds.length > 0)
@@ -46,14 +52,21 @@ export function ActionMenu({ className }: { className?: string }) {
   const transition = reducedMotion
     ? { duration: 0 }
     : { type: 'spring' as const, bounce: 0.2, duration: 0.4 }
+  const positionClass =
+    embedded && !isMobile
+      ? 'relative z-50'
+      : cn(
+          'left-1/2 z-50 -translate-x-1/2',
+          isMobile ? 'absolute origin-bottom scale-90' : 'fixed bottom-6',
+        )
 
   return (
     <TooltipProvider>
       <motion.div
         className={cn(
-          'left-1/2 z-50 -translate-x-1/2',
-          isMobile ? 'absolute origin-bottom scale-90' : 'fixed bottom-6',
-          'rounded-2xl border border-border bg-background/90 shadow-2xl backdrop-blur-md',
+          positionClass,
+          !embedded &&
+            'rounded-2xl border border-border bg-background/90 shadow-2xl backdrop-blur-md',
           'transition-colors duration-200 ease-out',
           className,
         )}

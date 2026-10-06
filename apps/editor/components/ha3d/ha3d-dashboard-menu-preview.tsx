@@ -40,7 +40,11 @@ export function Ha3dDashboardMenuPreview() {
   if (activeSidebarPanel !== 'ha-menu') return null
 
   return (
-    <aside className="pointer-events-auto absolute top-16 right-3 bottom-3 z-[70] hidden w-[21rem] overflow-hidden rounded-[22px] border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl lg:flex lg:flex-col">
+    <aside
+      className="pointer-events-auto absolute top-16 right-3 bottom-3 z-[70] flex flex-col overflow-hidden rounded-[22px] border border-[var(--ha3d-dashboard-border)] bg-[var(--ha3d-dashboard-surface)] text-[var(--ha3d-dashboard-text)] shadow-2xl backdrop-blur-xl"
+      data-ha3d-menu-preview
+      style={{ width: 'min(21rem, calc(100% - 1.5rem))' }}
+    >
       <div className="border-[var(--ha3d-dashboard-border)] border-b px-3.5 py-3">
         <div className="font-semibold text-sm">Menu preview</div>
         <div className="mt-0.5 text-[10px] text-[var(--ha3d-dashboard-muted)]">

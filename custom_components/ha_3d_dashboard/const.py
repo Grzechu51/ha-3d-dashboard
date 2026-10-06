@@ -4,7 +4,7 @@ from typing import Final
 
 DOMAIN: Final = "ha_3d_dashboard"
 NAME: Final = "HA 3D Dashboard"
-VERSION: Final = "0.3.0-beta.24"
+VERSION: Final = "0.3.0-beta.25"
 
 PANEL_URL_PATH: Final = "ha-3d"
 PANEL_COMPONENT_NAME: Final = "ha3d-dashboard-panel"

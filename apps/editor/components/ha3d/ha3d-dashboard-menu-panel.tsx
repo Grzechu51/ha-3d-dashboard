@@ -53,7 +53,7 @@ export function Ha3dDashboardMenuPanel() {
           onClick={() => setDashboardMenuMode('lovelace')}
           type="button"
         >
-          Custom HA cards
+          HA cards
         </button>
       </div>
 
@@ -69,10 +69,11 @@ export function Ha3dDashboardMenuPanel() {
           <div className="flex items-start gap-3">
             <LayoutDashboard className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">
-              <div className="font-medium text-sm">Automatic native Home Assistant tiles</div>
+              <div className="font-medium text-sm">Automatic Home Assistant tiles</div>
               <p className="mt-1 text-muted-foreground text-xs leading-relaxed">
                 Every unique Home Assistant entity linked to the 3D scene is rendered as a native
-                Tile card. The live preview is docked on the right side of the editor.
+                Tile card. Choose HA cards to edit the generated card set with Home Assistant's
+                normal card editor.
               </p>
             </div>
           </div>
