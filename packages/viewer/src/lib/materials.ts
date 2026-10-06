@@ -336,6 +336,11 @@ async function loadPresetTexture(
   props: MaterialMapProperties,
   slot?: TextureSlot,
 ): Promise<THREE.Texture | null> {
+  // Server/headless consumers still build real materials for geometry and batching
+  // tests, but Three's TextureLoader requires a browser DOM. Texture assignment is
+  // presentation-only there, so skip the fetch instead of warning to stderr.
+  if (typeof document === 'undefined' || typeof document.createElementNS !== 'function') return null
+
   const resolvedPath = resolveCdnUrl(path) ?? path
   const cacheKey = getPresetTextureCacheKey(resolvedPath, props, slot)
   const cached = textureCache.get(cacheKey)
