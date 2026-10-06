@@ -1706,8 +1706,7 @@ function EditorContent({
       compactOverlayControls &&
       !isMobile &&
       !(isVersionPreviewMode || isCaptureMode || isStudioMode || stageOverlay)
-    const showFloatingLevelSelector =
-      !showCompactControlDock && !(isCaptureMode || stageOverlay)
+    const showFloatingLevelSelector = !showCompactControlDock && !(isCaptureMode || stageOverlay)
     const showFloatingActionMenu =
       !showCompactControlDock && !(isVersionPreviewMode || isCaptureMode || isStudioMode)
 

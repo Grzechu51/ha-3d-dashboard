@@ -246,7 +246,8 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'wood',
     surfaces: ['floor'],
     description: 'Parquet wood finish',
-    previewThumbnailUrl: '/material/wood/square_parquet_21/Square Pattern Parquet_21_baseColor.webp',
+    previewThumbnailUrl:
+      '/material/wood/square_parquet_21/Square Pattern Parquet_21_baseColor.webp',
     preset: {
       maps: {
         albedoMap: '/material/wood/square_parquet_21/Square Pattern Parquet_21_baseColor.webp',
@@ -283,11 +284,11 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'wood',
     surfaces: ['floor'],
     description: 'Parquet wood finish',
-    previewThumbnailUrl: '/material/wood/square_wood_parquet_23/Square Pattern Parquet_23_baseColor.webp',
+    previewThumbnailUrl:
+      '/material/wood/square_wood_parquet_23/Square Pattern Parquet_23_baseColor.webp',
     preset: {
       maps: {
-        albedoMap:
-          '/material/wood/square_wood_parquet_23/Square Pattern Parquet_23_baseColor.webp',
+        albedoMap: '/material/wood/square_wood_parquet_23/Square Pattern Parquet_23_baseColor.webp',
         normalMap: '/material/wood/square_wood_parquet_23/Square Pattern Parquet_23_normal.webp',
         roughnessMap:
           '/material/wood/square_wood_parquet_23/Square Pattern Parquet_23_roughness.webp',
@@ -967,15 +968,14 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'brick',
     surfaces: ['wall', 'floor', 'outdoor'],
     description: 'Brick finish',
-    previewThumbnailUrl: '/material/flooring/brick_wall_weathered/brick_wall_weathered_basecolor.jpg',
+    previewThumbnailUrl:
+      '/material/flooring/brick_wall_weathered/brick_wall_weathered_basecolor.jpg',
     preset: {
       maps: {
-        albedoMap:
-          '/material/flooring/brick_wall_weathered/brick_wall_weathered_basecolor.jpg',
+        albedoMap: '/material/flooring/brick_wall_weathered/brick_wall_weathered_basecolor.jpg',
         aoMap: '/material/flooring/brick_wall_weathered/brick_wall_weathered_ambientocclusion.jpg',
         normalMap: '/material/flooring/brick_wall_weathered/brick_wall_weathered_normal.jpg',
-        roughnessMap:
-          '/material/flooring/brick_wall_weathered/brick_wall_weathered_roughness.jpg',
+        roughnessMap: '/material/flooring/brick_wall_weathered/brick_wall_weathered_roughness.jpg',
       },
       mapProperties: {
         color: '#ffffff',
@@ -1462,8 +1462,7 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
       '/material/flooring/green_glass_quartzite/green_glass_quartzite_diffuse.jpg',
     preset: {
       maps: {
-        albedoMap:
-          '/material/flooring/green_glass_quartzite/green_glass_quartzite_diffuse.jpg',
+        albedoMap: '/material/flooring/green_glass_quartzite/green_glass_quartzite_diffuse.jpg',
         aoMap: '/material/flooring/green_glass_quartzite/green_glass_quartzite_ao.jpg',
         normalMap: '/material/flooring/green_glass_quartzite/green_glass_quartzite_normal.jpg',
       },
@@ -1502,11 +1501,9 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
       maps: {
         albedoMap: '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_basecolor.jpg',
         aoMap: '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_ambientocclusion.jpg',
-        metalnessMap:
-          '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_metallic.jpg',
+        metalnessMap: '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_metallic.jpg',
         normalMap: '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_normal.jpg',
-        roughnessMap:
-          '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_roughness.jpg',
+        roughnessMap: '/material/flooring/dark_ceramic_grunge/dark_ceramic_grunge_roughness.jpg',
       },
       mapProperties: {
         color: '#ffffff',
@@ -1538,17 +1535,15 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'tile',
     surfaces: ['floor'],
     description: 'Light ceramic flooring finish',
-    previewThumbnailUrl: '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_basecolor.jpg',
+    previewThumbnailUrl:
+      '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_basecolor.jpg',
     preset: {
       maps: {
-        albedoMap:
-          '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_basecolor.jpg',
+        albedoMap: '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_basecolor.jpg',
         aoMap: '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_ambientocclusion.jpg',
-        metalnessMap:
-          '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_metallic.jpg',
+        metalnessMap: '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_metallic.jpg',
         normalMap: '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_normal.jpg',
-        roughnessMap:
-          '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_roughness.jpg',
+        roughnessMap: '/material/flooring/light_ceramic_grunge/light_ceramic_grunge_roughness.jpg',
       },
       mapProperties: {
         color: '#ffffff',
@@ -1771,14 +1766,14 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'roofing',
     surfaces: ['roof'],
     description: 'Classic roof shingle finish',
-    previewThumbnailUrl: '/material/roofing/roof_shingles_classic/roof_shingles_classic_basecolor.webp',
+    previewThumbnailUrl:
+      '/material/roofing/roof_shingles_classic/roof_shingles_classic_basecolor.webp',
     preset: {
       maps: {
-        albedoMap:
-          '/material/roofing/roof_shingles_classic/roof_shingles_classic_basecolor.webp',
-        aoMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_ambientocclusion.webp',
-        metalnessMap:
-          '/material/roofing/roof_shingles_classic/roof_shingles_classic_metallic.webp',
+        albedoMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_basecolor.webp',
+        aoMap:
+          '/material/roofing/roof_shingles_classic/roof_shingles_classic_ambientocclusion.webp',
+        metalnessMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_metallic.webp',
         normalMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_normal.webp',
         roughnessMap:
           '/material/roofing/roof_shingles_classic/roof_shingles_classic_roughness.webp',
@@ -1852,14 +1847,14 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     category: 'roofing',
     surfaces: ['roof'],
     description: 'Terracotta roof tile finish',
-    previewThumbnailUrl: '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_basecolor.webp',
+    previewThumbnailUrl:
+      '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_basecolor.webp',
     preset: {
       maps: {
-        albedoMap:
-          '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_basecolor.webp',
-        aoMap: '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_ambientocclusion.webp',
-        metalnessMap:
-          '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_metallic.webp',
+        albedoMap: '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_basecolor.webp',
+        aoMap:
+          '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_ambientocclusion.webp',
+        metalnessMap: '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_metallic.webp',
         normalMap: '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_normal.webp',
         roughnessMap:
           '/material/roofing/roof_tiles_terracotta/roof_tiles_terracotta_roughness.webp',
@@ -1898,9 +1893,9 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
     preset: {
       maps: {
         albedoMap: '/material/roofing/roof_shingles_grey/roof_shingles_grey_basecolor_512.webp',
-        aoMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_ambientocclusion.webp',
-        metalnessMap:
-          '/material/roofing/roof_shingles_classic/roof_shingles_classic_metallic.webp',
+        aoMap:
+          '/material/roofing/roof_shingles_classic/roof_shingles_classic_ambientocclusion.webp',
+        metalnessMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_metallic.webp',
         normalMap: '/material/roofing/roof_shingles_classic/roof_shingles_classic_normal.webp',
         roughnessMap:
           '/material/roofing/roof_shingles_classic/roof_shingles_classic_roughness.webp',
@@ -1941,11 +1936,11 @@ export const MATERIAL_CATALOG: MaterialCatalogItem[] = [
       maps: {
         albedoMap:
           '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_basecolor.webp',
-        aoMap: '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_ambientocclusion.webp',
+        aoMap:
+          '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_ambientocclusion.webp',
         metalnessMap:
           '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_metallic.webp',
-        normalMap:
-          '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_normal.webp',
+        normalMap: '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_normal.webp',
         roughnessMap:
           '/material/roofing/roof_shingles_weathered/roof_shingles_weathered_roughness.webp',
       },

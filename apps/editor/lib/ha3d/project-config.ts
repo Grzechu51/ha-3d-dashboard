@@ -263,9 +263,7 @@ export function setDashboardMenuMode(mode: Ha3dDashboardMenuConfig['mode']): voi
     mode,
     lovelaceCard: shouldSeedEditableCards
       ? buildAutomaticDashboardCard(
-          snapshot.bindings
-            .filter((binding) => binding.enabled)
-            .map((binding) => binding.entityId),
+          snapshot.bindings.filter((binding) => binding.enabled).map((binding) => binding.entityId),
         )
       : snapshot.dashboardMenu.lovelaceCard,
   })
